@@ -24,9 +24,7 @@ document
 });
 
 const tela =
-document.getElementById(
-nomeTela
-);
+document.getElementById(nomeTela);
 
 if(tela){
     tela.style.display='block';
@@ -83,10 +81,8 @@ try{
     .select('status');
 
     if(error){
-
         console.error(error);
         return;
-
     }
 
     let ativos = 0;
@@ -98,13 +94,10 @@ try{
         p.status ===
         'Inativo'
         ){
-
             inativos++;
-
-        }else{
-
+        }
+        else{
             ativos++;
-
         }
 
     });
@@ -165,9 +158,7 @@ try{
     await bancoDados
     .from('pacientes')
     .select('*')
-    .order(
-    'nome'
-    );
+    .order('nome');
 
     if(error){
 
@@ -198,7 +189,6 @@ try{
     paciente=>{
 
         html += `
-
         <div class="cardPaciente">
 
             <strong>
@@ -218,7 +208,6 @@ try{
             </small>
 
         </div>
-
         `;
 
     });
@@ -283,6 +272,11 @@ cards.forEach(card=>{
 // MENU MOBILE
 // =====================================
 
+document.addEventListener(
+'DOMContentLoaded',
+()=>{
+
+```
 const menuBtn =
 document.getElementById(
 'menuBtn'
@@ -290,21 +284,23 @@ document.getElementById(
 
 if(menuBtn){
 
-```
-menuBtn.addEventListener(
-'click',
-()=>{
+    menuBtn.addEventListener(
+    'click',
+    ()=>{
 
-    alert(
-    'Menu mobile será implementado futuramente.'
+        alert(
+        'Menu mobile será implementado futuramente.'
+        );
+
+    }
     );
 
 }
-);
 ```
 
 }
+);
 
 console.log(
-'APP V1 CARREGADO'
+'APP V2 CARREGADO'
 );
