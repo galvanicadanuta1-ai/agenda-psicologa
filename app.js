@@ -1,41 +1,42 @@
-// ==========================================================================
-// CONFIGURAÇÕES DE CONEXÃO DO SUPABASE
-// ==========================================================================
 const SUPABASE_URL = 'https://sasbkclofsnropssrafn.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhc2JrY2xvZnNucm9wc3NyYWZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExODg3NjcsImV4cCI6MjA5Njc2NDc2N30._8_tmYoRlyEhARjXZ3swW8ynCPY5aysGMFCTzgcnK5Y';
 
-// Inicialização segura do cliente Supabase
 let bancoDados;
 if (window.supabase) {
     bancoDados = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 } else {
-    console.error("Erro critical: A biblioteca do Supabase não foi carregada via CDN no HTML.");
+    console.error("Erro crítico: Biblioteca Supabase não carregada.");
 }
+
+// Controle de Estado de Edição
+let idPacienteEditando = null;
 
 // ==========================================================================
 // NAVEGAÇÃO INTERNA (SPA)
 // ==========================================================================
 function mostrarTela(nomeTela) {
-    document.querySelectorAll('.tela').forEach(tela => {
-        tela.style.display = 'none';
-    });
-
+    document.querySelectorAll('.tela').forEach(tela => tela.style.display = 'none');
+    
     const tela = document.getElementById(nomeTela);
-    if (tela) {
-        tela.style.display = 'block';
-    }
+    if (tela) tela.style.display = 'block';
 
-    // Gatilhos específicos ao abrir cada tela (evita requisições duplicadas)
     switch (nomeTela) {
         case 'dashboard':
             atualizarDashboard();
+            break;
+        case 'agenda':
+            carregarAgendaSemanal();
             break;
         case 'pacientes':
             carregarPacientes();
             break;
         case 'novoPaciente':
-            const form = document.getElementById('formPaciente');
-            if (form) form.reset();
+            if (!idPacienteEditando) {
+                document.querySelector('#novoPaciente h2').innerText = "Novo Paciente";
+                document.getElementById('btnSalvarPaciente').innerText = "Salvar Paciente";
+                const form = document.getElementById('formPaciente');
+                if (form) form.reset();
+            }
             break;
         case 'configuracoes':
             carregarConfiguracoesCampos();
@@ -45,68 +46,30 @@ function mostrarTela(nomeTela) {
 window.mostrarTela = mostrarTela;
 
 // ==========================================================================
-// INICIALIZAÇÃO E ESCUTAS DE EVENTOS
+// INICIALIZAÇÃO
 // ==========================================================================
 window.addEventListener('load', () => {
     aplicarConfiguracoesVisuais();
-    mostrarTela('dashboard'); // Já engaja o atualizarDashboard internamente
+    mostrarTela('dashboard');
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Menu Mobile
-    const menuBtn = document.getElementById('menuBtn');
-    if (menuBtn) {
-        menuBtn.addEventListener('click', () => {
-            alert('Menu mobile será implementado futuramente.');
-        });
-    }
-
-    // Botão Salvar Paciente
-    const btnSalvarPaciente = document.getElementById('btnSalvarPaciente');
-    if (btnSalvarPaciente) {
-        btnSalvarPaciente.addEventListener('click', salvarPaciente);
-    }
-
-    // Botão Salvar Configurações
-    const btnSalvarConfig = document.getElementById('btnSalvarConfiguracoes');
-    if (btnSalvarConfig) {
-        btnSalvarConfig.addEventListener('click', salvarConfiguracoes);
-    }
-
-    // Automação: Escuta alteração na data para mudar o dia da semana sozinho
-    const dataInicialInput = document.getElementById('dataInicial');
-    if (dataInicialInput) {
-        dataInicialInput.addEventListener('change', atualizarDiaSemanaAutomatico);
-    }
+    document.getElementById('btnSalvarPaciente')?.addEventListener('click', salvarPaciente);
+    document.getElementById('btnSalvarConfiguracoes')?.addEventListener('click', salvarConfiguracoes);
+    document.getElementById('dataInicial')?.addEventListener('change', atualizarDiaSemanaAutomatico);
 });
 
-// ==========================================================================
-// AUTOMATIZAÇÃO: CALCULAR DIA DA SEMANA
-// ==========================================================================
 function atualizarDiaSemanaAutomatico() {
     const dataValor = document.getElementById('dataInicial').value;
     if (!dataValor) return;
-
-    // Isola as partes da data para evitar distorção de fuso horário (UTC)
     const partes = dataValor.split('-');
     const dataObjeto = new Date(partes[0], partes[1] - 1, partes[2]);
-
-    const diasDaSemana = [
-        'Domingo',
-        'Segunda',
-        'Terça',
-        'Quarta',
-        'Quinta',
-        'Sexta',
-        'Sábado'
-    ];
-
+    const diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
     const nomeDia = diasDaSemana[dataObjeto.getDay()];
     const selectDia = document.getElementById('diaSemana');
-    
     if (selectDia) {
         if (nomeDia === 'Domingo') {
-            alert('Atenção: A data selecionada cai em um Domingo. Ajustando para Segunda-feira.');
+            alert('Data cai em um Domingo. Ajustando para Segunda.');
             selectDia.value = 'Segunda';
         } else {
             selectDia.value = nomeDia;
@@ -119,58 +82,30 @@ function atualizarDiaSemanaAutomatico() {
 // ==========================================================================
 async function atualizarDashboard() {
     if (!bancoDados) return;
-    
     try {
-        const { data, error } = await bancoDados
-            .from('pacientes')
-            .select('status');
-
+        const { data, error } = await bancoDados.from('pacientes').select('status');
         if (error) throw error;
-
-        let ativos = 0;
-        let inativos = 0;
-
+        let ativos = 0, inativos = 0;
         if (data) {
-            data.forEach(p => {
-                if (p.status === 'Inativo') {
-                    inativos++;
-                } else {
-                    ativos++;
-                }
-            });
+            data.forEach(p => p.status === 'Inativo' ? inativos++ : ativos++);
         }
-
         document.getElementById('totalAtivos').innerText = ativos;
         document.getElementById('totalInativos').innerText = inativos;
-        
-        // Contadores estáticos para implementações futuras da agenda
-        document.getElementById('atendimentosHoje').innerText = "0";
-        document.getElementById('receberMes').innerText = "R$ 0,00";
-
-    } catch (err) {
-        console.error("Erro ao atualizar dados do Dashboard:", err);
-    }
+    } catch (err) { console.error("Erro Dashboard:", err); }
 }
 
 // ==========================================================================
-// PACIENTES (LISTAGEM E FILTRO)
+// PACIENTES (LISTAGEM, BUSCA, EDIÇÃO E EXCLUSÃO)
 // ==========================================================================
 async function carregarPacientes() {
     if (!bancoDados) return;
-
     const lista = document.getElementById('listaPacientes');
     if (!lista) return;
-
     lista.innerHTML = '<div class="carregando">Carregando pacientes...</div>';
 
     try {
-        const { data, error } = await bancoDados
-            .from('pacientes')
-            .select('*')
-            .order('nome');
-
+        const { data, error } = await bancoDados.from('pacientes').select('*').order('nome');
         if (error) throw error;
-
         if (!data || data.length === 0) {
             lista.innerHTML = 'Nenhum paciente cadastrado';
             return;
@@ -179,49 +114,94 @@ async function carregarPacientes() {
         let html = '';
         data.forEach(paciente => {
             html += `
-                <div class="cardPaciente">
+                <div class="cardPaciente" id="card-${paciente.id}">
                     <strong>${paciente.nome || ''}</strong><br>
                     <small>📞 Telefone: ${paciente.telefone || 'Não informado'}</small><br>
                     <small>🟢 Status: ${paciente.status || 'Ativo'}</small>
+                    <div class="acoes-card">
+                        <button class="btn-editar" onclick="prepararEdicaoPaciente('${paciente.id}')">✏️ Editar Perfil</button>
+                        <button class="btn-excluir" onclick="excluirPaciente('${paciente.id}')">🗑️ Excluir</button>
+                    </div>
                 </div>
             `;
         });
         lista.innerHTML = html;
-
-    } catch (err) {
-        console.error("Erro ao carregar lista de pacientes:", err);
-        lista.innerHTML = 'Erro ao carregar pacientes';
-    }
+    } catch (err) { lista.innerHTML = 'Erro ao carregar pacientes'; }
 }
 
-// Mecanismo de busca em tempo real (Filtro cliente)
+window.prepararEdicaoPaciente = async function(id) {
+    idPacienteEditando = id;
+    try {
+        const { data, error } = await bancoDados.from('pacientes').select('*').eq('id', id);
+        if (error) throw error;
+        const p = data[0];
+
+        // Mudar visual da tela de cadastro
+        document.querySelector('#novoPaciente h2').innerText = "Editar Perfil do Paciente";
+        document.getElementById('btnSalvarPaciente').innerText = "Atualizar Dados";
+
+        // Preencher dados cadastrais
+        document.getElementById('nome').value = p.nome;
+        document.getElementById('cpf').value = p.cpf || '';
+        document.getElementById('telefone').value = p.telefone || '';
+        document.getElementById('email').value = p.email || '';
+        document.getElementById('dataNascimento').value = p.data_nascimento || '';
+        document.getElementById('endereco').value = p.endereco || '';
+        document.getElementById('responsavel').value = p.responsavel || '';
+        document.getElementById('observacoes').value = p.observacoes || '';
+        document.getElementById('statusPaciente').value = p.status;
+
+        // Buscar dados do plano para preencher também
+        const planoRes = await bancoDados.from('planos_atendimento').select('*').eq('paciente_id', id);
+        if (planoRes.data && planoRes.data.length > 0) {
+            const pl = planoRes.data[0];
+            document.getElementById('dataInicial').value = pl.data_inicio || '';
+            document.getElementById('diaSemana').value = pl.dia_semana;
+            document.getElementById('frequencia').value = pl.frequencia;
+            document.getElementById('horario').value = pl.hora_padrao || '';
+            document.getElementById('modalidade').value = pl.modalidade;
+            document.getElementById('valor').value = pl.valor || '';
+            document.getElementById('formaCobranca').value = pl.forma_cobranca;
+        }
+
+        mostrarTela('novoPaciente');
+    } catch (err) { alert('Erro ao buscar dados do paciente.'); }
+};
+
+window.excluirPaciente = async function(id) {
+    if (!confirm("Tem certeza que deseja excluir este paciente? Isso apagará permanentemente o perfil e o plano de atendimento associados.")) return;
+    try {
+        // Deleta plano primeiro (regragem de integridade do banco)
+        await bancoDados.from('planos_atendimento').delete().eq('paciente_id', id);
+        // Deleta paciente
+        const { error } = await bancoDados.from('pacientes').delete().eq('id', id);
+        if (error) throw error;
+
+        alert('Paciente removido com sucesso!');
+        carregarPacientes();
+        atualizarDashboard();
+    } catch (err) { alert('Erro ao excluir paciente.'); }
+};
+
+// Mecanismo de Busca
 document.addEventListener('input', function (e) {
     if (e.target.id !== 'pesquisaPaciente') return;
-
     const filtro = e.target.value.toLowerCase();
-    const cards = document.querySelectorAll('.cardPaciente');
-
-    cards.forEach(card => {
-        const texto = card.innerText.toLowerCase();
-        card.style.display = texto.includes(filtro) ? 'block' : 'none';
+    document.querySelectorAll('.cardPaciente').forEach(card => {
+        card.style.display = card.innerText.toLowerCase().includes(filtro) ? 'block' : 'none';
     });
 });
 
 // ==========================================================================
-// FLUXO: SALVAR PACIENTE E PLANO ATENDIMENTO
+// SALVAR OU ATUALIZAR PACIENTE
 // ==========================================================================
 async function salvarPaciente() {
     if (!bancoDados) return;
-
     try {
         const nome = document.getElementById('nome').value;
-        if (!nome) {
-            alert('Informe o nome do paciente');
-            return;
-        }
+        if (!nome) { alert('Informe o nome do paciente'); return; }
 
-        // Montagem do payload de Pacientes
-        const paciente = {
+        const payloadPaciente = {
             nome: nome,
             cpf: document.getElementById('cpf').value || null,
             telefone: document.getElementById('telefone').value || null,
@@ -234,20 +214,7 @@ async function salvarPaciente() {
             ativo: document.getElementById('statusPaciente').value === 'Ativo'
         };
 
-        // Salvando paciente (Removido .single() para evitar travas de segurança)
-        const resultadoPaciente = await bancoDados
-            .from('pacientes')
-            .insert([paciente])
-            .select('id');
-
-        if (resultadoPaciente.error) throw resultadoPaciente.error;
-
-        // Recupera o ID gerado pelo banco para vincular ao plano
-        const pacienteId = resultadoPaciente.data[0].id;
-
-        // Montagem do payload de Planos
-        const plano = {
-            paciente_id: pacienteId,
+        const payloadPlano = {
             data_inicio: document.getElementById('dataInicial').value || null,
             dia_semana: document.getElementById('diaSemana').value,
             frequencia: document.getElementById('frequencia').value,
@@ -258,24 +225,69 @@ async function salvarPaciente() {
             ativo: true
         };
 
-        const resultadoPlano = await bancoDados
-            .from('planos_atendimento')
-            .insert([plano]);
+        if (idPacienteEditando) {
+            // OPERAÇÃO: ATUALIZAR
+            const resPac = await bancoDados.from('pacientes').update(payloadPaciente).eq('id', idPacienteEditando);
+            if (resPac.error) throw resPac.error;
 
-        if (resultadoPlano.error) {
-            console.error(resultadoPlano.error);
-            alert('Paciente salvo, mas ocorreu um erro crítico ao gerar o plano de atendimento.');
-            return;
+            await bancoDados.from('planos_atendimento').update(payloadPlano).eq('paciente_id', idPacienteEditando);
+            alert('Perfil do paciente atualizado com sucesso!');
+            idPacienteEditando = null; // Reseta estado
+        } else {
+            // OPERAÇÃO: INSERIR NOVO
+            const resPac = await bancoDados.from('pacientes').insert([payloadPaciente]).select('id');
+            if (resPac.error) throw resPac.error;
+
+            payloadPlano.paciente_id = resPac.data[0].id;
+            await bancoDados.from('planos_atendimento').insert([payloadPlano]);
+            alert('Paciente e plano cadastrados com sucesso!');
         }
 
-        alert('Paciente e plano cadastrados com sucesso!');
         document.getElementById('formPaciente').reset();
         mostrarTela('pacientes');
+    } catch (erro) { alert('Erro na transação de salvamento.'); }
+}
 
-    } catch (erro) {
-        console.error("Erro na transação de salvamento:", erro);
-        alert('Erro ao salvar paciente. Verifique os campos ou certifique-se de que o RLS está desativado no Supabase.');
-    }
+// ==========================================================================
+// LÓGICA DE CARREGAMENTO DA AGENDA
+// ==========================================================================
+async function carregarAgendaSemanal() {
+    if (!bancoDados) return;
+    
+    // Limpar as colunas antes de renderizar
+    document.querySelectorAll('.slots-agendamentos').forEach(slot => slot.innerHTML = '');
+
+    try {
+        // Buscaremos os dados da tabela agendamentos trazendo o nome do paciente associado
+        const { data, error } = await bancoDados
+            .from('agendamentos')
+            .select('id, data, hora, status, pacientes(nome)')
+            .order('hora');
+
+        if (error) throw error;
+
+        if (data) {
+            data.forEach(agendamento => {
+                // Cálculo para saber qual o dia da semana da data do agendamento
+                const partes = agendamento.data.split('-');
+                const dataObj = new Date(partes[0], partes[1] - 1, partes[2]);
+                const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+                const diaSemanaTexto = dias[dataObj.getDay()];
+
+                const containerDia = document.querySelector(`#dia-${diaSemanaTexto} .slots-agendamentos`);
+                
+                if (containerDia) {
+                    const nomePaciente = agendamento.pacientes ? agendamento.pacientes.nome : 'Paciente Removido';
+                    containerDia.innerHTML += `
+                        <div class="card-compromisso">
+                            <strong>${agendamento.hora.substring(0,5)}</strong> - ${nomePaciente}
+                            <br><small>⏱️ ${agendamento.status || 'Agendado'}</small>
+                        </div>
+                    `;
+                }
+            });
+        }
+    } catch (err) { console.error("Erro ao carregar agenda:", err); }
 }
 
 // ==========================================================================
@@ -289,29 +301,23 @@ function salvarConfiguracoes() {
         corFundo: document.getElementById('corFundo').value,
         modoEscuro: document.getElementById('modoEscuro').checked
     };
-
     localStorage.setItem('agenda_psi_config', JSON.stringify(config));
     
-    // Processamento da logo para armazenamento local em Base64
     const logoInput = document.getElementById('configLogo');
-    if (logoInput && logoInput.files && logoInput.files[0]) {
+    if (logoInput?.files?.[0]) {
         const reader = new FileReader();
         reader.onload = function (e) {
             localStorage.setItem('agenda_psi_logo', e.target.result);
             aplicarConfiguracoesVisuais();
         };
         reader.readAsDataURL(logoInput.files[0]);
-    } else {
-        aplicarConfiguracoesVisuais();
-    }
-
-    alert('Configurações aplicadas com sucesso!');
+    } else { aplicarConfiguracoesVisuais(); }
+    alert('Configurações aplicadas!');
 }
 
 function carregarConfiguracoesCampos() {
     const salvo = localStorage.getItem('agenda_psi_config');
     if (!salvo) return;
-
     const config = JSON.parse(salvo);
     document.getElementById('configNomeSistema').value = config.nomeSistema;
     document.getElementById('corMenu').value = config.corMenu;
@@ -323,35 +329,17 @@ function carregarConfiguracoesCampos() {
 function aplicarConfiguracoesVisuais() {
     const salvo = localStorage.getItem('agenda_psi_config');
     const logoSalva = localStorage.getItem('agenda_psi_logo');
-    
     if (salvo) {
         const config = JSON.parse(salvo);
-        
         document.getElementById('nomeSistema').innerText = config.nomeSistema;
         document.getElementById('tituloSistema').innerText = config.nomeSistema;
         document.title = config.nomeSistema;
-
-        // Injeta propriedades customizadas no root (CSS moderno)
         document.documentElement.style.setProperty('--cor-menu', config.corMenu);
         document.documentElement.style.setProperty('--cor-principal', config.corPrincipal);
         document.documentElement.style.setProperty('--cor-fundo', config.corFundo);
-
-        // Fallback direto para o layout antigo
-        const sidebar = document.querySelector('.sidebar');
-        if (sidebar) sidebar.style.backgroundColor = config.corMenu;
-        
-        if (config.modoEscuro) {
-            document.body.classList.add('dark-mode');
-        } else {
-            document.body.classList.remove('dark-mode');
-        }
+        if (config.modoEscuro) document.body.classList.add('dark-mode');
+        else document.body.classList.remove('dark-mode');
     }
-
     const imgLogo = document.getElementById('logoSistema');
-    if (imgLogo && logoSalva) {
-        imgLogo.src = logoSalva;
-        imgLogo.style.display = 'block';
-    }
+    if (imgLogo && logoSalva) { imgLogo.src = logoSalva; imgLogo.style.display = 'block'; }
 }
-
-console.log('APP V2.5 INTEGRADO E PRONTO');
