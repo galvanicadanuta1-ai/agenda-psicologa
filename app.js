@@ -231,3 +231,117 @@ alert('Menu mobile será implementado futuramente.');
 });
 
 console.log('APP V2 CARREGADO');
+// =====================================
+// SALVAR PACIENTE
+// =====================================
+
+const btnSalvarPaciente =
+document.getElementById(
+'btnSalvarPaciente'
+);
+
+if(btnSalvarPaciente){
+
+btnSalvarPaciente.addEventListener(
+'click',
+salvarPaciente
+);
+
+}
+
+async function salvarPaciente(){
+
+try{
+
+const nome =
+document.getElementById('nome').value;
+
+if(!nome){
+
+alert('Informe o nome do paciente');
+return;
+
+}
+
+const paciente = {
+
+nome: nome,
+cpf: document.getElementById('cpf').value,
+telefone: document.getElementById('telefone').value,
+email: document.getElementById('email').value,
+data_nascimento: document.getElementById('dataNascimento').value || null,
+endereco: document.getElementById('endereco').value,
+responsavel: document.getElementById('responsavel').value,
+observacoes: document.getElementById('observacoes').value,
+status: document.getElementById('statusPaciente').value,
+ativo: document.getElementById('statusPaciente').value === 'Ativo'
+
+};
+
+const resultadoPaciente =
+await bancoDados
+.from('pacientes')
+.insert([paciente])
+.select()
+.single();
+
+if(resultadoPaciente.error){
+
+console.error(resultadoPaciente.error);
+alert('Erro ao salvar paciente');
+return;
+
+}
+
+const pacienteId =
+resultadoPaciente.data.id;
+
+const plano = {
+
+paciente_id: pacienteId,
+data_inicio: document.getElementById('dataInicial').value || null,
+dia_semana: document.getElementById('diaSemana').value,
+frequencia: document.getElementById('frequencia').value,
+hora_padrao: document.getElementById('horario').value,
+modalidade: document.getElementById('modalidade').value,
+valor: Number(document.getElementById('valor').value || 0),
+forma_cobranca: document.getElementById('formaCobranca').value,
+ativo: true
+
+};
+
+const resultadoPlano =
+await bancoDados
+.from('planos_atendimento')
+.insert([plano]);
+
+if(resultadoPlano.error){
+
+console.error(resultadoPlano.error);
+alert('Paciente salvo, mas houve erro ao criar plano.');
+return;
+
+}
+
+alert('Paciente cadastrado com sucesso!');
+
+document.getElementById(
+'formPaciente'
+).reset();
+
+mostrarTela(
+'pacientes'
+);
+
+}
+catch(erro){
+
+console.error(erro);
+
+alert(
+'Erro ao salvar paciente'
+);
+
+}
+
+}
