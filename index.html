@@ -1,17 +1,237 @@
-<div id="agenda" class="tela" style="display:none">
-    <div class="content">
-        <div class="agenda-header">
-            <h2>Agenda Semanal</h2>
-            <button type="button" id="btnNovoAgendamento" onclick="abrirModalAgendamento()">+ Novo Agendamento</button>
-        </div>
-        
-        <div class="grade-agenda">
-            <div class="coluna-dia" id="dia-Segunda"><h3>Segunda</h3><div class="slots-agendamentos"></div></div>
-            <div class="coluna-dia" id="dia-Terça"><h3>Terça</h3><div class="slots-agendamentos"></div></div>
-            <div class="coluna-dia" id="dia-Quarta"><h3>Quarta</h3><div class="slots-agendamentos"></div></div>
-            <div class="coluna-dia" id="dia-Quinta"><h3>Quinta</h3><div class="slots-agendamentos"></div></div>
-            <div class="coluna-dia" id="dia-Sexta"><h3>Sexta</h3><div class="slots-agendamentos"></div></div>
-            <div class="coluna-dia" id="dia-Sábado"><h3>Sábado</h3><div class="slots-agendamentos"></div></div>
-        </div>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Psicóloga</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div class="container-app">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <img id="logoSistema" src="" alt="Logo" style="display: none; max-width: 80px; margin-bottom: 10px; border-radius: 50%;">
+                <h1 id="nomeSistema">Agenda Psi</h1>
+            </div>
+            <nav class="sidebar-menu">
+                <button onclick="mostrarTela('dashboard')">📊 Dashboard</button>
+                <button onclick="mostrarTela('agenda')">📅 Agenda Semanal</button>
+                <button onclick="mostrarTela('pacientes')">👥 Pacientes</button>
+                <button onclick="mostrarTela('novoPaciente')">➕ Novo Paciente</button>
+                <button onclick="mostrarTela('configuracoes')">⚙️ Configurações</button>
+            </nav>
+        </aside>
+
+        <main class="conteudo-principal">
+            <header class="topo-sistema">
+                <button id="menuBtn" class="btn-menu-mobile">☰</button>
+                <h2 id="tituloSistema">Painel de Controle</h2>
+            </header>
+
+            <div id="dashboard" class="tela">
+                <div class="grid-cards">
+                    <div class="card bg-sucesso">
+                        <h3>Pacientes Ativos</h3>
+                        <p id="totalAtivos">0</p>
+                    </div>
+                    <div class="card bg-alerta">
+                        <h3>Pacientes Inativos</h3>
+                        <p id="totalInativos">0</p>
+                    </div>
+                    <div class="card bg-info">
+                        <h3>Atendimentos Hoje</h3>
+                        <p id="atendimentosHoje">0</p>
+                    </div>
+                    <div class="card bg-primario">
+                        <h3>Previsão do Mês</h3>
+                        <p id="receberMes">R$ 0,00</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="agenda" class="tela" style="display:none">
+                <div class="agenda-header">
+                    <h2>Agenda de Atendimentos</h2>
+                </div>
+                <div class="grade-agenda">
+                    <div class="coluna-dia" id="dia-Segunda"><h3>Segunda</h3><div class="slots-agendamentos"></div></div>
+                    <div class="coluna-dia" id="dia-Terça"><h3>Terça</h3><div class="slots-agendamentos"></div></div>
+                    <div class="coluna-dia" id="dia-Quarta"><h3>Quarta</h3><div class="slots-agendamentos"></div></div>
+                    <div class="coluna-dia" id="dia-Quinta"><h3>Quinta</h3><div class="slots-agendamentos"></div></div>
+                    <div class="coluna-dia" id="dia-Sexta"><h3>Sexta</h3><div class="slots-agendamentos"></div></div>
+                    <div class="coluna-dia" id="dia-Sábado"><h3>Sábado</h3><div class="slots-agendamentos"></div></div>
+                </div>
+            </div>
+
+            <div id="pacientes" class="tela" style="display:none">
+                <div class="lista-header">
+                    <h2>Gerenciamento de Pacientes</h2>
+                    <input type="text" id="pesquisaPaciente" placeholder="🔍 Buscar paciente por nome...">
+                </div>
+                <div id="listaPacientes" class="grid-pacientes">
+                    </div>
+            </div>
+
+            <div id="novoPaciente" class="tela" style="display:none">
+                <h2 class="titulo-formulario">Novo Paciente</h2>
+                <form id="formPaciente" onsubmit="event.preventDefault();">
+                    
+                    <fieldset>
+                        <legend>Dados Cadastrais</legend>
+                        <div class="form-group-row">
+                            <div class="form-group">
+                                <label for="nome">Nome Completo *</label>
+                                <input type="text" id="nome" required placeholder="Nome do paciente">
+                            </div>
+                            <div class="form-group">
+                                <label for="statusPaciente">Status</label>
+                                <select id="statusPaciente">
+                                    <option value="Ativo">Ativo</option>
+                                    <option value="Inativo">Inativo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group-row">
+                            <div class="form-group">
+                                <label for="cpf">CPF</label>
+                                <input type="text" id="cpf" placeholder="000.000.000-00">
+                            </div>
+                            <div class="form-group">
+                                <label for="dataNascimento">Data de Nascimento</label>
+                                <input type="date" id="dataNascimento">
+                            </div>
+                        </div>
+
+                        <div class="form-group-row">
+                            <div class="form-group">
+                                <label for="telefone">Telefone / WhatsApp</label>
+                                <input type="tel" id="telefone" placeholder="(00) 00000-0000">
+                            </div>
+                            <div class="form-group">
+                                <label for="email">E-mail</label>
+                                <input type="email" id="email" placeholder="exemplo@email.com">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="endereco">Endereço Residencial</label>
+                            <input type="text" id="endereco" placeholder="Rua, Número, Bairro, Cidade">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="responsavel">Responsável Legal (Se menor de idade)</label>
+                            <input type="text" id="responsavel" placeholder="Nome do responsável">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="observacoes">Observações / Histórico Clínico</label>
+                            <textarea id="observacoes" rows="3" placeholder="Informações relevantes anotadas pela psicóloga..."></textarea>
+                        </div>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Plano de Atendimento Semanal</legend>
+                        <div class="form-group-row">
+                            <div class="form-group">
+                                <label for="dataInicial">Data de Início *</label>
+                                <input type="date" id="dataInicial">
+                            </div>
+                            <div class="form-group">
+                                <label for="diaSemana">Dia da Semana (Calculado)</label>
+                                <select id="diaSemana">
+                                    <option value="Segunda">Segunda-feira</option>
+                                    <option value="Terça">Terça-feira</option>
+                                    <option value="Quarta">Quarta-feira</option>
+                                    <option value="Quinta">Quinta-feira</option>
+                                    <option value="Sexta">Sexta-feira</option>
+                                    <option value="Sábado">Sábado</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group-row">
+                            <div class="form-group">
+                                <label for="horario">Horário Padrão *</label>
+                                <input type="time" id="horario">
+                            </div>
+                            <div class="form-group">
+                                <label for="frequencia">Frequência</label>
+                                <select id="frequencia">
+                                    <option value="Semanal">Semanal</option>
+                                    <option value="Quinzenal">Quinzenal</option>
+                                    <option value="Mensal">Mensal</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group-row">
+                            <div class="form-group">
+                                <label for="modalidade">Modalidade</label>
+                                <select id="modalidade">
+                                    <option value="Presencial">Presencial</option>
+                                    <option value="Online">Online</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="valor">Valor por Sessão (R$)</label>
+                                <input type="number" id="valor" step="0.01" placeholder="150.00">
+                            </div>
+                            <div class="form-group">
+                                <label for="formaCobranca">Forma de Cobrança</label>
+                                <select id="formaCobranca">
+                                    <option value="Mensal">Mensal Fechado</option>
+                                    <option value="Por Sessão">Pago por Sessão</option>
+                                    <option value="Pacote">Pacote Prévio</option>
+                                </select>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <div class="form-acoes">
+                        <button type="button" class="btn-cancelar" onclick="idPacienteEditando=null; mostrarTela('pacientes')">Cancelar</button>
+                        <button type="button" id="btnSalvarPaciente" class="btn-salvar">Salvar Paciente</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="configuracoes" class="tela" style="display:none">
+                <h2>Configurações do Sistema</h2>
+                <div class="painel-config">
+                    <div class="form-group">
+                        <label for="configNomeSistema">Nome da Clínica / Profissional</label>
+                        <input type="text" id="configNomeSistema" value="Agenda Psicóloga">
+                    </div>
+                    <div class="form-group-row">
+                        <div class="form-group">
+                            <label for="corMenu">Cor da Barra Lateral</label>
+                            <input type="color" id="corMenu" value="#2c3e50">
+                        </div>
+                        <div class="form-group">
+                            <label for="corPrincipal">Cor Principal (Botões/Destaques)</label>
+                            <input type="color" id="corPrincipal" value="#1abc9c">
+                        </div>
+                        <div class="form-group">
+                            <label for="corFundo">Cor de Fundo da Tela</label>
+                            <input type="color" id="corFundo" value="#f5f7fa">
+                        </div>
+                    </div>
+                    <div class="form-group check-group">
+                        <input type="checkbox" id="modoEscuro">
+                        <label for="modoEscuro">Ativar Modo Escuro</label>
+                    </div>
+                    <div class="form-group">
+                        <label for="configLogo">Logotipo Personalizado</label>
+                        <input type="file" id="configLogo" accept="image/*">
+                    </div>
+                    <button type="button" id="btnSalvarConfiguracoes" class="btn-salvar">Aplicar Configurações</button>
+                </div>
+            </div>
+        </main>
     </div>
-</div>
+
+    <script src="app.js"></script>
+</body>
+</html>
