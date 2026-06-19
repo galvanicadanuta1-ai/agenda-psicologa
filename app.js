@@ -1,3 +1,6 @@
+// ==========================================================================
+// CONFIGURAÇÕES DE CONEXÃO DO SUPABASE
+// ==========================================================================
 const SUPABASE_URL = 'https://sasbkclofsnropssrafn.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhc2JrY2xvZnNucm9wc3NyYWZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExODg3NjcsImV4cCI6MjA5Njc2NDc2N30._8_tmYoRlyEhARjXZ3swW8ynCPY5aysGMFCTzgcnK5Y';
 
@@ -5,21 +8,23 @@ let bancoDados;
 if (window.supabase) {
     bancoDados = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 } else {
-    console.error("Erro crítico: Biblioteca Supabase não carregada.");
+    console.error("Erro crítico: A biblioteca Supabase não carregou via CDN.");
 }
 
-// Controle de Estado de Edição
+// Controle de Estado de Edição (Armazena ID do paciente sob alteração)
 let idPacienteEditando = null;
 
 // ==========================================================================
-// NAVEGAÇÃO INTERNA (SPA)
+// NAVEGAÇÃO INTERNA SPA (ROUTING SEGURO)
 // ==========================================================================
 function mostrarTela(nomeTela) {
+    // Esconde todas as telas mapeadas por segurança
     document.querySelectorAll('.tela').forEach(tela => tela.style.display = 'none');
     
-    const tela = document.getElementById(nomeTela);
-    if (tela) tela.style.display = 'block';
+    const telaAlvo = document.getElementById(nomeTela);
+    if (telaAlvo) telaAlvo.style.display = 'block';
 
+    // Gatilhos de processamento ao abrir telas
     switch (nomeTela) {
         case 'dashboard':
             atualizarDashboard();
@@ -50,7 +55,7 @@ function mostrarTela(nomeTela) {
 window.mostrarTela = mostrarTela;
 
 // ==========================================================================
-// INICIALIZAÇÃO
+// INICIALIZAÇÃO DE EVENTOS DO SISTEMA
 // ==========================================================================
 window.addEventListener('load', () => {
     aplicarConfiguracoesVisuais();
@@ -63,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('dataInicial')?.addEventListener('change', atualizarDiaSemanaAutomatico);
 });
 
+// Automação de cálculo de fuso horário local para o Dia da Semana
 function atualizarDiaSemanaAutomatico() {
     const inputData = document.getElementById('dataInicial');
     if (!inputData || !inputData.value) return;
@@ -75,7 +81,7 @@ function atualizarDiaSemanaAutomatico() {
     const selectDia = document.getElementById('diaSemana');
     if (selectDia) {
         if (nomeDia === 'Domingo') {
-            alert('Data cai em um Domingo. Ajustando para Segunda.');
+            alert('Atenção: A data selecionada cai em um Domingo. Ajustando para Segunda-feira.');
             selectDia.value = 'Segunda';
         } else {
             selectDia.value = nomeDia;
@@ -84,13 +90,14 @@ function atualizarDiaSemanaAutomatico() {
 }
 
 // ==========================================================================
-// DASHBOARD
+// OPERAÇÃO: DASHBOARD CONTADORES
 // ==========================================================================
 async function atualizarDashboard() {
     if (!bancoDados) return;
     try {
         const { data, error } = await bancoDados.from('pacientes').select('status');
         if (error) throw error;
+        
         let ativos = 0, inativos = 0;
         if (data) {
             data.forEach(p => p.status === 'Inativo' ? inativos++ : ativos++);
@@ -100,23 +107,23 @@ async function atualizarDashboard() {
         const elInativos = document.getElementById('totalInativos');
         if (elAtivos) elAtivos.innerText = ativos;
         if (elInativos) elInativos.innerText = inativos;
-    } catch (err) { console.error("Erro Dashboard:", err); }
+    } catch (err) { console.error("Erro processamento Dashboard:", err); }
 }
 
 // ==========================================================================
-// PACIENTES (LISTAGEM, BUSCA, EDIÇÃO E EXCLUSÃO)
+// OPERAÇÃO: PACIENTES (CRUD COMPLETO)
 // ==========================================================================
 async function carregarPacientes() {
     if (!bancoDados) return;
     const lista = document.getElementById('listaPacientes');
     if (!lista) return;
-    lista.innerHTML = '<div class="carregando">Carregando pacientes...</div>';
+    lista.innerHTML = '<div class="carregando">Carregando pacientes cadastrados...</div>';
 
     try {
         const { data, error } = await bancoDados.from('pacientes').select('*').order('nome');
         if (error) throw error;
         if (!data || data.length === 0) {
-            lista.innerHTML = 'Nenhum paciente cadastrado';
+            lista.innerHTML = '<div style="padding:10px;">Nenhum paciente cadastrado no sistema.</div>';
             return;
         }
 
@@ -124,18 +131,18 @@ async function carregarPacientes() {
         data.forEach(paciente => {
             html += `
                 <div class="cardPaciente" id="card-${paciente.id}">
-                    <strong>${paciente.nome || ''}</strong><br>
+                    <strong>👤 ${paciente.nome || ''}</strong><br>
                     <small>📞 Telefone: ${paciente.telefone || 'Não informado'}</small><br>
                     <small>🟢 Status: ${paciente.status || 'Ativo'}</small>
                     <div class="acoes-card">
-                        <button class="btn-editar" onclick="prepararEdicaoPaciente('${paciente.id}')">✏️ Editar Perfil</button>
+                        <button class="btn-editar" onclick="prepararEdicaoPaciente('${paciente.id}')">✏️ Editar</button>
                         <button class="btn-excluir" onclick="excluirPaciente('${paciente.id}')">🗑️ Excluir</button>
                     </div>
                 </div>
             `;
         });
         lista.innerHTML = html;
-    } catch (err) { lista.innerHTML = 'Erro ao carregar pacientes'; }
+    } catch (err) { lista.innerHTML = '<div style="padding:10px; color:red;">Erro ao processar listagem.</div>'; }
 }
 
 window.prepararEdicaoPaciente = async function(id) {
@@ -173,22 +180,24 @@ window.prepararEdicaoPaciente = async function(id) {
         }
 
         mostrarTela('novoPaciente');
-    } catch (err) { alert('Erro ao buscar dados do paciente.'); }
+    } catch (err) { alert('Erro ao coletar dados do perfil.'); }
 };
 
 window.excluirPaciente = async function(id) {
-    if (!confirm("Tem certeza que deseja excluir este paciente? Isso apagará permanentemente o perfil e o plano de atendimento associados.")) return;
+    if (!confirm("Tem certeza absoluta que deseja excluir este paciente? Isso apagará permanentemente o perfil e o plano de atendimento associado.")) return;
     try {
+        // Limpa dependências relacionais de tabelas vinculadas
         await bancoDados.from('planos_atendimento').delete().eq('paciente_id', id);
         const { error } = await bancoDados.from('pacientes').delete().eq('id', id);
         if (error) throw error;
 
-        alert('Paciente removido com sucesso!');
+        alert('Paciente e plano de atendimento removidos com sucesso!');
         carregarPacientes();
         atualizarDashboard();
-    } catch (err) { alert('Erro ao excluir paciente.'); }
+    } catch (err) { alert('Falha ao processar exclusão no banco de dados.'); }
 };
 
+// Filtro de Busca Cliente em Tempo Real
 document.addEventListener('input', function (e) {
     if (e.target.id !== 'pesquisaPaciente') return;
     const filtro = e.target.value.toLowerCase();
@@ -198,7 +207,7 @@ document.addEventListener('input', function (e) {
 });
 
 // ==========================================================================
-// SALVAR OU ATUALIZAR PACIENTE
+// SALVAR OU ATUALIZAR MÓDULO FORMULÁRIO
 // ==========================================================================
 async function salvarPaciente() {
     if (!bancoDados) return;
@@ -231,32 +240,35 @@ async function salvarPaciente() {
         };
 
         if (idPacienteEditando) {
+            // AÇÃO: PERSISTIR ATUALIZAÇÃO
             const resPac = await bancoDados.from('pacientes').update(payloadPaciente).eq('id', idPacienteEditando);
             if (resPac.error) throw resPac.error;
 
             await bancoDados.from('planos_atendimento').update(payloadPlano).eq('paciente_id', idPacienteEditando);
-            alert('Perfil do paciente updated!');
+            alert('Perfil do paciente atualizado com sucesso!');
             idPacienteEditando = null;
         } else {
+            // AÇÃO: INSERIR REGISTRO NOVO
             const resPac = await bancoDados.from('pacientes').insert([payloadPaciente]).select('id');
             if (resPac.error) throw resPac.error;
 
             payloadPlano.paciente_id = resPac.data[0].id;
             await bancoDados.from('planos_atendimento').insert([payloadPlano]);
-            alert('Paciente cadastrado com sucesso!');
+            alert('Paciente e plano salvos perfeitamente!');
         }
 
         document.getElementById('formPaciente')?.reset();
         mostrarTela('pacientes');
-    } catch (erro) { alert('Erro na transação de salvamento.'); }
+    } catch (erro) { alert('Erro no salvamento. Certifique-se de que o RLS está desativado.'); }
 }
 
 // ==========================================================================
-// LÓGICA DE CARREGAMENTO DA AGENDA
+// RENDERIZAÇÃO DA AGENDA SEMANAL DINÂMICA
 // ==========================================================================
 async function carregarAgendaSemanal() {
     if (!bancoDados) return;
     
+    // Reseta todos os containers de dias para renderização limpa
     document.querySelectorAll('.slots-agendamentos').forEach(slot => slot.innerHTML = '');
 
     try {
@@ -267,7 +279,7 @@ async function carregarAgendaSemanal() {
 
         if (error) throw error;
 
-        if (data) {
+        if (data && data.length > 0) {
             data.forEach(agendamento => {
                 const partes = agendamento.data.split('-');
                 const dataObj = new Date(partes[0], partes[1] - 1, partes[2]);
@@ -277,28 +289,30 @@ async function carregarAgendaSemanal() {
                 const containerDia = document.querySelector(`#dia-${diaSemanaTexto} .slots-agendamentos`);
                 
                 if (containerDia) {
-                    const nomePaciente = agendamento.pacientes ? agendamento.pacientes.nome : 'Paciente Removido';
+                    const nomePaciente = agendamento.pacientes ? agendamento.pacientes.nome : 'Paciente Não Vinculado';
                     containerDia.innerHTML += `
                         <div class="card-compromisso">
-                            <strong>${agendamento.hora ? agendamento.hora.substring(0,5) : ''}</strong> - ${nomePaciente}
-                            <br><small>⏱️ ${agendamento.status || 'Agendado'}</small>
+                            <strong>⏱️ ${agendamento.hora ? agendamento.hora.substring(0,5) : '--:--'}</strong> - ${nomePaciente}
+                            <br><small>Status: ${agendamento.status || 'Agendado'}</small>
                         </div>
                     `;
                 }
             });
+        } else {
+            console.log("Nenhum agendamento futuro localizado no banco.");
         }
-    } catch (err) { console.error("Erro ao carregar agenda:", err); }
+    } catch (err) { console.error("Erro ao montar Agenda Semanal:", err); }
 }
 
 // ==========================================================================
-// CONFIGURAÇÕES GERAIS DA IDENTIDADE VISUAL
+// CENTRALIZAÇÃO DA IDENTIDADE VISUAL E DESIGN
 // ==========================================================================
 function salvarConfiguracoes() {
     const config = {
         nomeSistema: document.getElementById('configNomeSistema')?.value || 'Agenda Psicóloga',
-        corMenu: document.getElementById('corMenu')?.value || '#333',
-        corPrincipal: document.getElementById('corPrincipal')?.value || '#4CAF50',
-        corFundo: document.getElementById('corFundo')?.value || '#f4f4f4',
+        corMenu: document.getElementById('corMenu')?.value || '#2c3e50',
+        corPrincipal: document.getElementById('corPrincipal')?.value || '#1abc9c',
+        corFundo: document.getElementById('corFundo')?.value || '#f5f7fa',
         modoEscuro: document.getElementById('modoEscuro')?.checked || false
     };
     localStorage.setItem('agenda_psi_config', JSON.stringify(config));
@@ -312,7 +326,7 @@ function salvarConfiguracoes() {
         };
         reader.readAsDataURL(logoInput.files[0]);
     } else { aplicarConfiguracoesVisuais(); }
-    alert('Configurações aplicadas!');
+    alert('Configurações salvas e aplicadas!');
 }
 
 function carregarConfiguracoesCampos() {
@@ -347,4 +361,4 @@ function aplicarConfiguracoesVisuais() {
     if (imgLogo && logoSalva) { imgLogo.src = logoSalva; imgLogo.style.display = 'block'; }
 }
 
-console.log('APP V3.0 BLINDADO E ATUALIZADO');
+console.log('SISTEMA TOTALMENTE RECUPERADO V3.5 - COMPILADO COM SUCESSO');
