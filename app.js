@@ -1,17 +1,20 @@
+// ==========================================================================
+// CONFIGURAÇÕES DE CONEXÃO DO SUPABASE
+// ==========================================================================
 const SUPABASE_URL = 'https://sasbkclofsnropssrafn.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_GEjXlZTuzGDooj56xp9oWg_4cgxRK_C';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhc2JrY2xvZnNucm9wc3NyYWZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExODg3NjcsImV4cCI6MjA5Njc2NDc2N30._8_tmYoRlyEhARjXZ3swW8ynCPY5aysGMFCTzgcnK5Y';
 
 // Inicialização segura do cliente Supabase
 let bancoDados;
 if (window.supabase) {
     bancoDados = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 } else {
-    console.error("Erro: A biblioteca do Supabase não foi carregada corretamente via CDN.");
+    console.error("Erro critical: A biblioteca do Supabase não foi carregada via CDN no HTML.");
 }
 
-// ================================
-// NAVEGAÇÃO (SPA)
-// ================================
+// ==========================================================================
+// NAVEGAÇÃO INTERNA (SPA)
+// ==========================================================================
 function mostrarTela(nomeTela) {
     document.querySelectorAll('.tela').forEach(tela => {
         tela.style.display = 'none';
@@ -22,7 +25,7 @@ function mostrarTela(nomeTela) {
         tela.style.display = 'block';
     }
 
-    // Gatilhos específicos para cada tela (evita requisições duplicadas no load)
+    // Gatilhos específicos ao abrir cada tela (evita requisições duplicadas)
     switch (nomeTela) {
         case 'dashboard':
             atualizarDashboard();
@@ -31,7 +34,6 @@ function mostrarTela(nomeTela) {
             carregarPacientes();
             break;
         case 'novoPaciente':
-            // Garante que o formulário abra limpo para um novo cadastro
             const form = document.getElementById('formPaciente');
             if (form) form.reset();
             break;
@@ -42,16 +44,16 @@ function mostrarTela(nomeTela) {
 }
 window.mostrarTela = mostrarTela;
 
-// ================================
-// INICIALIZAÇÃO
-// ================================
+// ==========================================================================
+// INICIALIZAÇÃO E ESCUTAS DE EVENTOS
+// ==========================================================================
 window.addEventListener('load', () => {
     aplicarConfiguracoesVisuais();
-    mostrarTela('dashboard'); // O mostrarTela já vai chamar o atualizarDashboard()
+    mostrarTela('dashboard'); // Já engaja o atualizarDashboard internamente
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Escuta do Menu Mobile
+    // Menu Mobile
     const menuBtn = document.getElementById('menuBtn');
     if (menuBtn) {
         menuBtn.addEventListener('click', () => {
@@ -59,22 +61,62 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Escuta do Botão de Salvar Paciente
+    // Botão Salvar Paciente
     const btnSalvarPaciente = document.getElementById('btnSalvarPaciente');
     if (btnSalvarPaciente) {
         btnSalvarPaciente.addEventListener('click', salvarPaciente);
     }
 
-    // Escuta do Botão de Salvar Configurações
+    // Botão Salvar Configurações
     const btnSalvarConfig = document.getElementById('btnSalvarConfiguracoes');
     if (btnSalvarConfig) {
         btnSalvarConfig.addEventListener('click', salvarConfiguracoes);
     }
+
+    // Automação: Escuta alteração na data para mudar o dia da semana sozinho
+    const dataInicialInput = document.getElementById('dataInicial');
+    if (dataInicialInput) {
+        dataInicialInput.addEventListener('change', atualizarDiaSemanaAutomatico);
+    }
 });
 
-// ================================
+// ==========================================================================
+// AUTOMATIZAÇÃO: CALCULAR DIA DA SEMANA
+// ==========================================================================
+function atualizarDiaSemanaAutomatico() {
+    const dataValor = document.getElementById('dataInicial').value;
+    if (!dataValor) return;
+
+    // Isola as partes da data para evitar distorção de fuso horário (UTC)
+    const partes = dataValor.split('-');
+    const dataObjeto = new Date(partes[0], partes[1] - 1, partes[2]);
+
+    const diasDaSemana = [
+        'Domingo',
+        'Segunda',
+        'Terça',
+        'Quarta',
+        'Quinta',
+        'Sexta',
+        'Sábado'
+    ];
+
+    const nomeDia = diasDaSemana[dataObjeto.getDay()];
+    const selectDia = document.getElementById('diaSemana');
+    
+    if (selectDia) {
+        if (nomeDia === 'Domingo') {
+            alert('Atenção: A data selecionada cai em um Domingo. Ajustando para Segunda-feira.');
+            selectDia.value = 'Segunda';
+        } else {
+            selectDia.value = nomeDia;
+        }
+    }
+}
+
+// ==========================================================================
 // DASHBOARD
-// ================================
+// ==========================================================================
 async function atualizarDashboard() {
     if (!bancoDados) return;
     
@@ -101,18 +143,18 @@ async function atualizarDashboard() {
         document.getElementById('totalAtivos').innerText = ativos;
         document.getElementById('totalInativos').innerText = inativos;
         
-        // Cards estáticos por enquanto (etapas futuras)
+        // Contadores estáticos para implementações futuras da agenda
         document.getElementById('atendimentosHoje').innerText = "0";
         document.getElementById('receberMes').innerText = "R$ 0,00";
 
     } catch (err) {
-        console.error("Erro ao atualizar Dashboard:", err);
+        console.error("Erro ao atualizar dados do Dashboard:", err);
     }
 }
 
-// ================================
-// PACIENTES (LISTAGEM E BUSCA)
-// ================================
+// ==========================================================================
+// PACIENTES (LISTAGEM E FILTRO)
+// ==========================================================================
 async function carregarPacientes() {
     if (!bancoDados) return;
 
@@ -139,7 +181,7 @@ async function carregarPacientes() {
             html += `
                 <div class="cardPaciente">
                     <strong>${paciente.nome || ''}</strong><br>
-                    <small>📞 ${paciente.telefone || 'Sem telefone'}</small><br>
+                    <small>📞 Telefone: ${paciente.telefone || 'Não informado'}</small><br>
                     <small>🟢 Status: ${paciente.status || 'Ativo'}</small>
                 </div>
             `;
@@ -147,12 +189,12 @@ async function carregarPacientes() {
         lista.innerHTML = html;
 
     } catch (err) {
-        console.error("Erro ao carregar pacientes:", err);
+        console.error("Erro ao carregar lista de pacientes:", err);
         lista.innerHTML = 'Erro ao carregar pacientes';
     }
 }
 
-// Filtro de pesquisa em tempo real
+// Mecanismo de busca em tempo real (Filtro cliente)
 document.addEventListener('input', function (e) {
     if (e.target.id !== 'pesquisaPaciente') return;
 
@@ -165,9 +207,9 @@ document.addEventListener('input', function (e) {
     });
 });
 
-// =====================================
-// SALVAR PACIENTE & PLANO (TRANSACIONAL)
-// =====================================
+// ==========================================================================
+// FLUXO: SALVAR PACIENTE E PLANO ATENDIMENTO
+// ==========================================================================
 async function salvarPaciente() {
     if (!bancoDados) return;
 
@@ -178,6 +220,7 @@ async function salvarPaciente() {
             return;
         }
 
+        // Montagem do payload de Pacientes
         const paciente = {
             nome: nome,
             cpf: document.getElementById('cpf').value || null,
@@ -191,7 +234,7 @@ async function salvarPaciente() {
             ativo: document.getElementById('statusPaciente').value === 'Ativo'
         };
 
-        // Mudança crucial: tiramos o .single() para evitar quebras por políticas de banco
+        // Salvando paciente (Removido .single() para evitar travas de segurança)
         const resultadoPaciente = await bancoDados
             .from('pacientes')
             .insert([paciente])
@@ -199,9 +242,10 @@ async function salvarPaciente() {
 
         if (resultadoPaciente.error) throw resultadoPaciente.error;
 
-        // Pegando o ID gerado (retorna como array)
+        // Recupera o ID gerado pelo banco para vincular ao plano
         const pacienteId = resultadoPaciente.data[0].id;
 
+        // Montagem do payload de Planos
         const plano = {
             paciente_id: pacienteId,
             data_inicio: document.getElementById('dataInicial').value || null,
@@ -220,23 +264,23 @@ async function salvarPaciente() {
 
         if (resultadoPlano.error) {
             console.error(resultadoPlano.error);
-            alert('Paciente salvo, mas houve um erro ao criar o plano de atendimento.');
+            alert('Paciente salvo, mas ocorreu um erro crítico ao gerar o plano de atendimento.');
             return;
         }
 
-        alert('Paciente cadastrado com sucesso!');
+        alert('Paciente e plano cadastrados com sucesso!');
         document.getElementById('formPaciente').reset();
         mostrarTela('pacientes');
 
     } catch (erro) {
-        console.error("Erro geral ao salvar:", erro);
-        alert('Erro ao salvar paciente. Verifique os campos ou a conexão.');
+        console.error("Erro na transação de salvamento:", erro);
+        alert('Erro ao salvar paciente. Verifique os campos ou certifique-se de que o RLS está desativado no Supabase.');
     }
 }
 
-// =====================================
-// CONFIGURAÇÕES & IDENTIDADE VISUAL
-// =====================================
+// ==========================================================================
+// CONFIGURAÇÕES GERAIS DA IDENTIDADE VISUAL
+// ==========================================================================
 function salvarConfiguracoes() {
     const config = {
         nomeSistema: document.getElementById('configNomeSistema').value || 'Agenda Psicóloga',
@@ -248,7 +292,7 @@ function salvarConfiguracoes() {
 
     localStorage.setItem('agenda_psi_config', JSON.stringify(config));
     
-    // Tratamento básico para o arquivo de imagem da logo (salva em Base64 no local)
+    // Processamento da logo para armazenamento local em Base64
     const logoInput = document.getElementById('configLogo');
     if (logoInput && logoInput.files && logoInput.files[0]) {
         const reader = new FileReader();
@@ -261,7 +305,7 @@ function salvarConfiguracoes() {
         aplicarConfiguracoesVisuais();
     }
 
-    alert('Configurações salvas com sucesso!');
+    alert('Configurações aplicadas com sucesso!');
 }
 
 function carregarConfiguracoesCampos() {
@@ -283,17 +327,16 @@ function aplicarConfiguracoesVisuais() {
     if (salvo) {
         const config = JSON.parse(salvo);
         
-        // Altera os títulos dinamicamente
         document.getElementById('nomeSistema').innerText = config.nomeSistema;
         document.getElementById('tituloSistema').innerText = config.nomeSistema;
         document.title = config.nomeSistema;
 
-        // Aplica as variáveis de cores para o CSS usar (se seu style.css usar variáveis)
+        // Injeta propriedades customizadas no root (CSS moderno)
         document.documentElement.style.setProperty('--cor-menu', config.corMenu);
         document.documentElement.style.setProperty('--cor-principal', config.corPrincipal);
         document.documentElement.style.setProperty('--cor-fundo', config.corFundo);
 
-        // Fallback direto caso não use variáveis CSS no arquivo style.css:
+        // Fallback direto para o layout antigo
         const sidebar = document.querySelector('.sidebar');
         if (sidebar) sidebar.style.backgroundColor = config.corMenu;
         
@@ -304,7 +347,6 @@ function aplicarConfiguracoesVisuais() {
         }
     }
 
-    // Aplica a logo se existir
     const imgLogo = document.getElementById('logoSistema');
     if (imgLogo && logoSalva) {
         imgLogo.src = logoSalva;
@@ -312,4 +354,4 @@ function aplicarConfiguracoesVisuais() {
     }
 }
 
-console.log('APP V2.1 OTIMIZADO E CONECTADO');
+console.log('APP V2.5 INTEGRADO E PRONTO');
