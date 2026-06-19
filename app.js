@@ -32,8 +32,12 @@ function mostrarTela(nomeTela) {
             break;
         case 'novoPaciente':
             if (!idPacienteEditando) {
-                document.querySelector('#novoPaciente h2').innerText = "Novo Paciente";
-                document.getElementById('btnSalvarPaciente').innerText = "Salvar Paciente";
+                const tituloForm = document.querySelector('#novoPaciente h2');
+                if (tituloForm) tituloForm.innerText = "Novo Paciente";
+                
+                const btnSalvar = document.getElementById('btnSalvarPaciente');
+                if (btnSalvar) btnSalvar.innerText = "Salvar Paciente";
+                
                 const form = document.getElementById('formPaciente');
                 if (form) form.reset();
             }
@@ -60,12 +64,14 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function atualizarDiaSemanaAutomatico() {
-    const dataValor = document.getElementById('dataInicial').value;
-    if (!dataValor) return;
-    const partes = dataValor.split('-');
+    const inputData = document.getElementById('dataInicial');
+    if (!inputData || !inputData.value) return;
+    
+    const partes = inputData.value.split('-');
     const dataObjeto = new Date(partes[0], partes[1] - 1, partes[2]);
     const diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
     const nomeDia = diasDaSemana[dataObjeto.getDay()];
+    
     const selectDia = document.getElementById('diaSemana');
     if (selectDia) {
         if (nomeDia === 'Domingo') {
@@ -89,8 +95,11 @@ async function atualizarDashboard() {
         if (data) {
             data.forEach(p => p.status === 'Inativo' ? inativos++ : ativos++);
         }
-        document.getElementById('totalAtivos').innerText = ativos;
-        document.getElementById('totalInativos').innerText = inativos;
+        
+        const elAtivos = document.getElementById('totalAtivos');
+        const elInativos = document.getElementById('totalInativos');
+        if (elAtivos) elAtivos.innerText = ativos;
+        if (elInativos) elInativos.innerText = inativos;
     } catch (err) { console.error("Erro Dashboard:", err); }
 }
 
@@ -136,32 +145,31 @@ window.prepararEdicaoPaciente = async function(id) {
         if (error) throw error;
         const p = data[0];
 
-        // Mudar visual da tela de cadastro
-        document.querySelector('#novoPaciente h2').innerText = "Editar Perfil do Paciente";
-        document.getElementById('btnSalvarPaciente').innerText = "Atualizar Dados";
+        const tituloForm = document.querySelector('#novoPaciente h2');
+        const btnSalvar = document.getElementById('btnSalvarPaciente');
+        if (tituloForm) tituloForm.innerText = "Editar Perfil do Paciente";
+        if (btnSalvar) btnSalvar.innerText = "Atualizar Dados";
 
-        // Preencher dados cadastrais
-        document.getElementById('nome').value = p.nome;
-        document.getElementById('cpf').value = p.cpf || '';
-        document.getElementById('telefone').value = p.telefone || '';
-        document.getElementById('email').value = p.email || '';
-        document.getElementById('dataNascimento').value = p.data_nascimento || '';
-        document.getElementById('endereco').value = p.endereco || '';
-        document.getElementById('responsavel').value = p.responsavel || '';
-        document.getElementById('observacoes').value = p.observacoes || '';
-        document.getElementById('statusPaciente').value = p.status;
+        if(document.getElementById('nome')) document.getElementById('nome').value = p.nome || '';
+        if(document.getElementById('cpf')) document.getElementById('cpf').value = p.cpf || '';
+        if(document.getElementById('telefone')) document.getElementById('telefone').value = p.telefone || '';
+        if(document.getElementById('email')) document.getElementById('email').value = p.email || '';
+        if(document.getElementById('dataNascimento')) document.getElementById('dataNascimento').value = p.data_nascimento || '';
+        if(document.getElementById('endereco')) document.getElementById('endereco').value = p.endereco || '';
+        if(document.getElementById('responsavel')) document.getElementById('responsavel').value = p.responsavel || '';
+        if(document.getElementById('observacoes')) document.getElementById('observacoes').value = p.observacoes || '';
+        if(document.getElementById('statusPaciente')) document.getElementById('statusPaciente').value = p.status || 'Ativo';
 
-        // Buscar dados do plano para preencher também
         const planoRes = await bancoDados.from('planos_atendimento').select('*').eq('paciente_id', id);
         if (planoRes.data && planoRes.data.length > 0) {
             const pl = planoRes.data[0];
-            document.getElementById('dataInicial').value = pl.data_inicio || '';
-            document.getElementById('diaSemana').value = pl.dia_semana;
-            document.getElementById('frequencia').value = pl.frequencia;
-            document.getElementById('horario').value = pl.hora_padrao || '';
-            document.getElementById('modalidade').value = pl.modalidade;
-            document.getElementById('valor').value = pl.valor || '';
-            document.getElementById('formaCobranca').value = pl.forma_cobranca;
+            if(document.getElementById('dataInicial')) document.getElementById('dataInicial').value = pl.data_inicio || '';
+            if(document.getElementById('diaSemana')) document.getElementById('diaSemana').value = pl.dia_semana || 'Segunda';
+            if(document.getElementById('frequencia')) document.getElementById('frequencia').value = pl.frequencia || 'Semanal';
+            if(document.getElementById('horario')) document.getElementById('horario').value = pl.hora_padrao || '';
+            if(document.getElementById('modalidade')) document.getElementById('modalidade').value = pl.modalidade || 'Presencial';
+            if(document.getElementById('valor')) document.getElementById('valor').value = pl.valor || '';
+            if(document.getElementById('formaCobranca')) document.getElementById('formaCobranca').value = pl.forma_cobranca || 'Mensal';
         }
 
         mostrarTela('novoPaciente');
@@ -171,9 +179,7 @@ window.prepararEdicaoPaciente = async function(id) {
 window.excluirPaciente = async function(id) {
     if (!confirm("Tem certeza que deseja excluir este paciente? Isso apagará permanentemente o perfil e o plano de atendimento associados.")) return;
     try {
-        // Deleta plano primeiro (regragem de integridade do banco)
         await bancoDados.from('planos_atendimento').delete().eq('paciente_id', id);
-        // Deleta paciente
         const { error } = await bancoDados.from('pacientes').delete().eq('id', id);
         if (error) throw error;
 
@@ -183,7 +189,6 @@ window.excluirPaciente = async function(id) {
     } catch (err) { alert('Erro ao excluir paciente.'); }
 };
 
-// Mecanismo de Busca
 document.addEventListener('input', function (e) {
     if (e.target.id !== 'pesquisaPaciente') return;
     const filtro = e.target.value.toLowerCase();
@@ -198,52 +203,50 @@ document.addEventListener('input', function (e) {
 async function salvarPaciente() {
     if (!bancoDados) return;
     try {
-        const nome = document.getElementById('nome').value;
-        if (!nome) { alert('Informe o nome do paciente'); return; }
+        const elNome = document.getElementById('nome');
+        if (!elNome || !elNome.value) { alert('Informe o nome do paciente'); return; }
 
         const payloadPaciente = {
-            nome: nome,
-            cpf: document.getElementById('cpf').value || null,
-            telefone: document.getElementById('telefone').value || null,
-            email: document.getElementById('email').value || null,
-            data_nascimento: document.getElementById('dataNascimento').value || null,
-            endereco: document.getElementById('endereco').value || null,
-            responsavel: document.getElementById('responsavel').value || null,
-            observacoes: document.getElementById('observacoes').value || null,
-            status: document.getElementById('statusPaciente').value,
-            ativo: document.getElementById('statusPaciente').value === 'Ativo'
+            nome: elNome.value,
+            cpf: document.getElementById('cpf')?.value || null,
+            telefone: document.getElementById('telefone')?.value || null,
+            email: document.getElementById('email')?.value || null,
+            data_nascimento: document.getElementById('dataNascimento')?.value || null,
+            endereco: document.getElementById('endereco')?.value || null,
+            responsavel: document.getElementById('responsavel')?.value || null,
+            observacoes: document.getElementById('observacoes')?.value || null,
+            status: document.getElementById('statusPaciente')?.value || 'Ativo',
+            ativo: document.getElementById('statusPaciente')?.value === 'Ativo'
         };
 
         const payloadPlano = {
-            data_inicio: document.getElementById('dataInicial').value || null,
-            dia_semana: document.getElementById('diaSemana').value,
-            frequencia: document.getElementById('frequencia').value,
-            hora_padrao: document.getElementById('horario').value || null,
-            modalidade: document.getElementById('modalidade').value,
-            valor: Number(document.getElementById('valor').value || 0),
-            forma_cobranca: document.getElementById('formaCobranca').value,
+            data_inicio: document.getElementById('dataInicial')?.value || null,
+            dia_semana: document.getElementById('diaSemana')?.value || 'Segunda',
+            frequencia: document.getElementById('frequencia')?.value || 'Semanal',
+            hora_padrao: document.getElementById('horario')?.value || null,
+            modalidade: document.getElementById('modalidade')?.value || 'Presencial',
+            valor: Number(document.getElementById('valor')?.value || 0),
+            forma_cobranca: document.getElementById('formaCobranca')?.value || 'Mensal',
             ativo: true
         };
 
         if (idPacienteEditando) {
-            // OPERAÇÃO: ATUALIZAR
             const resPac = await bancoDados.from('pacientes').update(payloadPaciente).eq('id', idPacienteEditando);
             if (resPac.error) throw resPac.error;
 
             await bancoDados.from('planos_atendimento').update(payloadPlano).eq('paciente_id', idPacienteEditando);
-            alert('Perfil do paciente atualizado com sucesso!');
-            idPacienteEditando = null; // Reseta estado
+            alert('Perfil do paciente updated!');
+            idPacienteEditando = null;
         } else {
-            // OPERAÇÃO: INSERIR NOVO
             const resPac = await bancoDados.from('pacientes').insert([payloadPaciente]).select('id');
             if (resPac.error) throw resPac.error;
 
             payloadPlano.paciente_id = resPac.data[0].id;
             await bancoDados.from('planos_atendimento').insert([payloadPlano]);
-            alert('Paciente e plano cadastrados com sucesso!');
+            alert('Paciente cadastrado com sucesso!');
         }
 
-        document.getElementById('formPaciente').reset();
+        document.getElementById('formPaciente')?.reset();
         mostrarTela('pacientes');
     } catch (erro) { alert('Erro na transação de salvamento.'); }
 }
@@ -254,11 +257,9 @@ async function salvarPaciente() {
 async function carregarAgendaSemanal() {
     if (!bancoDados) return;
     
-    // Limpar as colunas antes de renderizar
     document.querySelectorAll('.slots-agendamentos').forEach(slot => slot.innerHTML = '');
 
     try {
-        // Buscaremos os dados da tabela agendamentos trazendo o nome do paciente associado
         const { data, error } = await bancoDados
             .from('agendamentos')
             .select('id, data, hora, status, pacientes(nome)')
@@ -268,7 +269,6 @@ async function carregarAgendaSemanal() {
 
         if (data) {
             data.forEach(agendamento => {
-                // Cálculo para saber qual o dia da semana da data do agendamento
                 const partes = agendamento.data.split('-');
                 const dataObj = new Date(partes[0], partes[1] - 1, partes[2]);
                 const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
@@ -280,7 +280,7 @@ async function carregarAgendaSemanal() {
                     const nomePaciente = agendamento.pacientes ? agendamento.pacientes.nome : 'Paciente Removido';
                     containerDia.innerHTML += `
                         <div class="card-compromisso">
-                            <strong>${agendamento.hora.substring(0,5)}</strong> - ${nomePaciente}
+                            <strong>${agendamento.hora ? agendamento.hora.substring(0,5) : ''}</strong> - ${nomePaciente}
                             <br><small>⏱️ ${agendamento.status || 'Agendado'}</small>
                         </div>
                     `;
@@ -295,11 +295,11 @@ async function carregarAgendaSemanal() {
 // ==========================================================================
 function salvarConfiguracoes() {
     const config = {
-        nomeSistema: document.getElementById('configNomeSistema').value || 'Agenda Psicóloga',
-        corMenu: document.getElementById('corMenu').value,
-        corPrincipal: document.getElementById('corPrincipal').value,
-        corFundo: document.getElementById('corFundo').value,
-        modoEscuro: document.getElementById('modoEscuro').checked
+        nomeSistema: document.getElementById('configNomeSistema')?.value || 'Agenda Psicóloga',
+        corMenu: document.getElementById('corMenu')?.value || '#333',
+        corPrincipal: document.getElementById('corPrincipal')?.value || '#4CAF50',
+        corFundo: document.getElementById('corFundo')?.value || '#f4f4f4',
+        modoEscuro: document.getElementById('modoEscuro')?.checked || false
     };
     localStorage.setItem('agenda_psi_config', JSON.stringify(config));
     
@@ -319,11 +319,11 @@ function carregarConfiguracoesCampos() {
     const salvo = localStorage.getItem('agenda_psi_config');
     if (!salvo) return;
     const config = JSON.parse(salvo);
-    document.getElementById('configNomeSistema').value = config.nomeSistema;
-    document.getElementById('corMenu').value = config.corMenu;
-    document.getElementById('corPrincipal').value = config.corPrincipal;
-    document.getElementById('corFundo').value = config.corFundo;
-    document.getElementById('modoEscuro').checked = config.modoEscuro;
+    if(document.getElementById('configNomeSistema')) document.getElementById('configNomeSistema').value = config.nomeSistema;
+    if(document.getElementById('corMenu')) document.getElementById('corMenu').value = config.corMenu;
+    if(document.getElementById('corPrincipal')) document.getElementById('corPrincipal').value = config.corPrincipal;
+    if(document.getElementById('corFundo')) document.getElementById('corFundo').value = config.corFundo;
+    if(document.getElementById('modoEscuro')) document.getElementById('modoEscuro').checked = config.modoEscuro;
 }
 
 function aplicarConfiguracoesVisuais() {
@@ -331,9 +331,12 @@ function aplicarConfiguracoesVisuais() {
     const logoSalva = localStorage.getItem('agenda_psi_logo');
     if (salvo) {
         const config = JSON.parse(salvo);
-        document.getElementById('nomeSistema').innerText = config.nomeSistema;
-        document.getElementById('tituloSistema').innerText = config.nomeSistema;
+        const elNome = document.getElementById('nomeSistema');
+        const elTitulo = document.getElementById('tituloSistema');
+        if (elNome) elNome.innerText = config.nomeSistema;
+        if (elTitulo) elTitulo.innerText = config.nomeSistema;
         document.title = config.nomeSistema;
+        
         document.documentElement.style.setProperty('--cor-menu', config.corMenu);
         document.documentElement.style.setProperty('--cor-principal', config.corPrincipal);
         document.documentElement.style.setProperty('--cor-fundo', config.corFundo);
@@ -343,3 +346,5 @@ function aplicarConfiguracoesVisuais() {
     const imgLogo = document.getElementById('logoSistema');
     if (imgLogo && logoSalva) { imgLogo.src = logoSalva; imgLogo.style.display = 'block'; }
 }
+
+console.log('APP V3.0 BLINDADO E ATUALIZADO');
