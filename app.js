@@ -11,7 +11,6 @@ if (window.supabase) {
     console.error("Erro crítico: A biblioteca Supabase não carregou via CDN.");
 }
 
-// Controle de Estado de Edição (Armazena ID do paciente sob alteração)
 let idPacienteEditando = null;
 
 // ==========================================================================
@@ -203,7 +202,7 @@ document.addEventListener('input', function (e) {
 });
 
 // ==========================================================================
-// SALVAR OU ATUALIZAR MÓDULO FORMULÁRIO + AGENDAMENTO AUTOMÁTICO
+// FORMULÁRIO DE CADASTRO COM AGENDAMENTO AUTOMÁTICO NA AGENDA
 // ==========================================================================
 async function salvarPaciente() {
     if (!bancoDados) return;
@@ -246,7 +245,6 @@ async function salvarPaciente() {
             alert('Perfil do paciente atualizado com sucesso!');
             idPacienteEditando = null;
         } else {
-            // Cadastro de Novo Paciente
             const resPac = await bancoDados.from('pacientes').insert([payloadPaciente]).select('id');
             if (resPac.error) throw resPac.error;
 
@@ -254,7 +252,7 @@ async function salvarPaciente() {
             payloadPlano.paciente_id = novoIdPaciente;
             await bancoDados.from('planos_atendimento').insert([payloadPlano]);
 
-            // NOVO: Geração automática do compromisso na agenda baseada na data de início do cadastro
+            // Cria automaticamente a primeira sessão na agenda se houver Data de Início e Horário
             if (dataInicioForm && horaPadraoForm) {
                 await bancoDados.from('agendamentos').insert([
                     {
@@ -265,44 +263,43 @@ async function salvarPaciente() {
                     }
                 ]);
             }
-            alert('Paciente salvo e inserido na agenda com sucesso!');
+            alert('Paciente salvo e inserido na agenda perfeitamente!');
         }
 
         document.getElementById('formPaciente')?.reset();
         mostrarTela('pacientes');
-    } catch (erro) { alert('Erro no salvamento. Verifique as permissões de escrita do banco.'); }
+    } catch (erro) { alert('Erro no salvamento. Verifique as permissões do banco.'); }
 }
 
 // ==========================================================================
-// RENDERIZAÇÃO DA AGENDA SEMANAL DINÂMICA (SEMANA ATUAL + 4 SEMANAS)
+// RENDERIZAÇÃO DA AGENDA (SEMANA ATUAL + 4 SEMANAS COM CARREGAMENTO GARANTIDO)
 // ==========================================================================
 async function carregarAgendaSemanal() {
-    if (!bancoDados) return;
-    
     const containerGeral = document.getElementById('grade-agenda-container');
     if (!containerGeral) return;
-    containerGeral.innerHTML = '<div style="padding: 20px;">Calculando períodos e mapeando horários...</div>';
+    
+    // Define um estado inicial rápido
+    containerGeral.innerHTML = '<div style="padding: 10px;">Carregando grade estrutural...</div>';
 
-    // 1. Encontrar a segunda-feira da semana corrente
+    // 1. Encontrar o início cronológico (Segunda-feira da semana atual)
     const hoje = new Date();
-    const diaDaSemanaAtual = hoje.getDay(); // 0 = Domingo, 1 = Segunda...
+    const diaDaSemanaAtual = hoje.getDay(); 
     const diferencaParaSegunda = diaDaSemanaAtual === 0 ? -6 : 1 - diaDaSemanaAtual;
     
-    const segundaFeiraCorrente = new Date(hoje);
-    segundaFeiraCorrente.setDate(hoje.getDate() + diferencaParaSegunda);
+    const segundaFeiraCorrente = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    segundaFeiraCorrente.setDate(segundaFeiraCorrente.getDate() + diferencaParaSegunda);
 
     let htmlSemanas = '';
     const nomesDiasSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+    const formatarDataSimples = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
 
-    // Construção das 5 semanas (S=0 é a corrente, S=1,2,3,4 são as seguintes)
+    // Monta a estrutura visual independente do banco de dados (Garante que nunca fique em branco)
     for (let s = 0; s < 5; s++) {
         const dataInicioBloco = new Date(segundaFeiraCorrente);
         dataInicioBloco.setDate(segundaFeiraCorrente.getDate() + (s * 7));
 
         const dataFimBloco = new Date(dataInicioBloco);
-        dataFimBloco.setDate(dataInicioBloco.getDate() + 5); // Sábado
-
-        const formatarDataSimples = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+        dataFimBloco.setDate(dataInicioBloco.getDate() + 5); 
 
         htmlSemanas += `
             <div class="semana-bloco">
@@ -314,7 +311,6 @@ async function carregarAgendaSemanal() {
             const dataDiaEspecifico = new Date(dataInicioBloco);
             dataDiaEspecifico.setDate(dataInicioBloco.getDate() + d);
 
-            // Geração de chaves seguras livre de fusos horários (YYYY-MM-DD)
             const anoStr = dataDiaEspecifico.getFullYear();
             const mesStr = String(dataDiaEspecifico.getMonth() + 1).padStart(2, '0');
             const diaStr = String(dataDiaEspecifico.getDate()).padStart(2, '0');
@@ -336,41 +332,42 @@ async function carregarAgendaSemanal() {
         `;
     }
 
+    // Injeta imediatamente a estrutura na tela
     containerGeral.innerHTML = htmlSemanas;
 
-    // 2. Coletar agendamentos com relacionamento seguro do Supabase
+    // Se o Supabase falhar na inicialização, a grade de semanas ainda se mantém desenhada
+    if (!bancoDados) {
+        console.error("Supabase indisponível no momento.");
+        return;
+    }
+
+    // 2. Busca e mapeia os agendamentos de forma limpa e segura
     try {
-        const { data, error } = await bancoDados
+        // Coleta de planos de atendimento em lote para evitar travas de queries multiníveis
+        const { data: planosData } = await bancoDados.from('planos_atendimento').select('paciente_id, modalidade');
+        const mapaModalidades = {};
+        if (planosData) {
+            planosData.forEach(pl => { mapaModalidades[pl.paciente_id] = pl.modalidade; });
+        }
+
+        const { data: agendamentosData, error } = await bancoDados
             .from('agendamentos')
-            .select('id, data, hora, status, pacientes(nome, planos_atendimento(modalidade))')
+            .select('id, data, hora, status, paciente_id, pacientes(nome)')
             .order('hora');
 
         if (error) throw error;
 
-        if (data && data.length > 0) {
-            data.forEach(agendamento => {
-                const dataChaveBanco = agendamento.data; // Formato retornado: YYYY-MM-DD
-                
-                // Busca os slots correspondentes gerados em tela que batem com essa data exata
+        if (agendamentosData && agendamentosData.length > 0) {
+            agendamentosData.forEach(agendamento => {
+                const dataChaveBanco = agendamento.data; // Formato padrão: YYYY-MM-DD
                 const containersAlvo = document.querySelectorAll(`.slots-agendamentos[data-data-chave="${dataChaveBanco}"]`);
                 
                 containersAlvo.forEach(container => {
-                    const nomePaciente = agendamento.pacientes ? agendamento.pacientes.nome : 'Paciente Não Vinculado';
-                    
-                    // Tratamento seguro da propriedade encadeada da modalidade padrão
-                    let modalidadeTexto = 'Presencial'; 
-                    if (agendamento.pacientes && agendamento.pacientes.planos_atendimento) {
-                        const planos = agendamento.pacientes.planos_atendimento;
-                        if (Array.isArray(planos) && planos.length > 0) {
-                            modalidadeTexto = planos[0].modalidade || 'Presencial';
-                        } else if (typeof planos === 'object') {
-                            modalidadeTexto = planos.modalidade || 'Presencial';
-                        }
-                    }
-
+                    const nomePaciente = agendamento.pacientes ? agendamento.pacientes.nome : 'Paciente Desconhecido';
+                    const modalidadeTexto = mapaModalidades[agendamento.paciente_id] || 'Presencial';
                     const horaFormatada = agendamento.hora ? agendamento.hora.substring(0, 5) : '--:--';
 
-                    // Estrutura solicitada: Nome > Horário > Modalidade (um abaixo do outro)
+                    // Layout Exclusivo solicitado: Nome > Horário > Modalidade (um abaixo do outro)
                     container.innerHTML += `
                         <div class="card-compromisso">
                             <div class="card-paciente-nome">${nomePaciente}</div>
@@ -382,7 +379,7 @@ async function carregarAgendaSemanal() {
             });
         }
     } catch (err) { 
-        console.error("Erro ao cruzar dados do banco com a grade estendida:", err); 
+        console.error("Erro ao carregar dados nas colunas:", err); 
     }
 }
 
@@ -451,7 +448,7 @@ async function salvarAgendamento() {
         fecharModalAgendamento();
         carregarAgendaSemanal();
     } catch (err) {
-        alert('Erro ao salvar agendamento. Garanta que a política RLS da tabela "agendamentos" esteja liberada.');
+        alert('Erro ao salvar agendamento. Garanta as permissões na tabela "agendamentos".');
     }
 }
 window.salvarAgendamento = salvarAgendamento;
@@ -513,4 +510,4 @@ function aplicarConfiguracoesVisuais() {
     if (imgLogo && logoSalva) { imgLogo.src = logoSalva; imgLogo.style.display = 'block'; }
 }
 
-console.log('SISTEMA RENDERIZADO V5.0 MULTI-SEMANAS COMPLETO');
+console.log('SISTEMA RENDERIZADO V6.0 COMPLETO - CORREÇÃO DE GRADE');
