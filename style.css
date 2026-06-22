@@ -31,6 +31,7 @@ body {
 
 .container-app { display: flex; min-height: 100vh; }
 
+/* FIXAÇÃO DO MENU LATERAL (NÃO ROLA JUNTO COM A TELA) */
 .sidebar {
     width: 260px;
     background-color: var(--cor-menu);
@@ -38,6 +39,11 @@ body {
     padding: 20px;
     display: flex;
     flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 1000;
 }
 
 .sidebar-brand {
@@ -47,7 +53,7 @@ body {
     margin-bottom: 20px;
 }
 
-.sidebar-brand h1 { font-size: 20px; letter-spacing: 1px; }
+.sidebar-brand h1 { font-size: 20px; letter-spacing: 1px; word-break: break-word; }
 .sidebar-menu { display: flex; flex-direction: column; gap: 10px; }
 
 .sidebar-menu button {
@@ -68,7 +74,7 @@ body {
     padding-left: 20px;
 }
 
-.conteudo-principal { flex: 1; padding: 25px; display: flex; flex-direction: column; }
+.conteudo-principal { flex: 1; padding: 25px; display: flex; flex-direction: column; min-width: 0; }
 
 .topo-sistema {
     display: flex;
@@ -100,7 +106,7 @@ body {
 .semana-bloco { margin-bottom: 35px; background: rgba(0,0,0,0.01); padding: 15px; border-radius: 10px; border: 1px dashed var(--cor-borda); }
 .semana-titulo { font-size: 14px; font-weight: bold; margin-bottom: 12px; color: var(--cor-principal); display: inline-block; background: var(--cor-card); padding: 5px 14px; border-radius: 20px; }
 
-/* GRADE CORRIGIDA PARA 7 COLUNAS (INCLUSÃO DO DOMINGO) */
+/* GRADE DE 7 COLUNAS (DOMINGO INCLUSO) */
 .grade-agenda {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -123,80 +129,44 @@ body {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    position: relative;
 }
 
-.card-paciente-nome { font-weight: bold; color: var(--cor-texto); word-break: break-all; }
+.card-paciente-nome { font-weight: bold; color: var(--cor-texto); word-break: break-all; padding-right: 15px; }
 .card-paciente-hora { font-size: 11px; color: #4a5568; }
 .card-paciente-modalidade { font-size: 10px; font-weight: 600; text-transform: uppercase; color: #319795; }
 
 body.dark-mode .card-compromisso { background: #234e52; border-left-color: #1abc9c; }
 body.dark-mode .card-paciente-nome { color: #ffffff; }
 
-/* ESTRUTURA DO NOVO SIDEBAR DE PERFIL SPLIT COMPACTO */
-.perfil-paciente-layout {
-    display: flex;
-    gap: 20px;
-    align-items: flex-start;
-    flex-wrap: wrap;
-}
-
-.sidebar-perfil-direita {
-    width: 350px;
-    background: var(--cor-card);
-    border: 1px solid var(--cor-borda);
-    border-radius: 8px;
-    padding: 20px;
-    display: none;
-}
-
-.sidebar-perfil-direita h3 { font-size: 16px; margin-bottom: 12px; border-bottom: 2px solid var(--cor-principal); padding-bottom: 5px; }
-.sidebar-perfil-direita h4 { font-size: 14px; margin-top: 15px; margin-bottom: 8px; color: #718096; }
-
-.resumo-plano-box {
-    background: rgba(0,0,0,0.02);
-    padding: 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    line-height: 1.5;
-    border-left: 4px solid var(--cor-principal);
-}
-
-.lista-recorrencia-scroll {
-    max-height: 420px;
-    overflow-y: auto;
-    padding-right: 5px;
-}
-
-.linha-previsao {
-    padding: 10px;
-    border-bottom: 1px solid var(--cor-borda);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 13px;
-}
-
-.linha-previsao-info span { display: block; font-size: 11px; color: #718096; }
-
-.btn-tres-pontos {
+/* BOTÕES DE 3 PONTOS (ALINHADOS CORRETAMENTE) */
+.btn-tres-pontos-agenda {
+    position: absolute;
+    top: 4px;
+    right: 6px;
     background: none;
     border: none;
     font-weight: bold;
-    font-size: 16px;
+    font-size: 14px;
     cursor: pointer;
     color: var(--cor-texto);
-    padding: 0 5px;
+    opacity: 0.6;
 }
+.btn-tres-pontos-agenda:hover { opacity: 1; }
 
-.box-editor-linha {
-    background: rgba(0,0,0,0.04);
-    padding: 12px;
-    border-radius: 6px;
-    margin-top: 5px;
-    margin-bottom: 10px;
-    display: none;
-    border: 1px solid var(--cor-borda);
-}
+.perfil-paciente-layout { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+.sidebar-perfil-direita { width: 350px; background: var(--cor-card); border: 1px solid var(--cor-borda); border-radius: 8px; padding: 20px; display: none; }
+.sidebar-perfil-direita h3 { font-size: 16px; margin-bottom: 12px; border-bottom: 2px solid var(--cor-principal); padding-bottom: 5px; }
+.sidebar-perfil-direita h4 { font-size: 14px; margin-top: 15px; margin-bottom: 8px; color: #718096; }
+
+.resumo-plano-box { background: rgba(0,0,0,0.02); padding: 12px; border-radius: 6px; font-size: 13px; line-height: 1.5; border-left: 4px solid var(--cor-principal); }
+.lista-recorrencia-scroll { max-height: 420px; overflow-y: auto; padding-right: 5px; }
+
+.linha-previsao { padding: 10px; border-bottom: 1px solid var(--cor-borda); display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+.linha-previsao-info span { display: block; font-size: 11px; color: #718096; }
+
+.btn-tres-pontos { background: none; border: none; font-weight: bold; font-size: 16px; cursor: pointer; color: var(--cor-texto); padding: 0 5px; }
+.box-editor-linha { background: rgba(0,0,0,0.04); padding: 12px; border-radius: 6px; margin-top: 5px; margin-bottom: 10px; display: none; border: 1px solid var(--cor-borda); }
 
 .lista-header input { padding: 10px 15px; border: 1px solid var(--cor-borda); border-radius: 6px; width: 300px; background: var(--cor-card); color: var(--cor-texto); }
 .grid-pacientes { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
@@ -223,4 +193,4 @@ input:focus, select:focus, textarea:focus { border-color: var(--cor-principal); 
 
 @media (max-width: 1250px) { .grade-agenda { grid-template-columns: repeat(4, 1fr); } }
 @media (max-width: 900px) { .grade-agenda { grid-template-columns: repeat(2, 1fr); } .sidebar-perfil-direita { width: 100%; } }
-@media (max-width: 600px) { .container-app { flex-direction: column; } .sidebar { width: 100%; } .grade-agenda { grid-template-columns: 1fr; } .form-group-row { flex-direction: column; } }
+@media (max-width: 600px) { .container-app { flex-direction: column; } .sidebar { width: 100%; height: auto; position: relative; } .grade-agenda { grid-template-columns: 1fr; } .form-group-row { flex-direction: column; } }
