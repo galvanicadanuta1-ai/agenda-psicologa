@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agenda Psicóloga</title>
     <link rel="stylesheet" href="style.css">
+    <!-- CDN do cliente Supabase Oficial -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
     <div class="container-app">
+        <!-- BARRA LATERAL (SIDEBAR) -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <img id="logoSistema" src="" alt="Logo" style="display: none; max-width: 80px; margin-bottom: 10px; border-radius: 50%;">
@@ -24,12 +26,14 @@
             </nav>
         </aside>
 
+        <!-- CONTEÚDO PRINCIPAL (SPA) -->
         <main class="conteudo-principal">
             <header class="topo-sistema">
                 <button id="menuBtn" class="btn-menu-mobile">☰</button>
                 <h2 id="tituloSistema">Painel de Controle</h2>
             </header>
 
+            <!-- TELA: DASHBOARD -->
             <div id="dashboard" class="tela">
                 <div class="grid-cards">
                     <div class="card bg-sucesso">
@@ -51,23 +55,28 @@
                 </div>
             </div>
 
+            <!-- TELA: AGENDA SEMANAL EXTRA-EXPANDIDA -->
             <div id="agenda" class="tela" style="display:none">
                 <div class="agenda-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2>Agenda de Atendimentos</h2>
                     <button type="button" class="btn-salvar" onclick="abrirModalAgendamento()">+ Novo Agendamento</button>
                 </div>
+                <!-- As 5 semanas serão renderizadas dinamicamente aqui dentro pelo JavaScript -->
                 <div id="grade-agenda-container"></div>
             </div>
 
+            <!-- TELA: LISTAGEM DE PACIENTES -->
             <div id="pacientes" class="tela" style="display:none">
                 <div class="lista-header">
                     <h2>Gerenciamento de Pacientes</h2>
                     <input type="text" id="pesquisaPaciente" placeholder="🔍 Buscar paciente por nome...">
                 </div>
                 <div id="listaPacientes" class="grid-pacientes">
-                    </div>
+                    <!-- Cards carregados via JavaScript -->
+                </div>
             </div>
 
+            <!-- TELA: CADASTRO / EDIÇÃO DE PACIENTE -->
             <div id="novoPaciente" class="tela" style="display:none">
                 <h2 class="titulo-formulario">Novo Paciente</h2>
                 <form id="formPaciente" onsubmit="event.preventDefault();">
@@ -191,6 +200,7 @@
                 </form>
             </div>
 
+            <!-- TELA: CONFIGURAÇÕES VISUAIS -->
             <div id="configuracoes" class="tela" style="display:none">
                 <h2>Configurações do Sistema</h2>
                 <div class="painel-config">
@@ -226,6 +236,7 @@
         </main>
     </div>
 
+    <!-- MODAL FLUTUANTE PARA NOVO AGENDAMENTO -->
     <div id="modalAgendamento" class="modal-popup" style="display: none;">
         <div class="modal-popup-content">
             <h3>📅 Marcar Nova Sessão</h3>
@@ -233,7 +244,8 @@
                 <div class="form-group">
                     <label for="selectPacienteAgendamento">Selecionar Paciente *</label>
                     <select id="selectPacienteAgendamento" required>
-                        </select>
+                        <!-- Carregado dinamicamente -->
+                    </select>
                 </div>
                 <div class="form-group-row">
                     <div class="form-group">
