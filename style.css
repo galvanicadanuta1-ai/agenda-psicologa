@@ -315,6 +315,33 @@ input:focus, select:focus, textarea:focus {
 .btn-salvar { background-color: var(--cor-principal); color: white; }
 .btn-cancelar { background-color: #e2e8f0; color: #4a5568; }
 
+/* ESTILOS DO MODAL FLUTUANTE DE AGENDAMENTO */
+.modal-popup {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(3px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+.modal-popup-content {
+    background: var(--cor-card);
+    color: var(--cor-texto);
+    padding: 30px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    border-top: 5px solid var(--cor-principal);
+}
+.modal-popup-content h3 {
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
 /* RESPONSIVIDADE MOBILE */
 @media (max-width: 900px) {
     .container-app { flex-direction: column; }
