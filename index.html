@@ -11,11 +11,13 @@
 <body>
 
     <div class="container-app">
-        <!-- BARRA LATERAL (SIDEBAR) -->
+        <!-- BARRA LATERAL FIXA (SIDEBAR) -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <img id="logoSistema" src="" alt="Logo" style="display: none; max-width: 80px; margin-bottom: 10px; border-radius: 50%;">
                 <h1 id="nomeSistema">Agenda Psi</h1>
+                <!-- Novo campo de Subtítulo/CRP -->
+                <small id="subtituloSistema" style="display: block; opacity: 0.75; font-size: 12px; margin-top: 4px; font-weight: normal;"></small>
             </div>
             <nav class="sidebar-menu">
                 <button onclick="mostrarTela('dashboard')">📊 Dashboard</button>
@@ -30,7 +32,8 @@
         <main class="conteudo-principal">
             <header class="topo-sistema">
                 <button id="menuBtn" class="btn-menu-mobile">☰</button>
-                <h2 id="tituloSistema">Painel de Controle</h2>
+                <!-- Título dinâmico da seção acessada (Sem repetir o nome da clínica) -->
+                <h2 id="tituloSeção">Painel de Controle</h2>
             </header>
 
             <!-- TELA: DASHBOARD -->
@@ -58,7 +61,7 @@
             <!-- TELA: AGENDA SEMANAL COM DOMINGO -->
             <div id="agenda" class="tela" style="display:none">
                 <div class="agenda-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2>Agenda de Atendimentos</h2>
+                    <h2>Grade de Compromissos</h2>
                     <button type="button" class="btn-salvar" onclick="abrirModalAgendamento()">+ Novo Agendamento</button>
                 </div>
                 <div id="grade-agenda-container"></div>
@@ -77,9 +80,9 @@
             <div id="novoPaciente" class="tela" style="display:none">
                 <div class="perfil-paciente-layout">
                     
-                    <!-- Formuário de dados esquerdo -->
+                    <!-- Formulário de dados esquerdo -->
                     <form id="formPaciente" onsubmit="event.preventDefault();" style="flex: 1; min-width: 300px;">
-                        <h2 class="titulo-formulario" style="margin-bottom: 20px;">Novo Paciente</h2>
+                        <h2 class="titulo-formulario" style="margin-bottom: 20px;">Dados do Paciente</h2>
                         
                         <fieldset>
                             <legend>Dados Cadastrais</legend>
@@ -143,8 +146,9 @@
                                     <input type="date" id="dataInicial">
                                 </div>
                                 <div class="form-group">
+                                    <!-- BLOQUEADO CONTRA ALTERAÇÃO MANUAL -->
                                     <label for="diaSemana">Dia da Semana (Calculado)</label>
-                                    <select id="diaSemana">
+                                    <select id="diaSemana" disabled style="background-color: #e2e8f0; cursor: not-allowed; opacity: 0.8;">
                                         <option value="Segunda">Segunda-feira</option>
                                         <option value="Terça">Terça-feira</option>
                                         <option value="Quarta">Quarta-feira</option>
@@ -219,13 +223,18 @@
                         <label for="configNomeSistema">Nome da Clínica / Profissional</label>
                         <input type="text" id="configNomeSistema" value="Agenda Psicóloga">
                     </div>
+                    <!-- Nova opção de Subtítulo -->
+                    <div class="form-group">
+                        <label for="configSubtituloSistema">Subtítulo / Registro Profissional (Ex: CRP 00/00000 - Opcional)</label>
+                        <input type="text" id="configSubtituloSistema" placeholder="Deixe em branco se preferir">
+                    </div>
                     <div class="form-group-row">
                         <div class="form-group">
                             <label for="corMenu">Cor da Barra Lateral</label>
                             <input type="color" id="corMenu" value="#2c3e50">
                         </div>
                         <div class="form-group">
-                            <label for="corPrincipal">Cor Principal (Botões/Destaques)</label>
+                            <label color="corPrincipal">Cor Principal (Botões/Destaques)</label>
                             <input type="color" id="corPrincipal" value="#1abc9c">
                         </div>
                         <div class="form-group">
@@ -247,14 +256,15 @@
         </main>
     </div>
 
-    <!-- MODAL FLUTUANTE PARA NOVO AGENDAMENTO -->
+    <!-- MODAL POP-UP DE AGENDAMENTO EXPLICITO / EDICAO EM LOTE -->
     <div id="modalAgendamento" class="modal-popup" style="display: none;">
         <div class="modal-popup-content">
-            <h3>📅 Marcar Nova Sessão</h3>
+            <h3 id="modalAgendamentoTitulo">📅 Marcar Nova Sessão</h3>
             <form id="formAgendamento" onsubmit="event.preventDefault();">
-                <div class="form-group">
+                <input type="hidden" id="editAgendamentoId">
+                <div class="form-group" id="containerSelectPacienteAgendamento">
                     <label for="selectPacienteAgendamento">Selecionar Paciente *</label>
-                    <select id="selectPacienteAgendamento" required></select>
+                    <select id="selectPacienteAgendamento"></select>
                 </div>
                 <div class="form-group-row">
                     <div class="form-group">
@@ -266,6 +276,19 @@
                         <input type="time" id="horaAgendamento" required>
                     </div>
                 </div>
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label for="modalidadeAgendamento">Modalidade</label>
+                        <select id="modalidadeAgendamento">
+                            <option value="Presencial">Presencial</option>
+                            <option value="Online">Online</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="valorAgendamento">Valor (R$)</label>
+                        <input type="number" id="valorAgendamento" step="0.01">
+                    </div>
+                </div>
                 <div class="form-group">
                     <label for="statusAgendamento">Status Inicial</label>
                     <select id="statusAgendamento">
@@ -274,9 +297,17 @@
                         <option value="Atendido">Atendido</option>
                     </select>
                 </div>
+                <!-- Controle de Escopo Reutilizável vindo da Agenda -->
+                <div class="form-group" id="boxEscopoAgenda" style="display:none;">
+                    <label style="color: #e53e3e; font-weight:bold;">Onde aplicar esta alteração?</label>
+                    <select id="escopoModificacaoAgenda">
+                        <option value="somente">Apenas para esta data específica</option>
+                        <option value="demais">Para esta data e todas as próximas abaixo</option>
+                    </select>
+                </div>
                 <div class="form-acoes">
                     <button type="button" class="btn-cancelar" onclick="fecharModalAgendamento()">Cancelar</button>
-                    <button type="button" id="btnPersistirAgendamento" class="btn-salvar">Confirmar Horário</button>
+                    <button type="button" id="btnPersistirAgendamento" class="btn-salvar">Confirmar</button>
                 </div>
             </form>
         </div>
