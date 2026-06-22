@@ -142,7 +142,7 @@ body {
 .bg-alerta { border-bottom-color: #e53e3e; }
 .bg-info { border-bottom-color: #3182ce; }
 
-/* REGRAS DO NOVO CONTAINER MULTI-SEMANAS */
+/* REGRAS DO CONTAINER MULTI-SEMANAS */
 .semana-bloco {
     margin-bottom: 35px;
     background: rgba(0,0,0,0.01);
@@ -152,15 +152,15 @@ body {
 }
 
 .semana-titulo {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: bold;
     margin-bottom: 12px;
     color: var(--cor-principal);
     display: inline-block;
     background: var(--cor-card);
-    padding: 4px 12px;
+    padding: 5px 14px;
     border-radius: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
 }
 
 /* LAYOUT GRID DA AGENDA SEMANAL */
@@ -179,7 +179,6 @@ body {
     border-top: 4px solid var(--cor-borda);
 }
 
-/* Destacar a coluna de hoje discretamente se necessário */
 .coluna-dia h3 {
     text-align: center;
     padding: 10px;
@@ -190,7 +189,7 @@ body {
 
 .slots-agendamentos { padding: 8px; }
 
-/* CARD DE COMPROMISSO SOLICITADO: NOME > HORÁRIO > MODALIDADE (UM ABAIXO DO OUTRO) */
+/* CARD DE COMPROMISSO SOLICITADO */
 .card-compromisso {
     background: #e6fffa;
     border-left: 4px solid #319795;
