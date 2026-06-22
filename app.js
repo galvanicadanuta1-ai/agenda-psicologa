@@ -18,13 +18,11 @@ let idPacienteEditando = null;
 // NAVEGAÇÃO INTERNA SPA (ROUTING SEGURO)
 // ==========================================================================
 function mostrarTela(nomeTela) {
-    // Esconde todas as telas mapeadas por segurança
     document.querySelectorAll('.tela').forEach(tela => tela.style.display = 'none');
     
     const telaAlvo = document.getElementById(nomeTela);
     if (telaAlvo) telaAlvo.style.display = 'block';
 
-    // Gatilhos de processamento ao abrir telas
     switch (nomeTela) {
         case 'dashboard':
             atualizarDashboard();
@@ -66,9 +64,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnSalvarPaciente')?.addEventListener('click', salvarPaciente);
     document.getElementById('btnSalvarConfiguracoes')?.addEventListener('click', salvarConfiguracoes);
     document.getElementById('dataInicial')?.addEventListener('change', atualizarDiaSemanaAutomatico);
+    document.getElementById('btnPersistirAgendamento')?.addEventListener('click', salvarAgendamento);
 });
 
-// Automação de cálculo de fuso horário local para o Dia da Semana
 function atualizarDiaSemanaAutomatico() {
     const inputData = document.getElementById('dataInicial');
     if (!inputData || !inputData.value) return;
@@ -186,7 +184,6 @@ window.prepararEdicaoPaciente = async function(id) {
 window.excluirPaciente = async function(id) {
     if (!confirm("Tem certeza absoluta que deseja excluir este paciente? Isso apagará permanentemente o perfil e o plano de atendimento associado.")) return;
     try {
-        // Limpa dependências relacionais de tabelas vinculadas
         await bancoDados.from('planos_atendimento').delete().eq('paciente_id', id);
         const { error } = await bancoDados.from('pacientes').delete().eq('id', id);
         if (error) throw error;
@@ -197,7 +194,6 @@ window.excluirPaciente = async function(id) {
     } catch (err) { alert('Falha ao processar exclusão no banco de dados.'); }
 };
 
-// Filtro de Busca Cliente em Tempo Real
 document.addEventListener('input', function (e) {
     if (e.target.id !== 'pesquisaPaciente') return;
     const filtro = e.target.value.toLowerCase();
@@ -240,7 +236,6 @@ async function salvarPaciente() {
         };
 
         if (idPacienteEditando) {
-            // AÇÃO: PERSISTIR ATUALIZAÇÃO
             const resPac = await bancoDados.from('pacientes').update(payloadPaciente).eq('id', idPacienteEditando);
             if (resPac.error) throw resPac.error;
 
@@ -248,7 +243,6 @@ async function salvarPaciente() {
             alert('Perfil do paciente atualizado com sucesso!');
             idPacienteEditando = null;
         } else {
-            // AÇÃO: INSERIR REGISTRO NOVO
             const resPac = await bancoDados.from('pacientes').insert([payloadPaciente]).select('id');
             if (resPac.error) throw resPac.error;
 
@@ -259,7 +253,7 @@ async function salvarPaciente() {
 
         document.getElementById('formPaciente')?.reset();
         mostrarTela('pacientes');
-    } catch (erro) { alert('Erro no salvamento. Certifique-se de que o RLS está desativado.'); }
+    } catch (erro) { alert('Erro no salvamento. Verifique as permissões de escrita do banco.'); }
 }
 
 // ==========================================================================
@@ -268,7 +262,6 @@ async function salvarPaciente() {
 async function carregarAgendaSemanal() {
     if (!bancoDados) return;
     
-    // Reseta todos os containers de dias para renderização limpa
     document.querySelectorAll('.slots-agendamentos').forEach(slot => slot.innerHTML = '');
 
     try {
@@ -298,11 +291,79 @@ async function carregarAgendaSemanal() {
                     `;
                 }
             });
-        } else {
-            console.log("Nenhum agendamento futuro localizado no banco.");
         }
     } catch (err) { console.error("Erro ao montar Agenda Semanal:", err); }
 }
+
+// ==========================================================================
+// CONTROLES DO MODAL POP-UP DE AGENDAMENTO
+// ==========================================================================
+async function abrirModalAgendamento() {
+    const modal = document.getElementById('modalAgendamento');
+    const select = document.getElementById('selectPacienteAgendamento');
+    if (!modal || !select || !bancoDados) return;
+
+    select.innerHTML = '<option value="">Carregando pacientes...</option>';
+    modal.style.display = 'flex';
+
+    try {
+        const { data, error } = await bancoDados.from('pacientes').select('id, nome').eq('status', 'Ativo').order('nome');
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+            select.innerHTML = '<option value="">-- Escolha o Paciente --</option>';
+            data.forEach(p => {
+                select.innerHTML += `<option value="${p.id}">${p.nome}</option>`;
+            });
+        } else {
+            select.innerHTML = '<option value="">Nenhum paciente ativo encontrado</option>';
+        }
+    } catch (err) {
+        select.innerHTML = '<option value="">Erro ao carregar pacientes</option>';
+    }
+}
+window.abrirModalAgendamento = abrirModalAgendamento;
+
+function fecharModalAgendamento() {
+    const modal = document.getElementById('modalAgendamento');
+    if (modal) modal.style.display = 'none';
+    document.getElementById('formAgendamento')?.reset();
+}
+window.fecharModalAgendamento = fecharModalAgendamento;
+
+async function salvarAgendamento() {
+    if (!bancoDados) return;
+    
+    const pacienteId = document.getElementById('selectPacienteAgendamento')?.value;
+    const dataSessao = document.getElementById('dataAgendamento')?.value;
+    const horaSessao = document.getElementById('horaAgendamento')?.value;
+    const statusSessao = document.getElementById('statusAgendamento')?.value || 'Agendado';
+
+    if (!pacienteId || !dataSessao || !horaSessao) {
+        alert('Por favor, preencha todos os campos obrigatórios (*).');
+        return;
+    }
+
+    try {
+        const { error } = await bancoDados.from('agendamentos').insert([
+            { 
+                paciente_id: pacienteId, 
+                data: dataSessao, 
+                hora: horaSessao, 
+                status: statusSessao 
+            }
+        ]);
+        
+        if (error) throw error;
+
+        alert('Sessão agendada com sucesso!');
+        fecharModalAgendamento();
+        carregarAgendaSemanal();
+    } catch (err) {
+        alert('Erro ao salvar agendamento. Garanta que a política RLS da tabela "agendamentos" esteja liberada.');
+    }
+}
+window.salvarAgendamento = salvarAgendamento;
 
 // ==========================================================================
 // CENTRALIZAÇÃO DA IDENTIDADE VISUAL E DESIGN
@@ -361,4 +422,4 @@ function aplicarConfiguracoesVisuais() {
     if (imgLogo && logoSalva) { imgLogo.src = logoSalva; imgLogo.style.display = 'block'; }
 }
 
-console.log('SISTEMA TOTALMENTE RECUPERADO V3.5 - COMPILADO COM SUCESSO');
+console.log('SISTEMA RENDERIZADO V4.0 COMPLETO');
