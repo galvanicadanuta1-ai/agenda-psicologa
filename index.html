@@ -5,40 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agenda Psicóloga</title>
     <link rel="stylesheet" href="style.css">
+    <!-- CDN do cliente Supabase Oficial -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
     <div class="container-app">
+        <!-- BARRA LATERAL FIXA (SIDEBAR) -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <img id="logoSistema" src="" alt="Logo" style="display: none; max-width: 80px; margin-bottom: 10px; border-radius: 50%;">
                 <h1 id="nomeSistema">Agenda Psi</h1>
+                <!-- Campo de Subtítulo/CRP -->
                 <small id="subtituloSistema" style="display: block; opacity: 0.75; font-size: 12px; margin-top: 4px; font-weight: normal;"></small>
             </div>
             <nav class="sidebar-menu">
                 <button onclick="mostrarTela('dashboard')">📊 Dashboard</button>
-                <button onclick="mostrarTela('agenda')">📅 Agenda Semanal</button>
+                <button onclick="mostrarTela('agenda')">📅 Agenda</button>
                 <button onclick="mostrarTela('pacientes')">👥 Pacientes</button>
-                <button onclick="mostrarTela('novoPaciente')">➕ Novo Paciente</button>
                 <button onclick="mostrarTela('configuracoes')">⚙️ Configurações</button>
             </nav>
         </aside>
 
+        <!-- CONTEÚDO PRINCIPAL (SPA) -->
         <main class="conteudo-principal">
             <header class="topo-sistema">
                 <button id="menuBtn" class="btn-menu-mobile">☰</button>
                 <h2 id="tituloSeção">Painel de Controle</h2>
             </header>
 
+            <!-- TELA: DASHBOARD -->
             <div id="dashboard" class="tela">
                 <div class="grid-cards">
                     <div class="card bg-sucesso">
-                        <h3>Pacientes Ativos</h3>
+                        <h3>Pacientes Atendidos</h3>
                         <p id="totalAtivos">0</p>
                     </div>
                     <div class="card bg-alerta">
-                        <h3>Pacientes Inativos</h3>
+                        <h3>Pacientes Não Atendidos</h3>
                         <p id="totalInativos">0</p>
                     </div>
                     <div class="card bg-info">
@@ -52,25 +56,28 @@
                 </div>
             </div>
 
+            <!-- TELA: AGENDA SEMANAL UNIFICADA -->
             <div id="agenda" class="tela" style="display:none">
-                <div class="agenda-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2>Grade de Compromissos</h2>
-                    <button type="button" class="btn-salvar" onclick="abrirModalAgendamento()">+ Novo Agendamento</button>
-                </div>
                 <div id="grade-agenda-container"></div>
             </div>
 
+            <!-- TELA: LISTAGEM DE PACIENTES COM BOTÃO NO CANTO SUPERIOR DIREITO -->
             <div id="pacientes" class="tela" style="display:none">
-                <div class="lista-header">
+                <div class="lista-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2>Gerenciamento de Pacientes</h2>
-                    <input type="text" id="pesquisaPaciente" placeholder="🔍 Buscar paciente por nome...">
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <input type="text" id="pesquisaPaciente" placeholder="🔍 Buscar paciente por nome..." style="margin-bottom: 0;">
+                        <button type="button" class="btn-salvar" onclick="idPacienteEditando=null; mostrarTela('novoPaciente')" style="white-space: nowrap;">➕ Novo Paciente</button>
+                    </div>
                 </div>
                 <div id="listaPacientes" class="grid-pacientes"></div>
             </div>
 
+            <!-- TELA: CADASTRO / EDIÇÃO DE PACIENTE + CALENDÁRIO LATERAL -->
             <div id="novoPaciente" class="tela" style="display:none">
                 <div class="perfil-paciente-layout">
                     
+                    <!-- Formulário de dados esquerdo -->
                     <form id="formPaciente" onsubmit="event.preventDefault();" style="flex: 1; min-width: 300px;">
                         <h2 class="titulo-formulario" style="margin-bottom: 20px;">Dados do Paciente</h2>
                         
@@ -82,10 +89,10 @@
                                     <input type="text" id="nome" required placeholder="Nome do paciente">
                                 </div>
                                 <div class="form-group">
-                                    <label for="statusPaciente">Status</label>
+                                    <label for="statusPaciente">Status de Atendimento</label>
                                     <select id="statusPaciente">
-                                        <option value="Ativo">Ativo</option>
-                                        <option value="Inativo">Inativo</option>
+                                        <option value="Atendido">Atendido</option>
+                                        <option value="Não Atendido">Não Atendido</option>
                                     </select>
                                 </div>
                             </div>
@@ -193,6 +200,7 @@
                         </div>
                     </form>
 
+                    <!-- Painel Lateral Direito Inteligente (Calendário do Paciente) -->
                     <aside id="sidebar-agenda-paciente" class="sidebar-perfil-direita">
                         <h3>📅 Calendário do Paciente</h3>
                         <div id="info-plano-resumo" class="resumo-plano-box"></div>
@@ -203,6 +211,7 @@
                 </div>
             </div>
 
+            <!-- TELA: CONFIGURAÇÕES VISUAIS -->
             <div id="configuracoes" class="tela" style="display:none">
                 <h2>Configurações do Sistema</h2>
                 <div class="painel-config">
@@ -242,6 +251,7 @@
         </main>
     </div>
 
+    <!-- MODAL POP-UP DE EDICAO EM LOTE -->
     <div id="modalAgendamento" class="modal-popup" style="display: none;">
         <div class="modal-popup-content">
             <h3 id="modalAgendamentoTitulo">📅 Marcar Nova Sessão</h3>
