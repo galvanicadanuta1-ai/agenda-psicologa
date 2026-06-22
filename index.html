@@ -55,13 +55,12 @@
                 </div>
             </div>
 
-            <!-- TELA: AGENDA SEMANAL EXTRA-EXPANDIDA -->
+            <!-- TELA: AGENDA SEMANAL COM DOMINGO -->
             <div id="agenda" class="tela" style="display:none">
                 <div class="agenda-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2>Agenda de Atendimentos</h2>
                     <button type="button" class="btn-salvar" onclick="abrirModalAgendamento()">+ Novo Agendamento</button>
                 </div>
-                <!-- As 5 semanas serão renderizadas dinamicamente aqui dentro pelo JavaScript -->
                 <div id="grade-agenda-container"></div>
             </div>
 
@@ -71,133 +70,145 @@
                     <h2>Gerenciamento de Pacientes</h2>
                     <input type="text" id="pesquisaPaciente" placeholder="🔍 Buscar paciente por nome...">
                 </div>
-                <div id="listaPacientes" class="grid-pacientes">
-                    <!-- Cards carregados via JavaScript -->
-                </div>
+                <div id="listaPacientes" class="grid-pacientes"></div>
             </div>
 
-            <!-- TELA: CADASTRO / EDIÇÃO DE PACIENTE -->
+            <!-- TELA: CADASTRO / EDIÇÃO DE PACIENTE + CALENDÁRIO LATERAL -->
             <div id="novoPaciente" class="tela" style="display:none">
-                <h2 class="titulo-formulario">Novo Paciente</h2>
-                <form id="formPaciente" onsubmit="event.preventDefault();">
+                <div class="perfil-paciente-layout">
                     
-                    <fieldset>
-                        <legend>Dados Cadastrais</legend>
-                        <div class="form-group-row">
-                            <div class="form-group">
-                                <label for="nome">Nome Completo *</label>
-                                <input type="text" id="nome" required placeholder="Nome do paciente">
+                    <!-- Formuário de dados esquerdo -->
+                    <form id="formPaciente" onsubmit="event.preventDefault();" style="flex: 1; min-width: 300px;">
+                        <h2 class="titulo-formulario" style="margin-bottom: 20px;">Novo Paciente</h2>
+                        
+                        <fieldset>
+                            <legend>Dados Cadastrais</legend>
+                            <div class="form-group-row">
+                                <div class="form-group">
+                                    <label for="nome">Nome Completo *</label>
+                                    <input type="text" id="nome" required placeholder="Nome do paciente">
+                                </div>
+                                <div class="form-group">
+                                    <label for="statusPaciente">Status</label>
+                                    <select id="statusPaciente">
+                                        <option value="Ativo">Ativo</option>
+                                        <option value="Inativo">Inativo</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="statusPaciente">Status</label>
-                                <select id="statusPaciente">
-                                    <option value="Ativo">Ativo</option>
-                                    <option value="Inativo">Inativo</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        <div class="form-group-row">
-                            <div class="form-group">
-                                <label for="cpf">CPF</label>
-                                <input type="text" id="cpf" placeholder="000.000.000-00">
+                            <div class="form-group-row">
+                                <div class="form-group">
+                                    <label for="cpf">CPF</label>
+                                    <input type="text" id="cpf" placeholder="000.000.000-00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="dataNascimento">Data de Nascimento</label>
+                                    <input type="date" id="dataNascimento">
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="dataNascimento">Data de Nascimento</label>
-                                <input type="date" id="dataNascimento">
-                            </div>
-                        </div>
 
-                        <div class="form-group-row">
-                            <div class="form-group">
-                                <label for="telefone">Telefone / WhatsApp</label>
-                                <input type="tel" id="telefone" placeholder="(00) 00000-0000">
+                            <div class="form-group-row">
+                                <div class="form-group">
+                                    <label for="telefone">Telefone / WhatsApp</label>
+                                    <input type="tel" id="telefone" placeholder="(00) 00000-0000">
+                                </div>
+                                <div class="form-group">
+                                    <label for="email">E-mail</label>
+                                    <input type="email" id="email" placeholder="exemplo@email.com">
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="email">E-mail</label>
-                                <input type="email" id="email" placeholder="exemplo@email.com">
-                            </div>
-                        </div>
 
-                        <div class="form-group">
-                            <label for="endereco">Endereço Residencial</label>
-                            <input type="text" id="endereco" placeholder="Rua, Número, Bairro, Cidade">
-                        </div>
+                            <div class="form-group">
+                                <label for="endereco">Endereço Residencial</label>
+                                <input type="text" id="endereco" placeholder="Rua, Número, Bairro, Cidade">
+                            </div>
 
-                        <div class="form-group">
-                            <label for="responsavel">Responsável Legal (Se menor de idade)</label>
-                            <input type="text" id="responsavel" placeholder="Nome do responsável">
-                        </div>
+                            <div class="form-group">
+                                <label for="responsavel">Responsável Legal (Se menor de idade)</label>
+                                <input type="text" id="responsavel" placeholder="Nome do responsável">
+                            </div>
 
-                        <div class="form-group">
-                            <label for="observacoes">Observações / Histórico Clínico</label>
-                            <textarea id="observacoes" rows="3" placeholder="Informações relevantes anotadas pela psicóloga..."></textarea>
-                        </div>
-                    </fieldset>
+                            <div class="form-group">
+                                <label for="observacoes">Observações / Histórico Clínico</label>
+                                <textarea id="observacoes" rows="3" placeholder="Informações relevantes anotadas pela psicóloga..."></textarea>
+                            </div>
+                        </fieldset>
 
-                    <fieldset>
-                        <legend>Plano de Atendimento Semanal</legend>
-                        <div class="form-group-row">
-                            <div class="form-group">
-                                <label for="dataInicial">Data de Início *</label>
-                                <input type="date" id="dataInicial">
+                        <fieldset>
+                            <legend>Plano de Atendimento Semanal</legend>
+                            <div class="form-group-row">
+                                <div class="form-group">
+                                    <label for="dataInicial">Data de Início *</label>
+                                    <input type="date" id="dataInicial">
+                                </div>
+                                <div class="form-group">
+                                    <label for="diaSemana">Dia da Semana (Calculado)</label>
+                                    <select id="diaSemana">
+                                        <option value="Segunda">Segunda-feira</option>
+                                        <option value="Terça">Terça-feira</option>
+                                        <option value="Quarta">Quarta-feira</option>
+                                        <option value="Quinta">Quinta-feira</option>
+                                        <option value="Sexta">Sexta-feira</option>
+                                        <option value="Sábado">Sábado</option>
+                                        <option value="Domingo">Domingo</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="diaSemana">Dia da Semana (Calculado)</label>
-                                <select id="diaSemana">
-                                    <option value="Segunda">Segunda-feira</option>
-                                    <option value="Terça">Terça-feira</option>
-                                    <option value="Quarta">Quarta-feira</option>
-                                    <option value="Quinta">Quinta-feira</option>
-                                    <option value="Sexta">Sexta-feira</option>
-                                    <option value="Sábado">Sábado</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        <div class="form-group-row">
-                            <div class="form-group">
-                                <label for="horario">Horário Padrão *</label>
-                                <input type="time" id="horario">
+                            <div class="form-group-row">
+                                <div class="form-group">
+                                    <label for="horario">Horário Padrão *</label>
+                                    <input type="time" id="horario">
+                                </div>
+                                <div class="form-group">
+                                    <label for="frequencia">Frequência</label>
+                                    <select id="frequencia">
+                                        <option value="Semanal">Semanal</option>
+                                        <option value="Quinzenal">Quinzenal</option>
+                                        <option value="Mensal">Mensal</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="frequencia">Frequência</label>
-                                <select id="frequencia">
-                                    <option value="Semanal">Semanal</option>
-                                    <option value="Quinzenal">Quinzenal</option>
-                                    <option value="Mensal">Mensal</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        <div class="form-group-row">
-                            <div class="form-group">
-                                <label for="modalidade">Modalidade</label>
-                                <select id="modalidade">
-                                    <option value="Presencial">Presencial</option>
-                                    <option value="Online">Online</option>
-                                </select>
+                            <div class="form-group-row">
+                                <div class="form-group">
+                                    <label for="modalidade">Modalidade</label>
+                                    <select id="modalidade">
+                                        <option value="Presencial">Presencial</option>
+                                        <option value="Online">Online</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="valor">Valor por Sessão (R$)</label>
+                                    <input type="number" id="valor" step="0.01" placeholder="150.00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="formaCobranca">Forma de Cobrança</label>
+                                    <select id="formaCobranca">
+                                        <option value="Mensal">Mensal Fechado</option>
+                                        <option value="Por Sessão">Pago por Sessão</option>
+                                        <option value="Pacote">Pacote Prévio</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="valor">Valor por Sessão (R$)</label>
-                                <input type="number" id="valor" step="0.01" placeholder="150.00">
-                            </div>
-                            <div class="form-group">
-                                <label for="formaCobranca">Forma de Cobrança</label>
-                                <select id="formaCobranca">
-                                    <option value="Mensal">Mensal Fechado</option>
-                                    <option value="Por Sessão">Pago por Sessão</option>
-                                    <option value="Pacote">Pacote Prévio</option>
-                                </select>
-                            </div>
-                        </div>
-                    </fieldset>
+                        </fieldset>
 
-                    <div class="form-acoes">
-                        <button type="button" class="btn-cancelar" onclick="idPacienteEditando=null; mostrarTela('pacientes')">Cancelar</button>
-                        <button type="button" id="btnSalvarPaciente" class="btn-salvar">Salvar Paciente</button>
-                    </div>
-                </form>
+                        <div class="form-acoes">
+                            <button type="button" class="btn-cancelar" onclick="idPacienteEditando=null; mostrarTela('pacientes')">Cancelar</button>
+                            <button type="button" id="btnSalvarPaciente" class="btn-salvar">Salvar Paciente</button>
+                        </div>
+                    </form>
+
+                    <!-- Painel Lateral Direito Inteligente (Calendário do Paciente) -->
+                    <aside id="sidebar-agenda-paciente" class="sidebar-perfil-direita">
+                        <h3>📅 Calendário do Paciente</h3>
+                        <div id="info-plano-resumo" class="resumo-plano-box"></div>
+                        <h4>Próximas Sessões (90 dias)</h4>
+                        <div id="lista-proximas-sessoes" class="lista-recorrencia-scroll"></div>
+                    </aside>
+
+                </div>
             </div>
 
             <!-- TELA: CONFIGURAÇÕES VISUAIS -->
@@ -243,9 +254,7 @@
             <form id="formAgendamento" onsubmit="event.preventDefault();">
                 <div class="form-group">
                     <label for="selectPacienteAgendamento">Selecionar Paciente *</label>
-                    <select id="selectPacienteAgendamento" required>
-                        <!-- Carregado dinamicamente -->
-                    </select>
+                    <select id="selectPacienteAgendamento" required></select>
                 </div>
                 <div class="form-group-row">
                     <div class="form-group">
