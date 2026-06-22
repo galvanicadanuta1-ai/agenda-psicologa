@@ -52,8 +52,9 @@
             </div>
 
             <div id="agenda" class="tela" style="display:none">
-                <div class="agenda-header">
+                <div class="agenda-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2>Agenda de Atendimentos</h2>
+                    <button type="button" class="btn-salvar" onclick="abrirModalAgendamento()">+ Novo Agendamento</button>
                 </div>
                 <div class="grade-agenda">
                     <div class="coluna-dia" id="dia-Segunda"><h3>Segunda</h3><div class="slots-agendamentos"></div></div>
@@ -230,6 +231,41 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <div id="modalAgendamento" class="modal-popup" style="display: none;">
+        <div class="modal-popup-content">
+            <h3>📅 Marcar Nova Sessão</h3>
+            <form id="formAgendamento" onsubmit="event.preventDefault();">
+                <div class="form-group">
+                    <label for="selectPacienteAgendamento">Selecionar Paciente *</label>
+                    <select id="selectPacienteAgendamento" required>
+                        </select>
+                </div>
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label for="dataAgendamento">Data da Sessão *</label>
+                        <input type="date" id="dataAgendamento" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="horaAgendamento">Horário *</label>
+                        <input type="time" id="horaAgendamento" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="statusAgendamento">Status Inicial</label>
+                    <select id="statusAgendamento">
+                        <option value="Agendado">Agendado</option>
+                        <option value="Confirmado">Confirmado</option>
+                        <option value="Atendido">Atendido</option>
+                    </select>
+                </div>
+                <div class="form-acoes">
+                    <button type="button" class="btn-cancelar" onclick="fecharModalAgendamento()">Cancelar</button>
+                    <button type="button" id="btnPersistirAgendamento" class="btn-salvar">Confirmar Horário</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script src="app.js"></script>
