@@ -27,7 +27,7 @@ function mostrarTela(nomeTela) {
 
     const titulosModulos = {
         'dashboard': '📊 Painel de Indicadores',
-        'agenda': '📅 Grade de Compromissos Semanais',
+        'agenda': '📅 Agenda',
         'pacientes': '👥 Listagem de Pacientes Cadastrados',
         'novoPaciente': idPacienteEditando ? '📝 Perfil e Histórico Clínico' : '➕ Cadastro de Novo Paciente',
         'configuracoes': '⚙️ Parâmetros do Sistema'
@@ -101,7 +101,7 @@ function atualizarDiaSemanaAutomatico() {
 }
 
 // ==========================================================================
-// REGRA MATEMÁTICA CORRIGIDA: RECORRÊNCIA E SEQUÊNCIAS EM DIAS DA SEMANA
+// REGRA RECORRÊNCIA E SEQUÊNCIAS EM DIAS DA SEMANA
 // ==========================================================================
 function checarDataCorrespondeAoPlano(dataAlvoObj, dataInicioStr, diaSemanaPlan, frequenciaPlan) {
     if (!dataInicioStr) return false;
@@ -128,7 +128,7 @@ function checarDataCorrespondeAoPlano(dataAlvoObj, dataInicioStr, diaSemanaPlan,
 }
 
 // ==========================================================================
-// RENDERIZAÇÃO DA AGENDA SEMANAL COM SUPORTE A 3 PONTOS EM CADA CARD
+// RENDERIZAÇÃO DA AGENDA SEMNAL SEM EXIBIÇÃO DE VALOR COBRADO
 // ==========================================================================
 async function carregarAgendaSemanal() {
     const containerGeral = document.getElementById('grade-agenda-container');
@@ -178,7 +178,7 @@ async function carregarAgendaSemanal() {
     if (!bancoDados) return;
 
     try {
-        const { data: pacientes } = await bancoDados.from('pacientes').select('id, nome').eq('status', 'Ativo');
+        const { data: pacientes } = await bancoDados.from('pacientes').select('id, nome').eq('status', 'Atendido');
         const { data: planos } = await bancoDados.from('planos_atendimento').select('*').eq('ativo', true);
         const { data: agendamentos } = await bancoDados.from('agendamentos').select('*');
 
@@ -231,12 +231,13 @@ async function carregarAgendaSemanal() {
                 });
             }
 
+            // CRITICAL FIX: Renderiza estritamente Nome, Horário e Modalidade (Sem exibir valores em R$)
             itensRender.forEach(item => {
                 container.innerHTML += `
                     <div class="card-compromisso" style="${item.origem === 'excecao' ? 'border-left-color: #3182ce;' : ''}">
                         <div class="card-paciente-nome">${item.nome}</div>
                         <div class="card-paciente-hora">⏱️ ${item.hora}</div>
-                        <div class="card-paciente-modalidade">${item.modalidade} - R$ ${Number(item.valor).toFixed(2)}</div>
+                        <div class="card-paciente-modalidade">${item.modalidade}</div>
                         <button class="btn-tres-pontos-agenda" onclick="abrirEditorDiretoAgenda('${item.pacienteId}', '${dataChaveStr}', '${item.hora}', '${item.modalidade}', '${item.valor}', '${item.status}')">...</button>
                     </div>
                 `;
@@ -284,7 +285,7 @@ window.abrirEditorDiretoAgenda = function(pacienteId, dataISO, hora, modalidade,
 };
 
 // ==========================================================================
-// CALENDÁRIO INTERNO DO PERFIL (ATUALIZAÇÃO DINÂMICA E CORRETA DOS 90 DIAS)
+// CALENDÁRIO INTERNO DO PERFIL (VINCULADO TOTALMENTE À MODALIDADE DINÂMICA)
 // ==========================================================================
 async function renderizarSidebarCalendarioPaciente(pacienteId) {
     const sidebar = document.getElementById('sidebar-agenda-paciente');
@@ -293,7 +294,6 @@ async function renderizarSidebarCalendarioPaciente(pacienteId) {
 
     if (!sidebar || !resumoBox || !listaScroll) return;
 
-    // Obtém as informações atuais dos inputs do formulário para o Live Preview!
     const dataInicioStr = document.getElementById('dataInicial')?.value;
     const frequencia = document.getElementById('frequencia')?.value || 'Semanal';
     const horaPadrao = document.getElementById('horario')?.value || '';
@@ -301,7 +301,6 @@ async function renderizarSidebarCalendarioPaciente(pacienteId) {
     const valor = Number(document.getElementById('valor')?.value || 0);
     const diaSemana = document.getElementById('diaSemana')?.value || 'Segunda';
 
-    // Se a data inicial estiver em branco, oculta a barra lateral e interrompe a renderização
     if (!dataInicioStr) {
         sidebar.style.display = 'none';
         return;
@@ -311,7 +310,7 @@ async function renderizarSidebarCalendarioPaciente(pacienteId) {
     resumoBox.innerHTML = `
         <strong>Frequência:</strong> ${frequencia}<br>
         <strong>Horário Fixo:</strong> ${horaPadrao.substring(0,5)}<br>
-        <strong>Modalidade:</strong> ${modalidade}<br>
+        <strong>Modalidade Padrão:</strong> ${modalidade}<br>
         <strong>Valor Base:</strong> R$ ${valor.toFixed(2)}
     `;
 
@@ -325,8 +324,6 @@ async function renderizarSidebarCalendarioPaciente(pacienteId) {
         }
 
         let htmlProxe = '';
-        
-        // CRITICAL FIX: O loop inicia exatamente da Data de Início cadastrada no formulário
         const partes = dataInicioStr.split('-');
         const dataBaseLoop = new Date(partes[0], partes[1] - 1, partes[2]);
 
@@ -343,12 +340,13 @@ async function renderizarSidebarCalendarioPaciente(pacienteId) {
                 const exibValor = excecaoGravada && excecaoGravada.valor_cobrado !== undefined ? excecaoGravada.valor_cobrado : valor;
                 const exibMod = excecaoGravada && excecaoGravada.modalidade ? excecaoGravada.modalidade : modalidade;
 
+                // FIX: Modalidade adicionada e vinculada explicitamente em destaque na linha do calendário
                 htmlProxe += `
                     <div class="container-linha-bloco">
                         <div class="linha-previsao">
                             <div class="linha-previsao-info">
-                                <strong>📅 ${exibData} às ${exibHora}</strong>
-                                <span>${frequencia} - R$ ${Number(exibValor).toFixed(2)} (${exibMod})</span>
+                                <strong>📅 ${exibData} às ${exibHora} - ${exibMod}</strong>
+                                <span>${frequencia} - R$ ${Number(exibValor).toFixed(2)}</span>
                             </div>
                             <button type="button" class="btn-tres-pontos" onclick="alternarVisibilidadeEditorLinha('${dataISO}')">...</button>
                         </div>
@@ -415,7 +413,7 @@ window.salvarModificacaoLinhaPerfil = async function(dataISO, pacienteId) {
 };
 
 // ==========================================================================
-// CENTRALIZADOR LOGICO DO SALVAMENTO POR ESCOPO (VINCULA TUDO AUTOMATICAMENTE)
+// CENTRALIZADOR LOGICO DO SALVAMENTO POR ESCOPO
 // ==========================================================================
 async function executarSalvamentoPorEscopo(pacienteId, dataOriginalISO, novaDataISO, novaHora, novaMod, novoVal, status, escopo) {
     if(!bancoDados) return;
@@ -462,18 +460,18 @@ async function executarSalvamentoPorEscopo(pacienteId, dataOriginalISO, novaData
 }
 
 // ==========================================================================
-// OPERAÇÃO: DASHBOARD CONTADORES
+// OPERAÇÃO: DASHBOARD CONTADORES ATUALIZADOS PARA "ATENDIDO/NÃO ATENDIDO"
 // ==========================================================================
 async function atualizarDashboard() {
     if (!bancoDados) return;
     try {
         const { data } = await bancoDados.from('pacientes').select('status');
-        let ativos = 0, inativos = 0;
+        let atendidos = 0, naoAtendidos = 0;
         if (data) {
-            data.forEach(p => p.status === 'Inativo' ? inativos++ : ativos++);
+            data.forEach(p => p.status === 'Não Atendido' ? naoAtendidos++ : atendidos++);
         }
-        if (document.getElementById('totalAtivos')) document.getElementById('totalAtivos').innerText = ativos;
-        if (document.getElementById('totalInativos')) document.getElementById('totalInativos').innerText = inativos;
+        if (document.getElementById('totalAtivos')) document.getElementById('totalAtivos').innerText = atendidos;
+        if (document.getElementById('totalInativos')) document.getElementById('totalInativos').innerText = naoAtendidos;
     } catch (err) { console.error(err); }
 }
 
@@ -500,7 +498,7 @@ async function carregarPacientes() {
                 <div class="cardPaciente" id="card-${paciente.id}">
                     <strong>👤 ${paciente.nome || ''}</strong><br>
                     <small>📞 WhatsApp: ${paciente.telefone || 'Não preenchido'}</small><br>
-                    <small>🟢 Situação: ${paciente.status || 'Ativo'}</small>
+                    <small>🟢 Situação: ${paciente.status || 'Atendido'}</small>
                     <div class="acoes-card">
                         <button class="btn-editar" onclick="prepararEdicaoPaciente('${paciente.id}')">✏️ Ver Perfil / Calendário</button>
                         <button class="btn-excluir" onclick="excluirPaciente('${paciente.id}')">🗑️ Remover</button>
@@ -528,7 +526,7 @@ window.prepararEdicaoPaciente = async function(id) {
         if(document.getElementById('endereco')) document.getElementById('endereco').value = p.endereco || '';
         if(document.getElementById('responsavel')) document.getElementById('responsavel').value = p.responsavel || '';
         if(document.getElementById('observacoes')) document.getElementById('observacoes').value = p.observacoes || '';
-        if(document.getElementById('statusPaciente')) document.getElementById('statusPaciente').value = p.status || 'Ativo';
+        if(document.getElementById('statusPaciente')) document.getElementById('statusPaciente').value = p.status || 'Atendido';
 
         const planoRes = await bancoDados.from('planos_atendimento').select('*').eq('paciente_id', id);
         if (planoRes.data && planoRes.data.length > 0) {
@@ -557,12 +555,13 @@ window.excluirPaciente = async function(id) {
     } catch (err) { alert('Erro ao processar exclusão.'); }
 };
 
-// SALVAMENTO REMODELADO PARA MANTER O OPERADOR NA MESMA TELA
 async function salvarPaciente() {
     if (!bancoDados) return;
     try {
         const elNome = document.getElementById('nome');
         if (!elNome || !elNome.value) { alert('Nome é obrigatório'); return; }
+
+        const statusSelecionado = document.getElementById('statusPaciente')?.value || 'Atendido';
 
         const payloadPaciente = {
             nome: elNome.value,
@@ -573,8 +572,8 @@ async function salvarPaciente() {
             endereco: document.getElementById('endereco')?.value || null,
             responsavel: document.getElementById('responsavel')?.value || null,
             observacoes: document.getElementById('observacoes')?.value || null,
-            status: document.getElementById('statusPaciente')?.value || 'Ativo',
-            ativo: document.getElementById('statusPaciente')?.value === 'Ativo'
+            status: statusSelecionado,
+            ativo: statusSelecionado === 'Atendido'
         };
 
         const selectDia = document.getElementById('diaSemana');
@@ -593,8 +592,6 @@ async function salvarPaciente() {
             await bancoDados.from('pacientes').update(payloadPaciente).eq('id', idPacienteEditando);
             await bancoDados.from('planos_atendimento').update(payloadPlano).eq('paciente_id', idPacienteEditando);
             alert('Cadastro atualizado com sucesso!');
-            
-            // FIX: Mantém o idPacienteEditando e atualiza a barra lateral imediatamente
             renderizarSidebarCalendarioPaciente(idPacienteEditando);
         } else {
             const resPac = await bancoDados.from('pacientes').insert([payloadPaciente]).select('id');
@@ -605,7 +602,6 @@ async function salvarPaciente() {
             await bancoDados.from('planos_atendimento').insert([payloadPlano]);
             alert('Paciente e plano gravados com sucesso!');
             
-            // FIX: Associa o novo ID criado para travar o escopo de edição na mesma tela
             idPacienteEditando = novoId;
             renderizarSidebarCalendarioPaciente(novoId);
         }
@@ -615,65 +611,14 @@ async function salvarPaciente() {
 // ==========================================================================
 // CONTROLES DO MODAL POP-UP
 // ==========================================================================
-async function abrirModalAgendamento() {
-    const modal = document.getElementById('modalAgendamento');
-    const select = document.getElementById('selectPacienteAgendamento');
-    const titulo = document.getElementById('modalAgendamentoTitulo');
-    const boxEscopo = document.getElementById('boxEscopoAgenda');
-    
-    if (!modal || !select || !bancoDados) return;
-
-    titulo.innerText = "📅 Marcar Nova Sessão";
-    document.getElementById('containerSelectPacienteAgendamento').style.display = 'block';
-    boxEscopo.style.display = 'none';
-    select.innerHTML = '<option value="">Carregando...</option>';
-    modal.style.display = 'flex';
-
-    document.getElementById('btnPersistirAgendamento').onclick = salvarAgendamento;
-
-    try {
-        const { data } = await bancoDados.from('pacientes').select('id, nome').eq('status', 'Ativo').order('nome');
-        if (data && data.length > 0) {
-            select.innerHTML = '<option value="">-- Selecione --</option>';
-            data.forEach(p => select.innerHTML += `<option value="${p.id}">${p.nome}</option>`);
-        }
-    } catch (err) { select.innerHTML = '<option value="">Erro</option>'; }
-}
-window.abrirModalAgendamento = abrirModalAgendamento;
-
 function fecharModalAgendamento() {
     document.getElementById('modalAgendamento').style.display = 'none';
     document.getElementById('formAgendamento')?.reset();
 }
 window.fecharModalAgendamento = fecharModalAgendamento;
 
-async function salvarAgendamento() {
-    if (!bancoDados) return;
-    const pacienteId = document.getElementById('selectPacienteAgendamento')?.value;
-    const dataSessao = document.getElementById('dataAgendamento')?.value;
-    const horaSessao = document.getElementById('horaAgendamento')?.value;
-    const statusSessao = document.getElementById('statusAgendamento')?.value || 'Agendado';
-    const modSessao = document.getElementById('modalidadeAgendamento')?.value || 'Presencial';
-    const valSessao = Number(document.getElementById('valorAgendamento')?.value || 0);
-
-    if (!pacienteId || !dataSessao || !horaSessao) return;
-
-    try {
-        await bancoDados.from('agendamentos').insert([{ 
-            paciente_id: pacienteId, 
-            data: dataSessao, 
-            hora: horaSessao, 
-            status: statusSessao,
-            modalidade: modSessao,
-            valor_cobrado: valSessao
-        }]);
-        fecharModalAgendamento();
-        carregarAgendaSemanal();
-    } catch (err) { alert('Erro ao registrar sessão manual.'); }
-}
-
 // ==========================================================================
-// GESTÃO CONFIGURAÇÕES VISUAIS COM INPUT DE SUBTÍTULO
+// GESTÃO CONFIGURAÇÕES VISUAIS
 // ==========================================================================
 function salvarConfiguracoes() {
     const config = {
@@ -695,7 +640,7 @@ function salvarConfiguracoes() {
         };
         reader.readAsDataURL(logoInput.files[0]);
     } else { aplicarConfiguracoesVisuais(); }
-    alert('Configurações aplicadas!');
+    alert('Configurações applied!');
 }
 
 function carregarConfiguracoesCampos() {
