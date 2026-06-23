@@ -8,154 +8,8 @@
     <!-- Biblioteca do Supabase v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <style>
-        /* --- ESTILOS GERAIS --- */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f9fafb;
-            color: #1f2937;
-            margin: 0;
-            padding: 20px;
-            line-height: 1.5;
-        }
-        .container {
-            max-width: 1280px;
-            margin: 0 auto;
-        }
-        .grid-principal {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 24px;
-        }
-        @media (min-width: 992px) {
-            .grid-principal {
-                grid-template-columns: 7fr 5fr;
-            }
-        }
-        .card-painel {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e5e7eb;
-        }
-        h2 {
-            margin-top: 0;
-            color: #111827;
-            font-size: 1.25rem;
-            border-bottom: 2px solid #f3f4f6;
-            padding-bottom: 10px;
-        }
-
-        /* --- INTERFACE DA AGENDA (MODIFICAÇÕES CONFORME PEDIDO) --- */
-        /* Cabeçalho de semana: centralizado e com fundo verde */
-        .semana-header {
-            background-color: #15803d; /* Verde profissional e nítido */
-            color: #ffffff;
-            text-align: center; /* Centralizado */
-            padding: 10px 15px;
-            font-weight: bold;
-            font-size: 0.95rem;
-            border-radius: 6px;
-            margin-top: 15px;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        /* Quadro de pacientes: borda fina e bem nítida */
-        .quadro-paciente {
-            background-color: #ffffff;
-            border: 1px solid #b3b3b3; /* Borda fininha e mais visível/nítida */
-            border-radius: 6px;
-            padding: 12px 15px;
-            margin-bottom: 10px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .quadro-paciente-info {
-            display: flex;
-            flex-direction: column;
-        }
-        .paciente-nome {
-            font-weight: bold;
-            color: #111827;
-        }
-        .paciente-meta {
-            font-size: 0.85rem;
-            color: #6b7280;
-            margin-top: 2px;
-        }
-
-        /* --- FORMULÁRIO DE CADASTRO DO CLIENTE (CAMPOS COM BORDAS FINAS) --- */
-        .form-group {
-            margin-bottom: 16px;
-        }
-        .form-group label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 6px;
-            font-size: 0.875rem;
-            color: #374151;
-        }
-        /* Inputs e Selects com borda fina padrão e nítida */
-        .form-control {
-            width: 100%;
-            padding: 9px 12px;
-            border: 1px solid #a3a3a3; /* Borda fininha e definida */
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 0.9rem;
-            background-color: #ffffff;
-            color: #1f2937;
-            transition: border-color 0.15s ease;
-        }
-        .form-control:focus {
-            outline: none;
-            border-color: #15803d;
-            box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.15);
-        }
-        textarea.form-control {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        /* --- BOTÕES DA INTERFACE --- */
-        .btn-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-        }
-        .btn-salvar {
-            background-color: #15803d;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-        .btn-salvar:hover {
-            background-color: #166534;
-        }
-        /* Botão Reset discreto com fonte menor e escrita vermelha */
-        .btn-reset {
-            background: none;
-            border: none;
-            color: #dc2626;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-            padding: 4px 8px;
-        }
-        .btn-reset:hover {
-            text-decoration: underline;
-        }
-    </style>
+    <!-- Link para o arquivo de estilos externo -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -166,7 +20,6 @@
         <div class="card-painel">
             <h2>Agenda de Atendimentos</h2>
             
-            <!-- Exemplo de Estrutura de Exibição da Agenda -->
             <div class="semana-header">Segunda-Feira</div>
             <div id="container-segunda">
                 <div class="quadro-paciente">
@@ -200,19 +53,16 @@
                     <input type="text" id="txt-nome" class="form-control" placeholder="Nome completo">
                 </div>
 
-                <!-- Alterado de "Plano de Atendimento Semanal" para "Plano de Atendimento" -->
                 <div class="form-group">
                     <label for="txt-plano">Plano de Atendimento</label>
                     <input type="text" id="txt-plano" class="form-control" placeholder="Ex: 2x por semana">
                 </div>
 
-                <!-- Alterado de "Dia da Semana (Calculado)" para "Dia da Semana" -->
                 <div class="form-group">
                     <label for="txt-dia-semana">Dia da Semana</label>
                     <input type="text" id="txt-dia-semana" class="form-control" placeholder="Calculado automaticamente" readonly>
                 </div>
 
-                <!-- Forma de Cobrança com "Pagamento Antecipado" -->
                 <div class="form-group">
                     <label for="sel-cobranca">Forma de Cobrança</label>
                     <select id="sel-cobranca" class="form-control">
@@ -223,10 +73,9 @@
                     </select>
                 </div>
 
-                <!-- Alterado de "Observações / Histórico Clínico" para "Observações" -->
                 <div class="form-group">
                     <label for="txt-observacoes">Observações</label>
-                    <textarea id="txt-observacoes" class="form-control" placeholder="Anotações importantes do histórico do paciente..."></textarea>
+                    <textarea id="txt-observacoes" class="form-control" placeholder="Anotações importantes do histórico..."></textarea>
                 </div>
 
                 <div class="btn-container">
@@ -239,122 +88,7 @@
     </div>
 </div>
 
-<script>
-    // ==========================================================================
-    // CONFIGURAÇÃO DO BANCO DE DADOS (SUPABASE)
-    // ==========================================================================
-    const SUPABASE_URL = "https://SEU_PROJETO.supabase.co"; 
-    const SUPABASE_KEY = "SUA_CHAVE_ANON_KEY"; 
-    
-    // Inicialização segura do cliente Supabase
-    const bancoDados = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // ==========================================================================
-    // ENGINE CENTRAL CORRIGIDA DE PERSISTÊNCIA E CAPTURA DE ERROS
-    // ==========================================================================
-    async function executarSalvamentoPorEscopo(pacienteId, dataOriginalISO, novaDataISO, novaHora, novaMod, novoVal, statusSessao, escopo, novaFreq) {
-        if(!bancoDados) {
-            alert("Erro crítico: Conexão com o banco de dados não inicializada.");
-            return;
-        }
-
-        // Força o preenchimento de segundos (:00) exigidos estritamente pelo PostgreSQL
-        let horaFormatada = novaHora;
-        if (horaFormatada && horaFormatada.length === 5) {
-            horaFormatada += ':00';
-        }
-
-        try {
-            if (escopo === 'somente') {
-                const payload = { 
-                    paciente_id: pacienteId, 
-                    data: novaDataISO, 
-                    hora: horaFormatada, 
-                    modalidade: novaMod, 
-                    valor_cobrado: novoVal, 
-                    status: statusSessao 
-                };
-
-                if (novaDataISO !== dataOriginalISO) {
-                    // 1. Remove/Cancela a aparição recorrente do dia original para evitar duplicidade
-                    const { data: extOrig, error: errOrig } = await bancoDados.from('agendamentos').select('id').eq('paciente_id', pacienteId).eq('data', dataOriginalISO);
-                    if (errOrig) throw errOrig;
-
-                    if (extOrig && extOrig.length > 0) {
-                        const { error: errUpdOrig } = await bancoDados.from('agendamentos').update({ status: 'Cancelado' }).eq('id', extOrig[0].id);
-                        if (errUpdOrig) throw errUpdOrig;
-                    } else {
-                        const { error: errInsOrig } = await bancoDados.from('agendamentos').insert([{ paciente_id: pacienteId, data: dataOriginalISO, hora: horaFormatada, status: 'Cancelado', modalidade: novaMod, valor_cobrado: novoVal }]);
-                        if (errInsOrig) throw errInsOrig;
-                    }
-                    
-                    // 2. Transfere e salva a nova data isolada no banco
-                    const { data: extNova, error: errExtNova } = await bancoDados.from('agendamentos').select('id').eq('paciente_id', pacienteId).eq('data', novaDataISO);
-                    if (errExtNova) throw errExtNova;
-
-                    if (extNova && extNova.length > 0) {
-                        const { error: errUpdNova } = await bancoDados.from('agendamentos').update(payload).eq('id', extNova[0].id);
-                        if (errUpdNova) throw errUpdNova;
-                    } else {
-                        const { error: errInsNova } = await bancoDados.from('agendamentos').insert([payload]);
-                        if (errInsNova) throw errInsNova;
-                    }
-                } else {
-                    // Atualização simples dos dados cadastrais na mesma data corrente
-                    const { data: existente, error: errExistente } = await bancoDados.from('agendamentos').select('id').eq('paciente_id', pacienteId).eq('data', dataOriginalISO);
-                    if (errExistente) throw errExistente;
-
-                    if (existente && existente.length > 0) {
-                        const { error: errUpdExistente } = await bancoDados.from('agendamentos').update(payload).eq('id', existente[0].id);
-                        if (errUpdExistente) throw errUpdExistente;
-                    } else {
-                        const { error: errInsExistente } = await bancoDados.from('agendamentos').insert([payload]);
-                        if (errInsExistente) throw errInsExistente;
-                    }
-                }
-            } else {
-                // Escopo: Desta data em diante (Altera os lotes e planos futuros)
-                const partes = novaDataISO.split('-');
-                const objData = new Date(partes[0], partes[1] - 1, partes[2]);
-                const diasTexto = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-                const novoDiaSemanaCalculado = diasTexto[objData.getDay()];
-
-                const payloadPlano = {
-                    data_inicio: novaDataISO,
-                    dia_semana: novoDiaSemanaCalculado,
-                    hora_padrao: horaFormatada,
-                    valor: novoVal,
-                    modalidade: novaMod
-                };
-                if (novaFreq) payloadPlano.frequencia = novaFreq;
-
-                const { error: errPlano } = await bancoDados.from('planos_atendimento').update(payloadPlano).eq('paciente_id', pacienteId);
-                if (errPlano) throw errPlano;
-                
-                // Limpeza preventiva de conflitos futuros na tabela de agendamentos
-                const { error: errDelAgend } = await bancoDados.from('agendamentos').delete().eq('paciente_id', pacienteId).gte('data', dataOriginalISO);
-                if (errDelAgend) throw errDelAgend;
-            }
-            
-            alert('Modificações salvas com sucesso!');
-            // Chame aqui sua função de recarregar a interface, ex: recarregarAgenda();
-            
-        } catch(e) {
-            console.error("Erro detalhado retornado pelo Supabase:", e);
-            alert(`Erro ao persistir informações: ${e.message || e.details || 'Falha de comunicação ou restrição de política RLS.'}`);
-        }
-    }
-
-    // Função simulação apenas para acionamento do fluxo
-    function dispararFluxoSafeguard() {
-        // Exemplo fictício de chamada capturando os escopos selecionados pelo usuário no modal
-        // executarSalvamentoPorEscopo(1, '2026-06-22', '2026-06-22', '14:00', 'Presencial', 150.00, 'Confirmado', 'somente');
-    }
-
-    function abrirEdicao(id, data) {
-        console.log(`Carregando paciente ID ${id} da data ${data} para o formulário...`);
-    }
-</script>
-
+<!-- Link para o motor JavaScript externo -->
+<script src="app.js"></script>
 </body>
 </html>
