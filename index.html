@@ -3,579 +3,314 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestão Clínica - Psicologia</title>
-    
+    <title>Agenda Psicóloga</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- CDN do cliente Supabase Oficial -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <style>
-        /* --- ESTILOS GERAIS E ESTRUTURA SPA --- */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f3f4f6;
-            color: #1f2937;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        /* Menu de Navegação da SPA */
-        .nav-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #e5e7eb;
-            padding-bottom: 10px;
-        }
-        .tab-button {
-            background-color: #e5e7eb;
-            border: none;
-            padding: 10px 18px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            color: #4b5563;
-            transition: all 0.2s;
-        }
-        .tab-button.active {
-            background-color: #15803d;
-            color: white;
-        }
-        
-        /* Controle de Telas (SPA) */
-        .spa-view {
-            display: none;
-        }
-        .spa-view.active {
-            display: block;
-        }
-
-        .card-painel {
-            background-color: #ffffff;
-            padding: 24px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e5e7eb;
-        }
-        
-        h2 {
-            margin-top: 0;
-            color: #111827;
-            font-size: 1.4rem;
-            margin-bottom: 20px;
-        }
-
-        /* --- MODIFICAÇÃO: INTERFACE DA AGENDA SEMANAL --- */
-        .agenda-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-        }
-        
-        /* Cabeçalho de semana: CENTRALIZADO e com FUNDO VERDE */
-        .semana-header {
-            background-color: #15803d !important; 
-            color: #ffffff !important;
-            text-align: center !important; 
-            padding: 10px;
-            font-weight: bold;
-            font-size: 0.95rem;
-            border-radius: 6px;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        /* Quadro de pacientes: BORDA FININHA E BEM NÍTIDA */
-        .quadro-paciente {
-            background-color: #ffffff;
-            border: 1px solid #b3b3b3 !important; 
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .paciente-nome {
-            font-weight: bold;
-            color: #111827;
-            font-size: 0.95rem;
-        }
-        .paciente-meta {
-            font-size: 0.85rem;
-            color: #6b7280;
-            margin-top: 4px;
-        }
-
-        /* --- MODIFICAÇÃO: BORDAS FINAS NO FORMULÁRIO DE CADASTRO --- */
-        .form-group {
-            margin-bottom: 16px;
-        }
-        .form-group label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 6px;
-            font-size: 0.875rem;
-            color: #374151;
-        }
-        /* Inputs e Selects com borda fina padrão e nítida */
-        .form-control {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #a3a3a3 !important; 
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 0.9rem;
-            background-color: #ffffff;
-            color: #1f2937;
-        }
-        .form-control:focus {
-            outline: none;
-            border-color: #15803d;
-            box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.15);
-        }
-        textarea.form-control {
-            resize: vertical;
-            min-height: 90px;
-        }
-
-        /* --- TABELA DA LISTAGEM DE PACIENTES --- */
-        .busca-container {
-            margin-bottom: 15px;
-        }
-        .tabela-pacientes {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        .tabela-pacientes th, .tabela-pacientes td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        .tabela-pacientes th {
-            background-color: #f9fafb;
-            color: #374151;
-        }
-        .badge-ativo { background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
-        .badge-inativo { background: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
-
-        /* --- BOTÕES --- */
-        .btn-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 24px;
-        }
-        .btn-salvar {
-            background-color: #15803d;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.95rem;
-        }
-        .btn-salvar:hover {
-            background-color: #166534;
-        }
-        .btn-reset {
-            background: none;
-            border: none;
-            color: #dc2626;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-            padding: 4px 8px;
-        }
-        .btn-reset:hover {
-            text-decoration: underline;
-        }
-        .btn-acao {
-            background-color: #2563eb;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85rem;
-        }
-    </style>
 </head>
 <body>
 
-<div class="container">
-    
-    <nav class="nav-tabs">
-        <button class="tab-button active" onclick="mudarAba('aba-agenda')">📅 Agenda Semanal</button>
-        <button class="tab-button" onclick="mudarAba('aba-lista')">👥 Lista de Pacientes</button>
-        <button class="tab-button" onclick="mudarAba('aba-cadastro')">➕ Cadastrar Paciente</button>
-    </nav>
-    
-    <div id="aba-agenda" class="spa-view active">
-        <div class="card-painel">
-            <h2>Agenda de Atendimentos Semanal</h2>
-            <div class="agenda-grid">
-                
-                <div>
-                    <div class="semana-header">Segunda</div>
-                    <div id="container-segunda"></div>
-                </div>
-                
-                <div>
-                    <div class="semana-header">Terça</div>
-                    <div id="container-terca"></div>
-                </div>
-                
-                <div>
-                    <div class="semana-header">Quarta</div>
-                    <div id="container-quarta"></div>
-                </div>
-                
-                <div>
-                    <div class="semana-header">Quinta</div>
-                    <div id="container-quinta"></div>
-                </div>
-                
-                <div>
-                    <div class="semana-header">Sexta</div>
-                    <div id="container-sexta"></div>
-                </div>
-                
+    <div class="container-app">
+        <!-- BARRA LATERAL FIXA (SIDEBAR) -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <img id="logoSistema" src="" alt="Logo" style="display: none; max-width: 80px; margin-bottom: 10px; border-radius: 50%;">
+                <h1 id="nomeSistema">Agenda Psi</h1>
+                <small id="subtituloSistema" style="display: block; opacity: 0.75; font-size: 12px; margin-top: 4px; font-weight: normal;"></small>
             </div>
-        </div>
+            <nav class="sidebar-menu">
+                <button onclick="mostrarTela('dashboard')">📊 Dashboard</button>
+                <button onclick="mostrarTela('agenda')">📅 Agenda</button>
+                <button onclick="mostrarTela('pacientes')">👥 Pacientes</button>
+                <button onclick="mostrarTela('configuracoes')">⚙️ Configurações</button>
+            </nav>
+        </aside>
+
+        <!-- CONTEÚDO PRINCIPAL (SPA) -->
+        <main class="conteudo-principal">
+            <header class="topo-sistema">
+                <button id="menuBtn" class="btn-menu-mobile">☰</button>
+                <h2 id="tituloSeção">Painel de Controle</h2>
+            </header>
+
+            <!-- TELA: DASHBOARD -->
+            <div id="dashboard" class="tela">
+                <div class="grid-cards">
+                    <div class="card bg-sucesso">
+                        <h3>Pacientes Ativos</h3>
+                        <p id="totalAtivos">0</p>
+                    </div>
+                    <div class="card bg-alerta">
+                        <h3>Pacientes Inativos (Arquivados)</h3>
+                        <p id="totalInativos">0</p>
+                    </div>
+                    <div class="card bg-info">
+                        <h3>Atendimentos Hoje</h3>
+                        <p id="atendimentosHoje">0</p>
+                    </div>
+                    <div class="card bg-primario">
+                        <h3>Previsão do Mês</h3>
+                        <p id="receberMes">R$ 0,00</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TELA: AGENDA SEMANAL UNIFICADA -->
+            <div id="agenda" class="tela" style="display:none">
+                <div id="grade-agenda-container"></div>
+            </div>
+
+            <!-- TELA: LISTAGEM DE PACIENTES -->
+            <div id="pacientes" class="tela" style="display:none">
+                <div class="lista-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Gerenciamento de Pacientes</h2>
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <input type="text" id="pesquisaPaciente" placeholder="🔍 Buscar paciente por nome..." style="margin-bottom: 0;">
+                        <button type="button" class="btn-salvar" onclick="idPacienteEditando=null; mostrarTela('novoPaciente')" style="white-space: nowrap;">➕ Novo Paciente</button>
+                    </div>
+                </div>
+                <div id="listaPacientes" class="grid-pacientes"></div>
+            </div>
+
+            <!-- TELA: CADASTRO / EDIÇÃO DE PACIENTE + CALENDÁRIO LATERAL -->
+            <div id="novoPaciente" class="tela" style="display:none">
+                <div class="perfil-paciente-layout">
+                    
+                    <!-- Formulário de dados esquerdo -->
+                    <form id="formPaciente" onsubmit="event.preventDefault();" style="flex: 1; min-width: 300px;">
+                        <h2 class="titulo-formulario" style="margin-bottom: 20px;">Dados do Paciente</h2>
+                        
+                        <fieldset>
+                            <legend>Dados Cadastrais</legend>
+                            <div class="form-group">
+                                <label for="nome">Nome Completo *</label>
+                                <input type="text" id="nome" required placeholder="Nome do paciente">
+                            </div>
+
+                            <div class="form-group-row">
+                                <div class="form-group">
+                                    <label for="cpf">CPF</label>
+                                    <input type="text" id="cpf" placeholder="000.000.000-00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="dataNascimento">Data de Nascimento</label>
+                                    <input type="date" id="dataNascimento">
+                                </div>
+                            </div>
+
+                            <div class="form-group-row">
+                                <div class="form-group">
+                                    <label for="telefone">Telefone / WhatsApp</label>
+                                    <input type="tel" id="telefone" placeholder="(00) 00000-0000">
+                                </div>
+                                <div class="form-group">
+                                    <label for="email">E-mail</label>
+                                    <input type="email" id="email" placeholder="exemplo@email.com">
+                                </div>
+                            </div>
+
+                            <div class="form-group-row">
+                                <div class="form-group" style="flex: 2;">
+                                    <label for="endereco">Endereço Residencial</label>
+                                    <input type="text" id="endereco" placeholder="Rua, Número, Bairro, Cidade">
+                                </div>
+                                <div class="form-group" style="flex: 1;">
+                                    <label for="statusVinculo">Vínculo Clínico *</label>
+                                    <select id="statusVinculo">
+                                        <option value="Ativo">Ativo (Em Atendimento)</option>
+                                        <option value="Inativo">Inativo (Alta/Arquivado)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="responsavel">Responsável Legal (Se menor de idade)</label>
+                                <input type="text" id="responsavel" placeholder="Nome do responsável">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="observacoes">Observações / Histórico Clínico</label>
+                                <textarea id="observacoes" rows="3" placeholder="Informações relevantes anotadas pela psicóloga..."></textarea>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Plano de Atendimento Semanal</legend>
+                            <div class="form-group-row">
+                                <div class="form-group">
+                                    <label for="dataInicial">Data de Início *</label>
+                                    <input type="date" id="dataInicial">
+                                </div>
+                                <div class="form-group">
+                                    <label for="diaSemana">Dia da Semana (Calculado)</label>
+                                    <select id="diaSemana" disabled style="background-color: #e2e8f0; cursor: not-allowed; opacity: 0.8;">
+                                        <option value="Segunda">Segunda-feira</option>
+                                        <option value="Terça">Terça-feira</option>
+                                        <option value="Quarta">Quarta-feira</option>
+                                        <option value="Quinta">Quinta-feira</option>
+                                        <option value="Sexta">Sexta-feira</option>
+                                        <option value="Sábado">Sábado</option>
+                                        <option value="Domingo">Domingo</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group-row">
+                                <div class="form-group">
+                                    <label for="horario">Horário Padrão *</label>
+                                    <input type="time" id="horario">
+                                </div>
+                                <div class="form-group">
+                                    <label for="frequencia">Frequência</label>
+                                    <select id="frequencia">
+                                        <option value="Semanal">Semanal</option>
+                                        <option value="Quinzenal">Quinzenal</option>
+                                        <option value="Mensal">Mensal</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group-row">
+                                <div class="form-group">
+                                    <label for="modalidade">Modalidade</label>
+                                    <select id="modalidade">
+                                        <option value="Presencial">Presencial</option>
+                                        <option value="Online">Online</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="valor">Valor por Sessão (R$)</label>
+                                    <input type="number" id="valor" step="0.01" placeholder="150.00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="formaCobranca">Forma de Cobrança</label>
+                                    <select id="formaCobranca">
+                                        <option value="Mensal">Mensal Fechado</option>
+                                        <option value="Por Sessão">Pago por Sessão</option>
+                                        <option value="Pacote">Pacote Prévio</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <!-- Ações do Formulário com Botão Remover Discreto -->
+                        <div class="form-acoes" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 25px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
+                            <div style="display: flex; gap: 12px;">
+                                <button type="button" class="btn-cancelar" onclick="idPacienteEditando=null; mostrarTela('pacientes')">⬅️ Voltar para a Lista</button>
+                                <button type="button" id="btnSalvarPaciente" class="btn-salvar">💾 Salvar Alterações</button>
+                            </div>
+                            <button type="button" id="btnExcluirPacienteForm" style="background: none; border: none; color: #a0aec0; cursor: pointer; font-size: 13px; text-decoration: underline; padding: 5px;" onclick="excluirPacienteAtual()">🗑️ Remover Paciente</button>
+                        </div>
+                    </form>
+
+                    <!-- Painel Lateral Direito Inteligente (Calendário do Paciente) -->
+                    <aside id="sidebar-agenda-paciente" class="sidebar-perfil-direita">
+                        <h3>📅 Calendário do Paciente</h3>
+                        <div id="info-plano-resumo" class="resumo-plano-box"></div>
+                        <h4>Próximas Sessões (90 dias)</h4>
+                        <div id="lista-proximas-sessoes" class="lista-recorrencia-scroll"></div>
+                    </aside>
+
+                </div>
+            </div>
+
+            <!-- TELA: CONFIGURAÇÕES VISUAIS -->
+            <div id="configuracoes" class="tela" style="display:none">
+                <h2>Configurações do Sistema</h2>
+                <div class="painel-config">
+                    <div class="form-group">
+                        <label for="configNomeSistema">Nome da Clínica / Profissional</label>
+                        <input type="text" id="configNomeSistema" value="Agenda Psicóloga">
+                    </div>
+                    <div class="form-group">
+                        <label for="configSubtituloSistema">Subtítulo / Registro Profissional (Ex: CRP 00/00000)</label>
+                        <input type="text" id="configSubtituloSistema" placeholder="Deixe em branco se preferir">
+                    </div>
+                    <div class="form-group-row">
+                        <div class="form-group">
+                            <label for="corMenu">Cor da Barra Lateral</label>
+                            <input type="color" id="corMenu" value="#2c3e50">
+                        </div>
+                        <div class="form-group">
+                            <label for="corPrincipal">Cor Principal (Botões/Destaques)</label>
+                            <input type="color" id="corPrincipal" value="#1abc9c">
+                        </div>
+                        <div class="form-group">
+                            <label for="corFundo">Cor de Fundo da Tela</label>
+                            <input type="color" id="corFundo" value="#f5f7fa">
+                        </div>
+                    </div>
+                    <div class="form-group check-group">
+                        <input type="checkbox" id="modoEscuro">
+                        <label for="modoEscuro">Ativar Modo Escuro</label>
+                    </div>
+                    <div class="form-group">
+                        <label for="configLogo">Logotipo Personalizado</label>
+                        <input type="file" id="configLogo" accept="image/*">
+                    </div>
+                    <button type="button" id="btnSalvarConfiguracoes" class="btn-salvar">Aplicar Configurações</button>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <div id="aba-lista" class="spa-view">
-        <div class="card-painel">
-            <h2>Pacientes Cadastrados</h2>
-            <div class="busca-container">
-                <input type="text" id="txt-busca" class="form-control" placeholder="🔍 Digite para pesquisar paciente em tempo real...">
-            </div>
-            <table class="tabela-pacientes">
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>Contato</th>
-                        <th>Status</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="tbody-pacientes">
-                    </tbody>
-            </table>
-        </div>
-    </div>
-    
-    <div id="aba-cadastro" class="spa-view">
-        <div class="card-painel">
-            <h2 id="titulo-form">Cadastrar Novo Paciente</h2>
-            <form id="form-cliente" onsubmit="event.preventDefault();">
-                <input type="hidden" id="hdd-paciente-id">
-                
-                <div class="form-group">
-                    <label for="txt-nome">Nome do Paciente *</label>
-                    <input type="text" id="txt-nome" class="form-control" placeholder="Nome completo do paciente" required>
+    <!-- MODAL POP-UP DE EDICAO EM LOTE -->
+    <div id="modalAgendamento" class="modal-popup" style="display: none;">
+        <div class="modal-popup-content">
+            <h3 id="modalAgendamentoTitulo">📅 Marcar Nova Sessão</h3>
+            <form id="formAgendamento" onsubmit="event.preventDefault();">
+                <input type="hidden" id="editAgendamentoId">
+                <div class="form-group" id="containerSelectPacienteAgendamento">
+                    <label for="selectPacienteAgendamento">Selecionar Paciente *</label>
+                    <select id="selectPacienteAgendamento"></select>
                 </div>
-
-                <div class="form-group">
-                    <label for="txt-contato">Contato / Telefone</label>
-                    <input type="text" id="txt-contato" class="form-control" placeholder="(00) 00000-0000">
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label for="dataAgendamento">Data da Sessão *</label>
+                        <input type="date" id="dataAgendamento" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="horaAgendamento">Horário *</label>
+                        <input type="time" id="horaAgendamento" required>
+                    </div>
                 </div>
-
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label for="modalidadeAgendamento">Modalidade</label>
+                        <select id="modalidadeAgendamento">
+                            <option value="Presencial">Presencial</option>
+                            <option value="Online">Online</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="valorAgendamento">Valor (R$)</label>
+                        <input type="number" id="valorAgendamento" step="0.01">
+                    </div>
+                </div>
                 <div class="form-group">
-                    <label for="sel-status">Status</label>
-                    <select id="sel-status" class="form-control">
-                        <option value="Ativo">Ativo</option>
-                        <option value="Inativo">Inativo</option>
+                    <label for="statusAgendamento">Status da Sessão</label>
+                    <select id="statusAgendamento">
+                        <option value="Agendado">Agendado</option>
+                        <option value="Realizado">Realizado (Presença)</option>
+                        <option value="Falta">Falta do Paciente</option>
+                        <option value="Cancelado">Cancelado</option>
                     </select>
                 </div>
-
-                <div class="form-group">
-                    <label for="txt-plano">Plano de Atendimento</label>
-                    <input type="text" id="txt-plano" class="form-control" placeholder="Ex: 1x por semana, 2x por semana">
-                </div>
-
-                <div class="form-group">
-                    <label for="txt-data-inicio">Data de Início</label>
-                    <input type="date" id="txt-data-inicio" class="form-control">
-                </div>
-
-                <div class="form-group">
-                    <label for="txt-dia-semana">Dia da Semana</label>
-                    <input type="text" id="txt-dia-semana" class="form-control" placeholder="Calculado automaticamente" readonly>
-                </div>
-
-                <div class="form-group">
-                    <label for="sel-cobranca">Forma de Cobrança</label>
-                    <select id="sel-cobranca" class="form-control">
-                        <option value="">Selecione uma opção</option>
-                        <option value="Pagamento Antecipado">Pagamento Antecipado</option>
-                        <option value="Mensal">Mensal</option>
-                        <option value="Por Sessão">Por Sessão</option>
+                <div class="form-group" id="boxEscopoAgenda" style="display:none;">
+                    <label style="color: #e53e3e; font-weight:bold;">Onde aplicar esta alteração?</label>
+                    <select id="escopoModificacaoAgenda">
+                        <option value="somente">Apenas para esta data específica</option>
+                        <option value="demais">Para esta data e todas as próximas abaixo</option>
                     </select>
                 </div>
-
-                <div class="form-group">
-                    <label for="txt-observacoes">Observações</label>
-                    <textarea id="txt-observacoes" class="form-control" placeholder="Anotações e evolução clínica..."></textarea>
-                </div>
-
-                <div class="btn-container">
-                    <button type="button" class="btn-reset" id="btn-limpar" onclick="limparFormulario()">Reset</button>
-                    <button type="button" class="btn-salvar" onclick="salvarFluxoTabelasVinculadas()">Salvar Cadastro</button>
+                <div class="form-acoes">
+                    <button type="button" class="btn-cancelar" onclick="fecharModalAgendamento()">Cancelar</button>
+                    <button type="button" id="btnPersistirAgendamento" class="btn-salvar">Confirmar</button>
                 </div>
             </form>
         </div>
     </div>
 
-</div>
-
-<script>
-    // ==========================================================================
-    // CONEXÃO COM O SEU BANCO DE DADOS (SUPABASE)
-    // ==========================================================================
-    const SUPABASE_URL = "https://SEU_PROJETO.supabase.co"; 
-    const SUPABASE_KEY = "SUA_CHAVE_ANON_KEY"; 
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // Cache local global para buscas em tempo real instantâneas
-    let cachePacientes = [];
-
-    // Lógica de alternar telas da SPA
-    function mudarAba(idAba) {
-        document.querySelectorAll('.spa-view').forEach(view => view.classList.remove('active'));
-        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-        
-        document.getElementById(idAba).classList.add('active');
-        const botaoAtivo = document.querySelector(`[onclick="mudarAba('${idAba}')"]`);
-        if(botaoAtivo) botaoAtivo.classList.add('active');
-    }
-
-    // ==========================================================================
-    // CÁLCULO AUTOMÁTICO DO DIA DA SEMANA (DA DATA INICIAL)
-    // ==========================================================================
-    document.getElementById('txt-data-inicio').addEventListener('change', function() {
-        const valorData = this.value;
-        if (!valorData) {
-            document.getElementById('txt-dia-semana').value = '';
-            return;
-        }
-        
-        // Destrincha para evitar distorções de fuso horário local do navegador
-        const partes = valorData.split('-');
-        const objData = new Date(partes[0], partes[1] - 1, partes[2]);
-        
-        const diasSemana = ['Domingo', 'Segunda-Feira', 'Terça-Feira', 'Quarta-Feira', 'Quinta-Feira', 'Sexta-Feira', 'Sábado'];
-        const diaCalculado = diasSemana[objData.getDay()];
-        
-        document.getElementById('txt-dia-semana').value = diaCalculado;
-    });
-
-    // ==========================================================================
-    // MOTOR DE SALVAMENTO: FLUXO DE TABELAS VINCULADAS (PACIENTES + PLANOS)
-    // ==========================================================================
-    async function salvarFluxoTabelasVinculadas() {
-        const idExistente = document.getElementById('hdd-paciente-id').value;
-        const nome = document.getElementById('txt-nome').value;
-        const contato = document.getElementById('txt-contato').value;
-        const status = document.getElementById('sel-status').value;
-        const plano = document.getElementById('txt-plano').value;
-        const dataInicio = document.getElementById('txt-data-inicio').value;
-        const diaSemana = document.getElementById('txt-dia-semana').value;
-        const formaCobranca = document.getElementById('sel-cobranca').value;
-        const observacoes = document.getElementById('txt-observacoes').value;
-
-        if (!nome) {
-            alert("O campo Nome do Paciente é obrigatório.");
-            return;
-        }
-
-        try {
-            if (idExistente) {
-                // MODO EDIÇÃO: Atualiza tabelas existentes
-                const { error: errPac } = await supabase
-                    .from('pacientes')
-                    .update({ nome, contato, status, observacoes })
-                    .eq('id', idExistente);
-                if (errPac) throw errPac;
-
-                const { error: errPlan } = await supabase
-                    .from('planos_atendimento')
-                    .update({ frequencia: plano, data_inicio: dataInicio || null, dia_semana: diaSemana, forma_cobranca: formaCobranca })
-                    .eq('paciente_id', idExistente);
-                if (errPlan) throw errPlan;
-
-                alert("Cadastro atualizado com sucesso!");
-            } else {
-                // MODO NOVO CADASTRO: Insere paciente -> Captura ID gerado -> Insere Plano
-                const { data: novoPac, error: errInsPac } = await supabase
-                    .from('pacientes')
-                    .insert([{ nome, contato, status, observacoes }])
-                    .select();
-                if (errInsPac) throw errInsPac;
-
-                const novoPacienteId = novoPac[0].id;
-
-                const { error: errInsPlan } = await supabase
-                    .from('planos_atendimento')
-                    .insert([{
-                        paciente_id: novoPacienteId,
-                        frequencia: plano,
-                        data_inicio: dataInicio || null,
-                        dia_semana: diaSemana,
-                        forma_cobranca: formaCobranca
-                    }]);
-                if (errInsPlan) throw errInsPlan;
-
-                alert("Paciente e Plano salvos com sucesso!");
-            }
-
-            limparFormulario();
-            inicializarDados();
-            mudarAba('aba-agenda');
-
-        } catch (e) {
-            console.error("Erro na transação com Supabase:", e);
-            alert(`Erro ao persistir dados: ${e.message || 'Verifique suas políticas RLS ou conexões.'}`);
-        }
-    }
-
-    // ==========================================================================
-    // RENDERIZAR AGENDA SEMANAL DINÂMICA
-    // ==========================================================================
-    async function carregarAgendaSemanal() {
-        try {
-            // Busca os planos de atendimento trazendo os dados do paciente via INNER JOIN
-            const { data: planos, error: err } = await supabase
-                .from('planos_atendimento')
-                .select(`
-                    id, dia_semana, frequencia, forma_cobranca,
-                    pacientes ( id, nome, status )
-                `);
-            
-            if (err) throw err;
-
-            // Limpa as colunas da agenda antes de repovoar
-            const diasIds = ['segunda', 'terça', 'quarta', 'quinta', 'sexta'];
-            diasIds.forEach(d => document.getElementById(`container-${d}`).innerHTML = '');
-
-            planos.forEach(item => {
-                if (!item.pacientes || item.pacientes.status !== 'Ativo') return;
-
-                // Limpa a string do dia para casar com o ID do elemento correspondente
-                const diaChave = item.dia_semana.toLowerCase().replace('-feira', '');
-                const container = document.getElementById(`container-${diaChave}`);
-
-                if (container) {
-                    const quadro = document.createElement('div');
-                    quadro.className = 'quadro-paciente';
-                    quadro.innerHTML = `
-                        <div class="quadro-paciente-info">
-                            <span class="paciente-nome">${item.pacientes.nome}</span>
-                            <span class="paciente-meta">${item.frequencia} - ${item.forma_cobranca}</span>
-                        </div>
-                        <button class="btn-reset" style="text-align:right;" onclick="abrirParaEdicao(${item.pacientes.id})">Editar</button>
-                    `;
-                    container.appendChild(quadro);
-                }
-            });
-        } catch (e) {
-            console.error("Erro ao montar dashboard:", e);
-        }
-    }
-
-    // ==========================================================================
-    // RENDERIZAR LISTA DE PACIENTES E SISTEMA DE FILTRO EM TEMPO REAL
-    // ==========================================================================
-    async function carregarListaPacientes() {
-        try {
-            const { data: lista, error: err } = await supabase
-                .from('pacientes')
-                .select('*')
-                .order('nome');
-            if (err) throw err;
-
-            cachePacientes = lista; 
-            renderizarTabela(cachePacientes);
-        } catch (e) {
-            console.error(e);
-        }
-    }
-
-    function renderizarTabela(dados) {
-        const tbody = document.getElementById('tbody-pacientes');
-        tbody.innerHTML = '';
-
-        dados.forEach(p => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><strong>${p.nome}</strong></td>
-                <td>${p.contato || '-'}</td>
-                <td><span class="badge-${p.status === 'Ativo' ? 'ativo' : 'inativo'}">${p.status}</span></td>
-                <td><button class="btn-acao" onclick="abrirParaEdicao(${p.id})">Editar</button></td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    // Input escutador para filtro em tempo real (Filtra direto no Cache local)
-    document.getElementById('txt-busca').addEventListener('input', function() {
-        const termoBusca = this.value.toLowerCase();
-        const filtrados = cachePacientes.filter(p => p.nome.toLowerCase().includes(termoBusca));
-        renderizarTabela(filtrados);
-    });
-
-    // ==========================================================================
-    // CARREGAR DADOS DO PACIENTE PARA EDIÇÃO NO FORMULÁRIO
-    // ==========================================================================
-    async function abrirParaEdicao(pacienteId) {
-        try {
-            const { data: pac, error: errPac } = await supabase.from('pacientes').select('*').eq('id', pacienteId).single();
-            if (errPac) throw errPac;
-
-            const { data: plan, error: errPlan } = await supabase.from('planos_atendimento').select('*').eq('paciente_id', pacienteId).single();
-            
-            document.getElementById('hdd-paciente-id').value = pac.id;
-            document.getElementById('txt-nome').value = pac.nome;
-            document.getElementById('txt-contato').value = pac.contato || '';
-            document.getElementById('sel-status').value = pac.status;
-            document.getElementById('txt-observacoes').value = pac.observacoes || '';
-
-            if (plan) {
-                document.getElementById('txt-plano').value = plan.frequencia || '';
-                document.getElementById('txt-data-inicio').value = plan.data_inicio || '';
-                document.getElementById('txt-dia-semana').value = plan.dia_semana || '';
-                document.getElementById('sel-cobranca').value = plan.forma_cobranca || '';
-            }
-
-            document.getElementById('titulo-form').innerText = "Editar Cadastro do Paciente";
-            mudarAba('aba-cadastro');
-        } catch (e) {
-            console.error(e);
-            alert("Erro ao buscar dados para edição.");
-        }
-    }
-
-    function limparFormulario() {
-        document.getElementById('form-cliente').reset();
-        document.getElementById('hdd-paciente-id').value = '';
-        document.getElementById('titulo-form').innerText = "Cadastrar Novo Paciente";
-    }
-
-    function inicializarDados() {
-        carregarAgendaSemanal();
-        carregarListaPacientes();
-    }
-
-    // Inicialização ao carregar a página
-    window.onload = inicializarDados;
-</script>
-
+    <script src="app.js"></script>
 </body>
 </html>
