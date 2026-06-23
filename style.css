@@ -1,142 +1,226 @@
-/* --- ESTILOS GERAIS --- */
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f9fafb;
-    color: #1f2937;
+:root {
+    --cor-menu: #2c3e50;
+    --cor-principal: #1abc9c;
+    --cor-fundo: #f5f7fa;
+    --cor-card: #ffffff;
+    --cor-texto: #333333;
+    --cor-borda: #e2e8f0;
+}
+
+body.dark-mode {
+    --cor-menu: #1a202c;
+    --cor-principal: #319795;
+    --cor-fundo: #171923;
+    --cor-card: #2d3748;
+    --cor-texto: #f7fafc;
+    --cor-borda: #4a5568;
+}
+
+* {
     margin: 0;
-    padding: 20px;
-    line-height: 1.5;
-}
-.container {
-    max-width: 1280px;
-    margin: 0 auto;
-}
-.grid-principal {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 24px;
-}
-@media (min-width: 992px) {
-    .grid-principal {
-        grid-template-columns: 7fr 5fr;
-    }
-}
-.card-painel {
-    background-color: #ffffff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    border: 1px solid #e5e7eb;
-}
-h2 {
-    margin-top: 0;
-    color: #111827;
-    font-size: 1.25rem;
-    border-bottom: 2px solid #f3f4f6;
-    padding-bottom: 10px;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* --- INTERFACE DA AGENDA --- */
-.semana-header {
-    background-color: #15803d; /* Verde nítido */
-    color: #ffffff;
-    text-align: center; /* Centralizado */
-    padding: 10px 15px;
-    font-weight: bold;
-    font-size: 0.95rem;
-    border-radius: 6px;
-    margin-top: 15px;
-    margin-bottom: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+body {
+    background-color: var(--cor-fundo);
+    color: var(--cor-texto);
+    transition: background 0.3s, color 0.3s;
 }
 
-.quadro-paciente {
-    background-color: #ffffff;
-    border: 1px solid #b3b3b3; /* Borda fininha e bem visível */
-    border-radius: 6px;
-    padding: 12px 15px;
-    margin-bottom: 10px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.quadro-paciente-info {
+.container-app { display: flex; min-height: 100vh; }
+
+.sidebar {
+    width: 260px;
+    background-color: var(--cor-menu);
+    color: white;
+    padding: 20px;
     display: flex;
     flex-direction: column;
 }
-.paciente-nome {
-    font-weight: bold;
-    color: #111827;
-}
-.paciente-meta {
-    font-size: 0.85rem;
-    color: #6b7280;
-    margin-top: 2px;
+
+.sidebar-brand {
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 20px;
 }
 
-/* --- FORMULÁRIO DE CADASTRO (CAMPOS COM BORDAS FINAS) --- */
-.form-group {
-    margin-bottom: 16px;
+.sidebar-brand h1 { font-size: 20px; letter-spacing: 1px; }
+.sidebar-menu { display: flex; flex-direction: column; gap: 10px; }
+
+.sidebar-menu button {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.8);
+    padding: 12px 15px;
+    text-align: left;
+    font-size: 15px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
 }
-.form-group label {
-    display: block;
-    font-weight: 600;
+
+.sidebar-menu button:hover {
+    background-color: var(--cor-principal);
+    color: white;
+    padding-left: 20px;
+}
+
+.conteudo-principal { flex: 1; padding: 25px; display: flex; flex-direction: column; }
+
+.topo-sistema {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--cor-borda);
+}
+
+.btn-menu-mobile { display: none; font-size: 20px; background: none; border: none; cursor: pointer; color: var(--cor-texto); }
+.tela { animation: fadeIn 0.25s ease-in-out; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+.card { background: var(--cor-card); padding: 25px; border-radius: 10px; border-bottom: 4px solid var(--cor-borda); }
+.card h3 { font-size: 14px; color: #718096; margin-bottom: 10px; }
+.card p { font-size: 28px; font-weight: bold; }
+
+.bg-primario { border-bottom-color: var(--cor-principal); }
+.bg-sucesso { border-bottom-color: #38a169; }
+.bg-alerta { border-bottom-color: #e53e3e; }
+.bg-info { border-bottom-color: #3182ce; }
+
+.semana-bloco { margin-bottom: 35px; background: rgba(0,0,0,0.01); padding: 15px; border-radius: 10px; border: 1px dashed var(--cor-borda); }
+.semana-titulo { font-size: 14px; font-weight: bold; margin-bottom: 12px; color: var(--cor-principal); display: inline-block; background: var(--cor-card); padding: 5px 14px; border-radius: 20px; }
+
+/* GRADE CORRIGIDA PARA 7 COLUNAS (INCLUSÃO DO DOMINGO) */
+.grade-agenda {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    align-items: start;
+}
+
+.coluna-dia { background: var(--cor-card); border-radius: 8px; min-height: 180px; border-top: 4px solid var(--cor-borda); }
+.coluna-dia h3 { text-align: center; padding: 10px; font-size: 12px; background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--cor-borda); }
+.slots-agendamentos { padding: 6px; }
+
+.card-compromisso {
+    background: #e6fffa;
+    border-left: 4px solid #319795;
+    color: #234e52;
+    padding: 8px;
     margin-bottom: 6px;
-    font-size: 0.875rem;
-    color: #374151;
-}
-.form-control {
-    width: 100%;
-    padding: 9px 12px;
-    border: 1px solid #a3a3a3; /* Borda fina e definida nos inputs */
-    border-radius: 4px;
-    box-sizing: border-box;
-    font-size: 0.9rem;
-    background-color: #ffffff;
-    color: #1f2937;
-    transition: border-color 0.15s ease;
-}
-.form-control:focus {
-    outline: none;
-    border-color: #15803d;
-    box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.15);
-}
-textarea.form-control {
-    resize: vertical;
-    min-height: 80px;
+    border-radius: 6px;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
-/* --- BOTÕES --- */
-.btn-container {
+.card-paciente-nome { font-weight: bold; color: var(--cor-texto); word-break: break-all; }
+.card-paciente-hora { font-size: 11px; color: #4a5568; }
+.card-paciente-modalidade { font-size: 10px; font-weight: 600; text-transform: uppercase; color: #319795; }
+
+body.dark-mode .card-compromisso { background: #234e52; border-left-color: #1abc9c; }
+body.dark-mode .card-paciente-nome { color: #ffffff; }
+
+/* ESTRUTURA DO NOVO SIDEBAR DE PERFIL SPLIT COMPACTO */
+.perfil-paciente-layout {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.sidebar-perfil-direita {
+    width: 350px;
+    background: var(--cor-card);
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    padding: 20px;
+    display: none;
+}
+
+.sidebar-perfil-direita h3 { font-size: 16px; margin-bottom: 12px; border-bottom: 2px solid var(--cor-principal); padding-bottom: 5px; }
+.sidebar-perfil-direita h4 { font-size: 14px; margin-top: 15px; margin-bottom: 8px; color: #718096; }
+
+.resumo-plano-box {
+    background: rgba(0,0,0,0.02);
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.5;
+    border-left: 4px solid var(--cor-principal);
+}
+
+.lista-recorrencia-scroll {
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.linha-previsao {
+    padding: 10px;
+    border-bottom: 1px solid var(--cor-borda);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 20px;
+    font-size: 13px;
 }
-.btn-salvar {
-    background-color: #15803d;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-weight: bold;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9rem;
-}
-.btn-salvar:hover {
-    background-color: #166534;
-}
-.btn-reset {
+
+.linha-previsao-info span { display: block; font-size: 11px; color: #718096; }
+
+.btn-tres-pontos {
     background: none;
     border: none;
-    color: #dc2626;
-    font-size: 11px; /* Fonte menor e discreta */
     font-weight: bold;
+    font-size: 16px;
     cursor: pointer;
-    padding: 4px 8px;
+    color: var(--cor-texto);
+    padding: 0 5px;
 }
-.btn-reset:hover {
-    text-decoration: underline;
+
+.box-editor-linha {
+    background: rgba(0,0,0,0.04);
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    display: none;
+    border: 1px solid var(--cor-borda);
 }
+
+.lista-header input { padding: 10px 15px; border: 1px solid var(--cor-borda); border-radius: 6px; width: 300px; background: var(--cor-card); color: var(--cor-texto); }
+.grid-pacientes { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.cardPaciente { background: var(--cor-card); border: 1px solid var(--cor-borda); padding: 20px; border-radius: 8px; }
+.acoes-card { margin-top: 15px; display: flex; gap: 10px; }
+.acoes-card button { flex: 1; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+.btn-editar { background-color: #ecc94b; color: #5a4312; }
+.btn-excluir { background-color: #fed7d7; color: #9b2c2c; }
+
+fieldset { border: 1px solid var(--cor-borda); padding: 20px; border-radius: 8px; margin-bottom: 25px; background: var(--cor-card); }
+legend { padding: 0 10px; font-weight: bold; color: var(--cor-principal); }
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; width: 100%; }
+.form-group-row { display: flex; gap: 15px; }
+label { font-size: 13px; font-weight: 600; }
+input, select, textarea { padding: 10px; border: 1px solid var(--cor-borda); border-radius: 6px; background-color: var(--cor-fundo); color: var(--cor-texto); font-size: 14px; }
+input:focus, select:focus, textarea:focus { border-color: var(--cor-principal); outline: none; }
+
+.form-acoes { display: flex; justify-content: flex-end; gap: 15px; }
+.btn-salvar { background-color: var(--cor-principal); color: white; border: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+.btn-cancelar { background-color: #e2e8f0; color: #4a5568; border: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+
+.modal-popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(3px); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+.modal-popup-content { background: var(--cor-card); color: var(--cor-texto); padding: 30px; border-radius: 12px; width: 100%; max-width: 480px; border-top: 5px solid var(--cor-principal); }
+
+@media (max-width: 1250px) { .grade-agenda { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 900px) { .grade-agenda { grid-template-columns: repeat(2, 1fr); } .sidebar-perfil-direita { width: 100%; } }
+@media (max-width: 600px) { .container-app { flex-direction: column; } .sidebar { width: 100%; } .grade-agenda { grid-template-columns: 1fr; } .form-group-row { flex-direction: column; } }
