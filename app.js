@@ -1,13 +1,5 @@
 // ==========================================================================
-// CONFIGURAÇÃO DO BANCO DE DADOS (SUPABASE)
-// ==========================================================================
-const SUPABASE_URL = "https://SEU_PROJETO.supabase.co"; 
-const SUPABASE_KEY = "SUA_CHAVE_ANON_KEY"; 
-
-const bancoDados = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// ==========================================================================
-// ENGINE CENTRAL DE PERSISTÊNCIA (COM CAPTURA DE ERROS DO SUPABASE)
+// CENTRALIZADOR LOGICO DO SALVAMENTO POR ESCOPO (CORRIGIDO COM CAPTURA DE ERROS)
 // ==========================================================================
 async function executarSalvamentoPorEscopo(pacienteId, dataOriginalISO, novaDataISO, novaHora, novaMod, novoVal, statusSessao, escopo, novaFreq) {
     if(!bancoDados) {
@@ -15,7 +7,7 @@ async function executarSalvamentoPorEscopo(pacienteId, dataOriginalISO, novaData
         return;
     }
 
-    // Normaliza e força o formato HH:MM:SS exigido pelo PostgreSQL
+    // Normaliza o horário para o formato HH:MM:SS exigido estritamente pelo PostgreSQL
     let horaFormatada = novaHora;
     if (horaFormatada && horaFormatada.length === 5) {
         horaFormatada += ':00';
@@ -33,7 +25,7 @@ async function executarSalvamentoPorEscopo(pacienteId, dataOriginalISO, novaData
             };
 
             if (novaDataISO !== dataOriginalISO) {
-                // 1. Remove/Cancela a data antiga para evitar duplicidade na agenda
+                // 1. Remove/Cancela a aparição recorrente do dia original
                 const { data: extOrig, error: errOrig } = await bancoDados.from('agendamentos').select('id').eq('paciente_id', pacienteId).eq('data', dataOriginalISO);
                 if (errOrig) throw errOrig;
 
@@ -45,7 +37,7 @@ async function executarSalvamentoPorEscopo(pacienteId, dataOriginalISO, novaData
                     if (errInsOrig) throw errInsOrig;
                 }
                 
-                // 2. Insere ou atualiza os dados na nova data escolhida
+                // 2. Salva a nova data isolada com as alterações desejadas
                 const { data: extNova, error: errExtNova } = await bancoDados.from('agendamentos').select('id').eq('paciente_id', pacienteId).eq('data', novaDataISO);
                 if (errExtNova) throw errExtNova;
 
@@ -57,7 +49,7 @@ async function executarSalvamentoPorEscopo(pacienteId, dataOriginalISO, novaData
                     if (errInsNova) throw errInsNova;
                 }
             } else {
-                // Atualização na mesma data corrente
+                // Apenas alterou dados/status da mesma data existente
                 const { data: existente, error: errExistente } = await bancoDados.from('agendamentos').select('id').eq('paciente_id', pacienteId).eq('data', dataOriginalISO);
                 if (errExistente) throw errExistente;
 
@@ -70,7 +62,7 @@ async function executarSalvamentoPorEscopo(pacienteId, dataOriginalISO, novaData
                 }
             }
         } else {
-            // Escopo: Desta data em diante (Altera o plano base recorrente)
+            // Escopo: Desta data em diante (Atualiza o lote/plano principal)
             const partes = novaDataISO.split('-');
             const objData = new Date(partes[0], partes[1] - 1, partes[2]);
             const diasTexto = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
@@ -88,24 +80,14 @@ async function executarSalvamentoPorEscopo(pacienteId, dataOriginalISO, novaData
             const { error: errPlano } = await bancoDados.from('planos_atendimento').update(payloadPlano).eq('paciente_id', pacienteId);
             if (errPlano) throw errPlano;
             
-            // Remove registros manuais futuros para que o novo padrão assuma sem travar
+            // Limpa exceções futuras conflitantes para que o novo padrão assuma a partir daqui
             const { error: errDelAgend } = await bancoDados.from('agendamentos').delete().eq('paciente_id', pacienteId).gte('data', dataOriginalISO);
             if (errDelAgend) throw errDelAgend;
         }
         
         alert('Modificações salvas com sucesso!');
-        
     } catch(e) {
         console.error("Erro detalhado retornado pelo Supabase:", e);
         alert(`Erro ao persistir informações: ${e.message || e.details || 'Falha de comunicação ou restrição de coluna.'}`);
     }
-}
-
-function dispararFluxoSafeguard() {
-    // Gatilho de teste do formulário
-    // executarSalvamentoPorEscopo(1, '2026-06-22', '2026-06-22', '14:00', 'Presencial', 150.00, 'Confirmado', 'somente');
-}
-
-function abrirEdicao(id, data) {
-    console.log(`Carregando paciente ID ${id} da data ${data}...`);
 }
