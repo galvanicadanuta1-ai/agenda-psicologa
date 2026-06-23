@@ -16,7 +16,6 @@
             <div class="sidebar-brand">
                 <img id="logoSistema" src="" alt="Logo" style="display: none; max-width: 80px; margin-bottom: 10px; border-radius: 50%;">
                 <h1 id="nomeSistema">Agenda Psi</h1>
-                <!-- Campo de Subtítulo/CRP -->
                 <small id="subtituloSistema" style="display: block; opacity: 0.75; font-size: 12px; margin-top: 4px; font-weight: normal;"></small>
             </div>
             <nav class="sidebar-menu">
@@ -38,11 +37,11 @@
             <div id="dashboard" class="tela">
                 <div class="grid-cards">
                     <div class="card bg-sucesso">
-                        <h3>Pacientes Atendidos</h3>
+                        <h3>Pacientes Ativos</h3>
                         <p id="totalAtivos">0</p>
                     </div>
                     <div class="card bg-alerta">
-                        <h3>Pacientes Não Atendidos</h3>
+                        <h3>Pacientes Inativos (Arquivados)</h3>
                         <p id="totalInativos">0</p>
                     </div>
                     <div class="card bg-info">
@@ -61,7 +60,7 @@
                 <div id="grade-agenda-container"></div>
             </div>
 
-            <!-- TELA: LISTAGEM DE PACIENTES COM BOTÃO NO CANTO SUPERIOR DIREITO -->
+            <!-- TELA: LISTAGEM DE PACIENTES -->
             <div id="pacientes" class="tela" style="display:none">
                 <div class="lista-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2>Gerenciamento de Pacientes</h2>
@@ -83,18 +82,9 @@
                         
                         <fieldset>
                             <legend>Dados Cadastrais</legend>
-                            <div class="form-group-row">
-                                <div class="form-group">
-                                    <label for="nome">Nome Completo *</label>
-                                    <input type="text" id="nome" required placeholder="Nome do paciente">
-                                </div>
-                                <div class="form-group">
-                                    <label for="statusPaciente">Status de Atendimento</label>
-                                    <select id="statusPaciente">
-                                        <option value="Atendido">Atendido</option>
-                                        <option value="Não Atendido">Não Atendido</option>
-                                    </select>
-                                </div>
+                            <div class="form-group">
+                                <label for="nome">Nome Completo *</label>
+                                <input type="text" id="nome" required placeholder="Nome do paciente">
                             </div>
 
                             <div class="form-group-row">
@@ -119,9 +109,18 @@
                                 </div>
                             </div>
 
-                            <div class="form-group">
-                                <label for="endereco">Endereço Residencial</label>
-                                <input type="text" id="endereco" placeholder="Rua, Número, Bairro, Cidade">
+                            <div class="form-group-row">
+                                <div class="form-group" style="flex: 2;">
+                                    <label for="endereco">Endereço Residencial</label>
+                                    <input type="text" id="endereco" placeholder="Rua, Número, Bairro, Cidade">
+                                </div>
+                                <div class="form-group" style="flex: 1;">
+                                    <label for="statusVinculo">Vínculo Clínico *</label>
+                                    <select id="statusVinculo">
+                                        <option value="Ativo">Ativo (Em Atendimento)</option>
+                                        <option value="Inativo">Inativo (Alta/Arquivado)</option>
+                                    </select>
+                                </div>
                             </div>
 
                             <div class="form-group">
@@ -194,9 +193,13 @@
                             </div>
                         </fieldset>
 
-                        <div class="form-acoes">
-                            <button type="button" class="btn-cancelar" onclick="idPacienteEditando=null; mostrarTela('pacientes')">⬅️ Voltar para a Lista</button>
-                            <button type="button" id="btnSalvarPaciente" class="btn-salvar">💾 Salvar Alterações</button>
+                        <!-- Ações do Formulário com Botão Remover Discreto -->
+                        <div class="form-acoes" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 25px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
+                            <div style="display: flex; gap: 12px;">
+                                <button type="button" class="btn-cancelar" onclick="idPacienteEditando=null; mostrarTela('pacientes')">⬅️ Voltar para a Lista</button>
+                                <button type="button" id="btnSalvarPaciente" class="btn-salvar">💾 Salvar Alterações</button>
+                            </div>
+                            <button type="button" id="btnExcluirPacienteForm" style="background: none; border: none; color: #a0aec0; cursor: pointer; font-size: 13px; text-decoration: underline; padding: 5px;" onclick="excluirPacienteAtual()">🗑️ Remover Paciente</button>
                         </div>
                     </form>
 
@@ -220,7 +223,7 @@
                         <input type="text" id="configNomeSistema" value="Agenda Psicóloga">
                     </div>
                     <div class="form-group">
-                        <label for="configSubtituloSistema">Subtítulo / Registro Profissional (Ex: CRP 00/00000 - Opcional)</label>
+                        <label for="configSubtituloSistema">Subtítulo / Registro Profissional (Ex: CRP 00/00000)</label>
                         <input type="text" id="configSubtituloSistema" placeholder="Deixe em branco se preferir">
                     </div>
                     <div class="form-group-row">
@@ -285,11 +288,12 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="statusAgendamento">Status Inicial</label>
+                    <label for="statusAgendamento">Status da Sessão</label>
                     <select id="statusAgendamento">
                         <option value="Agendado">Agendado</option>
-                        <option value="Confirmado">Confirmado</option>
-                        <option value="Atendido">Atendido</option>
+                        <option value="Realizado">Realizado (Presença)</option>
+                        <option value="Falta">Falta do Paciente</option>
+                        <option value="Cancelado">Cancelado</option>
                     </select>
                 </div>
                 <div class="form-group" id="boxEscopoAgenda" style="display:none;">
