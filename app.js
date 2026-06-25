@@ -14,7 +14,24 @@ if (window.supabase) {
 let idPacienteEditando = null;
 
 // ==========================================================================
-// NAVEGAÇÃO INTERNA SPA (INTEGRADA: DASHBOARD + AGENDA NA MESMA TELA)
+// DINÂMICA DA SIDEBAR LATERAL (SUBMENUS E GERENCIAMENTO VISUAL)
+// ==========================================================================
+function alternarSubmenuPacientes() {
+    const sub = document.getElementById('submenuPacientes');
+    if (sub) {
+        sub.style.display = (sub.style.display === 'flex') ? 'none' : 'flex';
+    }
+}
+window.alternarSubmenuPacientes = alternarSubmenuPacientes;
+
+function acionarMenuNovoPaciente() {
+    idPacienteEditando = null;
+    mostrarTela('novoPaciente');
+}
+window.acionarMenuNovoPaciente = acionarMenuNovoPaciente;
+
+// ==========================================================================
+// NAVEGAÇÃO INTERNA SPA
 // ==========================================================================
 function mostrarTela(nomeTela) {
     document.querySelectorAll('.tela').forEach(tela => tela.style.display = 'none');
@@ -25,15 +42,22 @@ function mostrarTela(nomeTela) {
     const sidePerfil = document.getElementById('sidebar-agenda-paciente');
     if (sidePerfil) sidePerfil.style.display = 'none';
 
-    // Gerencia a exibição do botão de remoção no formulário
+    // Se não for uma tela de pacientes, fecha o submenu da lateral de forma limpa
+    if (nomeTela !== 'pacientes' && nomeTela !== 'novoPaciente') {
+        const sub = document.getElementById('submenuPacientes');
+        if (sub) sub.style.display = 'none';
+    } else {
+        const sub = document.getElementById('submenuPacientes');
+        if (sub) sub.style.display = 'flex';
+    }
+
     const btnExcluirForm = document.getElementById('btnExcluirPacienteForm');
     if (btnExcluirForm) {
         btnExcluirForm.style.display = (nomeTela === 'novoPaciente' && idPacienteEditando) ? 'inline-block' : 'none';
     }
 
-    // Configuração de Título Único para a Tela Principal
     const titulosModulos = {
-        'dashboard': 'Agenda', // Utiliza estritamente apenas o título "Agenda"
+        'dashboard': 'Agenda',
         'pacientes': 'Listagem de Pacientes Cadastrados',
         'novoPaciente': idPacienteEditando ? 'Perfil e Histórico Clínico' : 'Cadastro de Novo Paciente',
         'configuracoes': 'Parâmetros do Sistema'
@@ -66,7 +90,7 @@ function mostrarTela(nomeTela) {
 }
 window.mostrarTela = mostrarTela;
 
-// Execuções ao Inicializar a Página
+// Inicializações estruturais
 window.addEventListener('load', () => {
     aplicarConfiguracoesVisuais();
     mostrarTela('dashboard');
@@ -104,7 +128,6 @@ function atualizarDiaSemanaAutomatico() {
     }
 }
 
-// VALIDADOR DE PROCESSAMENTO DE RECORRÊNCIA
 function checarDataCorrespondeAoPlano(dataAlvoObj, dataInicioStr, diaSemanaPlan, frequenciaPlan) {
     if (!dataInicioStr) return false;
     const partes = dataInicioStr.split('-');
@@ -130,7 +153,7 @@ function checarDataCorrespondeAoPlano(dataAlvoObj, dataInicioStr, diaSemanaPlan,
 }
 
 // ==========================================================================
-// RENDERIZAÇÃO DA AGENDA SEMANAL (COM CABEÇALHOS VERDES E CENTRALIZADOS)
+// RENDERIZAÇÃO DA AGENDA SEMANAL
 // ==========================================================================
 async function carregarAgendaSemanal() {
     const containerGeral = document.getElementById('grade-agenda-container');
@@ -154,10 +177,9 @@ async function carregarAgendaSemanal() {
         const dataFimBloco = new Date(dataInicioBloco);
         dataFimBloco.setDate(dataInicioBloco.getDate() + 6); 
 
-        // 🎨 CABEÇALHOS CENTRALIZADOS COM FUNDO VERDE CLARO SOLICITADOS
         htmlSemanas += `
             <div class="semana-bloco">
-                <div class="semana-titulo" style="background-color: #d1e7dd; color: #0f5132; text-align: center; padding: 10px 15px; font-weight: bold; font-size: 1.1rem; border-radius: 0px; margin-top: 0px; border-bottom: 1px solid #badbcc;">
+                <div class="semana-titulo" style="background-color: #d1e7dd; color: #0f5132; text-align: center; padding: 10px 15px; font-weight: bold; font-size: 1.1rem; border-bottom: 1px solid #badbcc;">
                     📅 Semana: de ${formatarDataSimples(dataInicioBloco)} a ${formatarDataSimples(dataFimBloco)}
                 </div>
                 <div class="grade-agenda">
@@ -658,12 +680,49 @@ async function salvarPaciente() {
     }
 }
 
+// ==========================================================================
+// PERSISTÊNCIA DINÂMICA DE CORES E LOGOTIPO (LOCALSTORAGE)
+// ==========================================================================
+function carregarConfiguracoesCampos() {
+    if(document.getElementById('cfgLogoUrl')) document.getElementById('cfgLogoUrl').value = localStorage.getItem('cfg_logo_url') || '';
+    if(document.getElementById('cfgCorSidebar')) document.getElementById('cfgCorSidebar').value = localStorage.getItem('cfg_cor_sidebar') || '#1e293b';
+    if(document.getElementById('cfgCorPrincipal')) document.getElementById('cfgCorPrincipal').value = localStorage.getItem('cfg_cor_principal') || '#2563eb';
+}
+
+function aplicarConfiguracoesVisuais() {
+    const logoUrl = localStorage.getItem('cfg_logo_url') || '';
+    const corSidebar = localStorage.getItem('cfg_cor_sidebar') || '#1e293b';
+    const corPrincipal = localStorage.getItem('cfg_cor_principal') || '#2563eb';
+    
+    const imgLogo = document.getElementById('logoClinicaDisplay');
+    if (imgLogo) {
+        if (logoUrl) {
+            imgLogo.src = logoUrl;
+            imgLogo.style.display = 'block';
+        } else {
+            imgLogo.style.display = 'none';
+        }
+    }
+    
+    document.documentElement.style.setProperty('--sidebar-bg', corSidebar);
+    document.documentElement.style.setProperty('--primary-color', corPrincipal);
+}
+
+function salvarConfiguracoes() {
+    const logoUrl = document.getElementById('cfgLogoUrl')?.value || '';
+    const corSidebar = document.getElementById('cfgCorSidebar')?.value || '#1e293b';
+    const corPrincipal = document.getElementById('cfgCorPrincipal')?.value || '#2563eb';
+    
+    localStorage.setItem('cfg_logo_url', logoUrl);
+    localStorage.setItem('cfg_cor_sidebar', corSidebar);
+    localStorage.setItem('cfg_cor_principal', corPrincipal);
+    
+    aplicarConfiguracoesVisuais();
+    alert('Identidade visual atualizada com sucesso!');
+}
+
 function fecharModalAgendamento() {
     const modal = document.getElementById('modalAgendamento');
     if (modal) modal.style.display = 'none';
 }
 window.fecharModalAgendamento = fecharModalAgendamento;
-
-function salvarConfiguracoes() { alert('Configurações salvas com sucesso!'); }
-function carregarConfiguracoesCampos() { console.log('Campos de configuração prontos.'); }
-function aplicarConfiguracoesVisuais() { console.log('Temas visuais carregados.'); }
