@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Agenda Integrada</title>
     
+    <!-- Biblioteca do Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
             --bg-primary: #f8fafc;
             --sidebar-bg: #1e293b;
+            --primary-color: #2563eb;
             --text-main: #334155;
             --border-color: #e2e8f0;
         }
@@ -35,6 +37,7 @@
             left: 0;
             padding: 20px 0;
             box-sizing: border-box;
+            transition: background-color 0.3s ease;
         }
 
         .sidebar-brand {
@@ -43,6 +46,17 @@
             font-weight: bold;
             border-bottom: 1px solid #334155;
             margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .sidebar-brand img {
+            max-width: 100%;
+            max-height: 60px;
+            object-fit: contain;
+            display: none;
         }
 
         .sidebar-menu button {
@@ -62,6 +76,20 @@
         .sidebar-menu button:hover {
             background: #334155;
             color: white;
+        }
+
+        /* SUBMENU ANINHADO */
+        .sidebar-submenu {
+            padding-left: 15px;
+            display: none;
+            flex-direction: column;
+        }
+
+        .sidebar-submenu button {
+            width: 85%;
+            margin: 2px 5%;
+            padding: 8px 12px;
+            font-size: 0.88rem;
         }
 
         /* CONTEÚDO E LAYOUT COLETIVO */
@@ -208,16 +236,17 @@
         }
 
         .btn-principal {
-            background: #2563eb;
+            background: var(--primary-color);
             color: white;
             padding: 10px 20px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
+            transition: background-color 0.2s;
         }
 
-        .btn-principal:hover { background: #1d4ed8; }
+        .btn-principal:hover { filter: brightness(0.9); }
 
         /* SIDEBAR DE CALENDÁRIO LATERAL (90 DIAS) */
         #sidebar-agenda-paciente {
@@ -304,22 +333,33 @@
 </head>
 <body>
 
+    <!-- MENU LATERAL RESTAURADO -->
     <div class="sidebar-menu">
-        <div class="sidebar-brand">Clínica Integrada</div>
+        <div class="sidebar-brand">
+            <img id="logoClinicaDisplay" src="" alt="Logo da Clínica">
+            <span id="nomeClinicaTexto">Clínica Integrada</span>
+        </div>
         <button onclick="mostrarTela('dashboard')">📅 Agenda</button>
-        <button onclick="mostrarTela('pacientes')">👥 Listagem de Pacientes</button>
-        <button onclick="mostrarTela('novoPaciente')">➕ Novo Paciente</button>
+        
+        <!-- Grupo Dinâmico de Pacientes -->
+        <button onclick="alternarSubmenuPacientes()">👥 Pacientes ▾</button>
+        <div id="submenuPacientes" class="sidebar-submenu">
+            <button onclick="mostrarTela('pacientes')">📋 Ver Listagem</button>
+            <button onclick="acionarMenuNovoPaciente()">➕ Novo Paciente</button>
+        </div>
+        
         <button onclick="mostrarTela('configuracoes')">⚙️ Parâmetros</button>
     </div>
 
+    <!-- WRAPPER PRINCIPAL -->
     <div class="main-wrapper">
         
         <div class="header-secao">
             <h1 id="tituloSeção">Agenda</h1>
         </div>
 
+        <!-- TELA PRINCIPAL UNIFICADA (DASHBOARD + AGENDA INTEGRADA) -->
         <div id="dashboard" class="tela" style="display: block;">
-            
             <div class="cards-indicadores">
                 <div class="card-ind">
                     <h3>Pacientes Ativos</h3>
@@ -330,15 +370,15 @@
                     <p id="totalInativos">0</p>
                 </div>
             </div>
-
-            <div id="grade-agenda-container">
-                </div>
+            <div id="grade-agenda-container"></div>
         </div>
 
+        <!-- TELA: LISTAGEM DE PACIENTES -->
         <div id="pacientes" class="tela">
             <div id="listaPacientes" class="grid-pacientes"></div>
         </div>
 
+        <!-- TELA: FORMULÁRIO DE CADASTRO / PERFIL -->
         <div id="novoPaciente" class="tela">
             <div class="form-container">
                 <form id="formPaciente">
@@ -447,22 +487,44 @@
             </div>
         </div>
 
+        <!-- TELA: PARAMETROS COM CONFIGURAÇÃO DE CORES E LOGO ATIVAS -->
         <div id="configuracoes" class="tela">
             <div class="form-container">
-                <h3>Configurações Globais</h3>
-                <p>Configurações de ambiente e conexões externas prontas.</p>
-                <button type="button" id="btnSalvarConfiguracoes" class="btn-principal">Salvar Parâmetros</button>
+                <h3>Configurações Globais e Identidade Visual</h3>
+                <p>Gerencie as configurações de ambiente, cores do sistema e logotipo da marca.</p>
+                
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label>URL do Logotipo da Clínica (Link de Imagem)</label>
+                    <input type="text" id="cfgLogoUrl" placeholder="https://exemplo.com/seu-logo.png">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Cor de Fundo da Lateral (Sidebar)</label>
+                        <input type="color" id="cfgCorSidebar" value="#1e293b">
+                    </div>
+                    <div class="form-group">
+                        <label>Cor Principal (Botões e Destaques)</label>
+                        <input type="color" id="cfgCorPrincipal" value="#2563eb">
+                    </div>
+                </div>
+
+                <div style="margin-top: 25px;">
+                    <button type="button" id="btnSalvarConfiguracoes" class="btn-principal">Salvar Parâmetros</button>
+                </div>
             </div>
         </div>
 
     </div>
 
+    <!-- SIDEBAR COMPLEMENTAR: HISTÓRICO DE PROJEÇÕES (90 DIAS) -->
     <div id="sidebar-agenda-paciente">
         <h3 style="margin-top: 0; font-size: 1.1rem; border-bottom:1px solid var(--border-color); padding-bottom:10px;">Projeções e Histórico (90 dias)</h3>
         <div id="info-plano-resumo" style="font-size: 0.85rem; background:#f1f5f9; padding:10px; border-radius:6px;"></div>
         <div id="lista-proximas-sessoes" class="lista-scroll-previsoes"></div>
     </div>
 
+    <!-- MODAL GLOBAL DE EDIÇÃO DE OCORRÊNCIAS DA AGENDA -->
     <div id="modalAgendamento" class="modal-overlay">
         <div class="modal-box">
             <h3 id="modalAgendamentoTitulo" style="margin-top:0;">Editar Ocorrência</h3>
