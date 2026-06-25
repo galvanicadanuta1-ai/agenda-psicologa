@@ -14,7 +14,7 @@ if (window.supabase) {
 let idPacienteEditando = null;
 
 // ==========================================================================
-// NAVEGAÇÃO INTERNA SPA
+// NAVEGAÇÃO INTERNA SPA (INTEGRADA: DASHBOARD + AGENDA NA MESMA TELA)
 // ==========================================================================
 function mostrarTela(nomeTela) {
     document.querySelectorAll('.tela').forEach(tela => tela.style.display = 'none');
@@ -25,18 +25,18 @@ function mostrarTela(nomeTela) {
     const sidePerfil = document.getElementById('sidebar-agenda-paciente');
     if (sidePerfil) sidePerfil.style.display = 'none';
 
-    // Gerencia exibição do botão remover discreto
+    // Gerencia a exibição do botão de remoção no formulário
     const btnExcluirForm = document.getElementById('btnExcluirPacienteForm');
     if (btnExcluirForm) {
         btnExcluirForm.style.display = (nomeTela === 'novoPaciente' && idPacienteEditando) ? 'inline-block' : 'none';
     }
 
+    // Configuração de Título Único para a Tela Principal
     const titulosModulos = {
-        'dashboard': '📊 Painel de Indicadores',
-        'agenda': '📅 Agenda',
-        'pacientes': '👥 Listagem de Pacientes Cadastrados',
-        'novoPaciente': idPacienteEditando ? '📝 Perfil e Histórico Clínico' : '➕ Cadastro de Novo Paciente',
-        'configuracoes': '⚙️ Parâmetros do Sistema'
+        'dashboard': 'Agenda', // Utiliza estritamente apenas o título "Agenda"
+        'pacientes': 'Listagem de Pacientes Cadastrados',
+        'novoPaciente': idPacienteEditando ? 'Perfil e Histórico Clínico' : 'Cadastro de Novo Paciente',
+        'configuracoes': 'Parâmetros do Sistema'
     };
     
     const elTituloSeção = document.getElementById('tituloSeção');
@@ -45,8 +45,6 @@ function mostrarTela(nomeTela) {
     switch (nomeTela) {
         case 'dashboard':
             atualizarDashboard();
-            break;
-        case 'agenda':
             carregarAgendaSemanal();
             break;
         case 'pacientes':
@@ -68,6 +66,7 @@ function mostrarTela(nomeTela) {
 }
 window.mostrarTela = mostrarTela;
 
+// Execuções ao Inicializar a Página
 window.addEventListener('load', () => {
     aplicarConfiguracoesVisuais();
     mostrarTela('dashboard');
@@ -105,7 +104,7 @@ function atualizarDiaSemanaAutomatico() {
     }
 }
 
-// VALIDADOR DE RECORRÊNCIA
+// VALIDADOR DE PROCESSAMENTO DE RECORRÊNCIA
 function checarDataCorrespondeAoPlano(dataAlvoObj, dataInicioStr, diaSemanaPlan, frequenciaPlan) {
     if (!dataInicioStr) return false;
     const partes = dataInicioStr.split('-');
@@ -131,7 +130,7 @@ function checarDataCorrespondeAoPlano(dataAlvoObj, dataInicioStr, diaSemanaPlan,
 }
 
 // ==========================================================================
-// RENDERIZAÇÃO DA AGENDA SEMANAL
+// RENDERIZAÇÃO DA AGENDA SEMANAL (COM CABEÇALHOS VERDES E CENTRALIZADOS)
 // ==========================================================================
 async function carregarAgendaSemanal() {
     const containerGeral = document.getElementById('grade-agenda-container');
@@ -155,9 +154,12 @@ async function carregarAgendaSemanal() {
         const dataFimBloco = new Date(dataInicioBloco);
         dataFimBloco.setDate(dataInicioBloco.getDate() + 6); 
 
+        // 🎨 CABEÇALHOS CENTRALIZADOS COM FUNDO VERDE CLARO SOLICITADOS
         htmlSemanas += `
             <div class="semana-bloco">
-                <div class="semana-titulo">📅 Semana: de ${formatarDataSimples(dataInicioBloco)} a ${formatarDataSimples(dataFimBloco)}</div>
+                <div class="semana-titulo" style="background-color: #d1e7dd; color: #0f5132; text-align: center; padding: 10px 15px; font-weight: bold; font-size: 1.1rem; border-radius: 0px; margin-top: 0px; border-bottom: 1px solid #badbcc;">
+                    📅 Semana: de ${formatarDataSimples(dataInicioBloco)} a ${formatarDataSimples(dataFimBloco)}
+                </div>
                 <div class="grade-agenda">
         `;
 
@@ -204,7 +206,7 @@ async function carregarAgendaSemanal() {
                         nome: mapaPacientes[esp.paciente_id],
                         hora: esp.hora.substring(0, 5),
                         modalidade: esp.modalidade || (planoOrigem ? planoOrigem.modalidade : 'Presencial'),
-                        valor: esp.valor || (planoOrigem ? planoOrigem.valor : 0), // ✨ CORRIGIDO: de 'valor_cobrado' para 'valor'
+                        valor: esp.valor || (planoOrigem ? planoOrigem.valor : 0),
                         status: esp.status || 'Agendado',
                         origem: 'excecao'
                     });
@@ -225,7 +227,7 @@ async function carregarAgendaSemanal() {
                                 modalidade: plano.modalidade || 'Presencial',
                                 valor: plano.valor || 0,
                                 status: 'Agendado',
-                                origin: 'recorrente'
+                                origem: 'recorrente'
                             });
                         }
                     }
@@ -283,7 +285,7 @@ window.abrirEditorDiretoAgenda = function(pacienteId, dataISO, hora, modalidade,
 };
 
 // ==========================================================================
-// CALENDÁRIO LATERAL DE 90 DIAS (COM STATUS DE SESSÃO E FREQUÊNCIA NOS '...')
+// CALENDÁRIO LATERAL DE 90 DIAS
 // ==========================================================================
 async function renderizarSidebarCalendarioPaciente(pacienteId) {
     const sidebar = document.getElementById('sidebar-agenda-paciente');
@@ -309,7 +311,7 @@ async function renderizarSidebarCalendarioPaciente(pacienteId) {
         <strong>Valor Base:</strong> R$ ${valor.toFixed(2)}
     `;
 
-    listaScroll.innerHTML = '<div style="font-size:12px; padding:10px;">Processando lines...</div>';
+    listaScroll.innerHTML = '<div style="font-size:12px; padding:10px;">Processando linhas...</div>';
 
     try {
         let agendamentos = [];
@@ -333,7 +335,7 @@ async function renderizarSidebarCalendarioPaciente(pacienteId) {
             if (atendeRecorrencia || excecaoGravada) {
                 const exibData = `${String(dataFoco.getDate()).padStart(2, '0')}/${String(dataFoco.getMonth() + 1).padStart(2, '0')}/${dataFoco.getFullYear()}`;
                 const exibHora = excecaoGravada ? excecaoGravada.hora.substring(0,5) : (horaPadrao ? horaPadrao.substring(0,5) : '--:--');
-                const exibValor = excecaoGravada && excecaoGravada.valor !== undefined ? excecaoGravada.valor : valor; // ✨ CORRIGIDO: valor_cobrado -> valor
+                const exibValor = excecaoGravada && excecaoGravada.valor !== undefined ? excecaoGravada.valor : valor;
                 const exibMod = excecaoGravada && excecaoGravada.modalidade ? excecaoGravada.modalidade : modalidade;
                 const exibStatus = excecaoGravada ? excecaoGravada.status : 'Agendado';
 
@@ -437,7 +439,7 @@ window.salvarModificacaoLinhaPerfil = async function(dataISO, pacienteId) {
 };
 
 // ==========================================================================
-// CENTRALIZADOR LOGICO DO SALVAMENTO POR ESCOPO (FIX DATA ÚNICA)
+// CENTRALIZADOR LÓGICO DO SALVAMENTO POR ESCOPO
 // ==========================================================================
 async function executarSalvamentoPorEscopo(pacienteId, dataOriginalISO, novaDataISO, novaHora, novaMod, novoVal, statusSessao, escopo, novaFreq) {
     if(!bancoDados) return;
@@ -449,20 +451,18 @@ async function executarSalvamentoPorEscopo(pacienteId, dataOriginalISO, novaData
                 data: novaDataISO, 
                 hora: novaHora, 
                 modalidade: novaMod, 
-                valor: novoVal, // ✨ CORRIGIDO: de 'valor_cobrado' para 'valor'
+                valor: novoVal, 
                 status: statusSessao 
             };
 
             if (novaDataISO !== dataOriginalISO) {
-                // Remove/Cancela a aparição recorrente do dia original
                 const { data: extOrig } = await bancoDados.from('agendamentos').select('id').eq('paciente_id', pacienteId).eq('data', dataOriginalISO);
                 if (extOrig && extOrig.length > 0) {
                     await bancoDados.from('agendamentos').update({ status: 'Cancelado' }).eq('id', extOrig[0].id);
                 } else {
-                    await bancoDados.from('agendamentos').insert([{ paciente_id: pacienteId, data: dataOriginalISO, hora: novaHora, status: 'Cancelado', modalidade: novaMod, valor: novoVal }]); // ✨ CORRIGIDO: valor
+                    await bancoDados.from('agendamentos').insert([{ paciente_id: pacienteId, data: dataOriginalISO, hora: novaHora, status: 'Cancelado', modalidade: novaMod, valor: novoVal }]);
                 }
                 
-                // Salva a nova data isolada
                 const { data: extNova } = await bancoDados.from('agendamentos').select('id').eq('paciente_id', pacienteId).eq('data', novaDataISO);
                 if (extNova && extNova.length > 0) {
                     await bancoDados.from('agendamentos').update(payload).eq('id', extNova[0].id);
@@ -470,7 +470,6 @@ async function executarSalvamentoPorEscopo(pacienteId, dataOriginalISO, novaData
                     await bancoDados.from('agendamentos').insert([payload]);
                 }
             } else {
-                // Apenas mudou status/dados do mesmo dia
                 const { data: existente } = await bancoDados.from('agendamentos').select('id').eq('paciente_id', pacienteId).eq('data', dataOriginalISO);
                 if (existente && existente.length > 0) {
                     await bancoDados.from('agendamentos').update(payload).eq('id', existente[0].id);
@@ -479,7 +478,6 @@ async function executarSalvamentoPorEscopo(pacienteId, dataOriginalISO, novaData
                 }
             }
         } else {
-            // Escopo: Desta data em diante (Lote / Plano)
             const partes = novaDataISO.split('-');
             const objData = new Date(partes[0], partes[1] - 1, partes[2]);
             const diasTexto = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
@@ -495,8 +493,6 @@ async function executarSalvamentoPorEscopo(pacienteId, dataOriginalISO, novaData
             if (novaFreq) payloadPlano.frequencia = novaFreq;
 
             await bancoDados.from('planos_atendimento').update(payloadPlano).eq('paciente_id', pacienteId);
-            
-            // Remove limpos futuros conflitantes do calendário
             await bancoDados.from('agendamentos').delete().eq('paciente_id', pacienteId).gte('data', dataOriginalISO);
         }
         alert('Modificações salvas com sucesso!');
@@ -507,7 +503,7 @@ async function executarSalvamentoPorEscopo(pacienteId, dataOriginalISO, novaData
 }
 
 // ==========================================================================
-// CONTADORES DO DASHBOARD (MUDADO PARA ATIVOS / INATIVOS)
+// CONTADORES DO DASHBOARD 
 // ==========================================================================
 async function atualizarDashboard() {
     if (!bancoDados) return;
@@ -523,7 +519,7 @@ async function atualizarDashboard() {
 }
 
 // ==========================================================================
-// OPERAÇÕES DE PACIENTES & BOTÃO DISCRETO DE EXCLUSÃO
+// OPERAÇÕES DE PACIENTES & REMOÇÃO
 // ==========================================================================
 async function carregarPacientes() {
     if (!bancoDados) return;
@@ -590,7 +586,6 @@ window.prepararEdicaoPaciente = async function(id) {
     } catch (err) { alert('Erro ao carregar prontuário.'); }
 };
 
-// ✨ COMPLETADO: Função finalizada com tratamento de erros completo
 window.excluirPacienteAtual = async function() {
     if (!idPacienteEditando) return;
     if (!confirm("Tem certeza que deseja remover este paciente? Esta ação apagará permanentemente o histórico e as agendas vinculadas.")) return;
@@ -608,9 +603,6 @@ window.excluirPacienteAtual = async function() {
     }
 };
 
-// ==========================================================================
-// FUNÇÕES AUXILIARES DE PERSISTÊNCIA & CONFIGURAÇÃO
-// ==========================================================================
 async function salvarPaciente() {
     if (!bancoDados) return;
     const nome = document.getElementById('nome')?.value;
@@ -672,14 +664,6 @@ function fecharModalAgendamento() {
 }
 window.fecharModalAgendamento = fecharModalAgendamento;
 
-function salvarConfiguracoes() {
-    alert('Configurações salvas com sucesso!');
-}
-
-function carregarConfiguracoesCampos() {
-    console.log('Campos de configuração prontos.');
-}
-
-function aplicarConfiguracoesVisuais() {
-    console.log('Temas visuais carregados.');
-}
+function salvarConfiguracoes() { alert('Configurações salvas com sucesso!'); }
+function carregarConfiguracoesCampos() { console.log('Campos de configuração prontos.'); }
+function aplicarConfiguracoesVisuais() { console.log('Temas visuais carregados.'); }
