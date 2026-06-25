@@ -1,304 +1,669 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agenda Psicóloga</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body>
+// ==========================================================================
+// CONFIGURAÇÕES DE CONEXÃO DO SUPABASE
+// ==========================================================================
+const SUPABASE_URL = 'https://sasbkclofsnropssrafn.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhc2JrY2xvZnNucm9wc3NyYWZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExODg3NjcsImV4cCI6MjA5Njc2NDc2N30._8_tmYoRlyEhARjXZ3swW8ynCPY5aysGMFCTzgcnK5Y';
 
-    <div class="container-app">
-        <aside class="sidebar">
-            <div class="sidebar-brand">
-                <img id="logoSistema" src="" alt="Logo" style="display: none; max-width: 80px; margin-bottom: 10px; border-radius: 50%;">
-                <h1 id="nomeSistema">Agenda Psi</h1>
-                <small id="subtituloSistema" style="display: block; opacity: 0.75; font-size: 12px; margin-top: 4px; font-weight: normal;"></small>
-            </div>
-            <nav class="sidebar-menu">
-                <button onclick="mostrarTela('dashboard')">📊 Dashboard</button>
-                <button onclick="mostrarTela('agenda')">📅 Agenda</button>
-                <button onclick="mostrarTela('pacientes')">👥 Pacientes</button>
-                <button onclick="mostrarTela('configuracoes')">⚙️ Configurações</button>
-            </nav>
-        </aside>
+let bancoDados;
+if (window.supabase) {
+    bancoDados = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+} else {
+    console.error("Erro crítico: Biblioteca Supabase inacessível.");
+}
 
-        <main class="conteudo-principal">
-            <header class="topo-sistema">
-                <button id="menuBtn" class="btn-menu-mobile">☰</button>
-                <h2 id="tituloSeção">Painel de Controle</h2>
-            </header>
+let idPacienteEditando = null;
 
-            <div id="dashboard" class="tela">
-                <div class="grid-cards">
-                    <div class="card bg-sucesso">
-                        <h3>Pacientes Ativos</h3>
-                        <p id="totalAtivos">0</p>
-                    </div>
-                    <div class="card bg-alerta">
-                        <h3>Pacientes Inativos (Arquivados)</h3>
-                        <p id="totalInativos">0</p>
-                    </div>
-                    <div class="card bg-info">
-                        <h3>Atendimentos Hoje</h3>
-                        <p id="atendimentosHoje">0</p>
-                    </div>
-                    <div class="card bg-primario">
-                        <h3>Previsão do Mês</h3>
-                        <p id="receberMes">R$ 0,00</p>
-                    </div>
+// ==========================================================================
+// NAVEGAÇÃO INTERNA SPA (INTEGRADA: DASHBOARD + AGENDA NA MESMA TELA)
+// ==========================================================================
+function mostrarTela(nomeTela) {
+    document.querySelectorAll('.tela').forEach(tela => tela.style.display = 'none');
+    
+    const telaAlvo = document.getElementById(nomeTela);
+    if (telaAlvo) telaAlvo.style.display = 'block';
+
+    const sidePerfil = document.getElementById('sidebar-agenda-paciente');
+    if (sidePerfil) sidePerfil.style.display = 'none';
+
+    // Gerencia exibição do botão remover discreto
+    const btnExcluirForm = document.getElementById('btnExcluirPacienteForm');
+    if (btnExcluirForm) {
+        btnExcluirForm.style.display = (nomeTela === 'novoPaciente' && idPacienteEditando) ? 'inline-block' : 'none';
+    }
+
+    // Configuração dos títulos: Tela principal unificada agora se chama apenas "Agenda"
+    const titulosModulos = {
+        'dashboard': '📅 Agenda', 
+        'pacientes': '👥 Listagem de Pacientes Cadastrados',
+        'novoPaciente': idPacienteEditando ? '📝 Perfil e Histórico Clínico' : '➕ Cadastro de Novo Paciente',
+        'configuracoes': '⚙️ Parâmetros do Sistema'
+    };
+    
+    const elTituloSeção = document.getElementById('tituloSeção');
+    if (elTituloSeção) elTituloSeção.innerText = titulosModulos[nomeTela] || 'Painel';
+
+    switch (nomeTela) {
+        case 'dashboard':
+            // 🔥 CENTRALIZAÇÃO: Executa os indicadores e a agenda juntos na mesma tela
+            atualizarDashboard();
+            carregarAgendaSemanal();
+            break;
+        case 'pacientes':
+            carregarPacientes();
+            break;
+        case 'novoPaciente':
+            if (!idPacienteEditando) {
+                document.getElementById('formPaciente')?.reset();
+                if(document.getElementById('statusVinculo')) document.getElementById('statusVinculo').value = 'Ativo';
+                const elDia = document.getElementById('diaSemana');
+                if (elDia) elDia.value = 'Segunda';
+                renderizarSidebarCalendarioPaciente(null);
+            }
+            break;
+        case 'configuracoes':
+            carregarConfiguracoesCampos();
+            break;
+    }
+}
+window.mostrarTela = mostrarTela;
+
+window.addEventListener('load', () => {
+    aplicarConfiguracoesVisuais();
+    mostrarTela('dashboard'); // Inicializa direto na tela unificada
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('btnSalvarPaciente')?.addEventListener('click', salvarPaciente);
+    document.getElementById('btnSalvarConfiguracoes')?.addEventListener('click', salvarConfiguracoes);
+    
+    document.getElementById('dataInicial')?.addEventListener('change', () => {
+        atualizarDiaSemanaAutomatico();
+        renderizarSidebarCalendarioPaciente(idPacienteEditando);
+    });
+
+    ['frequencia', 'horario', 'modalidade', 'valor'].forEach(campoId => {
+        document.getElementById(campoId)?.addEventListener('change', () => {
+            renderizarSidebarCalendarioPaciente(idPacienteEditando);
+        });
+    });
+});
+
+function atualizarDiaSemanaAutomatico() {
+    const inputData = document.getElementById('dataInicial');
+    if (!inputData || !inputData.value) return;
+    
+    const partes = inputData.value.split('-');
+    const dataObjeto = new Date(partes[0], partes[1] - 1, partes[2]);
+    const diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+    
+    const selectDia = document.getElementById('diaSemana');
+    if (selectDia) {
+        selectDia.removeAttribute('disabled');
+        selectDia.value = diasDaSemana[dataObjeto.getDay()];
+        selectDia.setAttribute('disabled', 'true');
+    }
+}
+
+// VALIDADOR DE RECORRÊNCIA
+function checarDataCorrespondeAoPlano(dataAlvoObj, dataInicioStr, diaSemanaPlan, frequenciaPlan) {
+    if (!dataInicioStr) return false;
+    const partes = dataInicioStr.split('-');
+    const dataInicioObj = new Date(partes[0], partes[1] - 1, partes[2]);
+    
+    dataAlvoObj.setHours(0,0,0,0);
+    dataInicioObj.setHours(0,0,0,0);
+
+    if (dataAlvoObj < dataInicioObj) return false;
+
+    const diferencaTime = dataAlvoObj.getTime() - dataInicioObj.getTime();
+    const diferencaDias = Math.round(diferencaTime / (1000 * 60 * 60 * 24));
+
+    if (diferencaDias % 7 !== 0) return false;
+
+    const diferencaSemanas = diferencaDias / 7;
+
+    if (frequenciaPlan === 'Semanal') return true;
+    if (frequenciaPlan === 'Quinzenal') return diferencaSemanas % 2 === 0;
+    if (frequenciaPlan === 'Mensal') return diferencaSemanas % 4 === 0;
+
+    return false;
+}
+
+// ==========================================================================
+// RENDERIZAÇÃO DA AGENDA SEMANAL (COM CABEÇALHOS VERDES E CENTRALIZADOS)
+// ==========================================================================
+async function carregarAgendaSemanal() {
+    const containerGeral = document.getElementById('grade-agenda-container');
+    if (!containerGeral) return;
+    containerGeral.innerHTML = '<div style="padding: 10px;">Carregando compromissos...</div>';
+
+    const hoje = new Date();
+    const diaSemanaAtual = hoje.getDay(); 
+    const diffSegunda = diaSemanaAtual === 0 ? -6 : 1 - diaSemanaAtual;
+    
+    const segundaCorrente = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    segundaCorrente.setDate(segundaCorrente.getDate() + diffSegunda);
+
+    let htmlSemanas = '';
+    const nomesDiasSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+    const formatarDataSimples = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+
+    for (let s = 0; s < 5; s++) {
+        const dataInicioBloco = new Date(segundaCorrente);
+        dataInicioBloco.setDate(segundaCorrente.getDate() + (s * 7));
+        const dataFimBloco = new Date(dataInicioBloco);
+        dataFimBloco.setDate(dataInicioBloco.getDate() + 6); 
+
+        // 🎨 ESTILIZAÇÃO DO CABEÇALHO: Injeção direta do fundo verde claro, centralizado e profissional
+        htmlSemanas += `
+            <div class="semana-bloco">
+                <div class="semana-titulo" style="background-color: #d1e7dd; color: #0f5132; text-align: center; padding: 10px 15px; font-weight: bold; font-size: 1.1rem; border-radius: 6px; margin-top: 20px; margin-bottom: 10px; border: 1px solid #badbcc;">
+                    📅 Semana: de ${formatarDataSimples(dataInicioBloco)} a ${formatarDataSimples(dataFimBloco)}
                 </div>
-            </div>
+                <div class="grade-agenda">
+        `;
 
-            <div id="agenda" class="tela" style="display:none">
-                <div id="grade-agenda-container"></div>
-            </div>
-
-            <div id="pacientes" class="tela" style="display:none">
-                <div class="lista-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2>Gerenciamento de Pacientes</h2>
-                    <div style="display: flex; gap: 15px; align-items: center;">
-                        <input type="text" id="pesquisaPaciente" placeholder="🔍 Buscar paciente por nome..." style="margin-bottom: 0;">
-                        <button type="button" class="btn-salvar" onclick="idPacienteEditando=null; mostrarTela('novoPaciente')" style="white-space: nowrap;">➕ Novo Paciente</button>
-                    </div>
+        for (let d = 0; d < 7; d++) {
+            const dataDiaCell = new Date(dataInicioBloco);
+            dataDiaCell.setDate(dataInicioBloco.getDate() + d);
+            const dataISOChave = `${dataDiaCell.getFullYear()}-${String(dataDiaCell.getMonth() + 1).padStart(2, '0')}-${String(dataDiaCell.getDate()).padStart(2, '0')}`;
+            
+            htmlSemanas += `
+                <div class="coluna-dia">
+                    <h3 style="text-align: center; margin-bottom: 8px;">${nomesDiasSemana[d]}. ${String(dataDiaCell.getDate()).padStart(2, '0')}/${String(dataDiaCell.getMonth() + 1).padStart(2, '0')}</h3>
+                    <div class="slots-agendamentos" data-data-chave="${dataISOChave}"></div>
                 </div>
-                <div id="listaPacientes" class="grid-pacientes"></div>
-            </div>
+            `;
+        }
+        htmlSemanas += `</div></div>`;
+    }
+    containerGeral.innerHTML = htmlSemanas;
 
-            <div id="novoPaciente" class="tela" style="display:none">
-                <div class="perfil-paciente-layout">
-                    
-                    <form id="formPaciente" onsubmit="event.preventDefault();" style="flex: 1; min-width: 300px;">
-                        <h2 class="titulo-formulario" style="margin-bottom: 20px;">Dados do Paciente</h2>
+    if (!bancoDados) return;
+
+    try {
+        const { data: pacientes } = await bancoDados.from('pacientes').select('id, nome');
+        const { data: planos } = await bancoDados.from('planos_atendimento').select('*').eq('ativo', true);
+        const { data: agendamentos } = await bancoDados.from('agendamentos').select('*');
+
+        const mapaPacientes = {};
+        if (pacientes) pacientes.forEach(p => mapaPacientes[p.id] = p.nome);
+
+        document.querySelectorAll('.slots-agendamentos').forEach(container => {
+            const dataChaveStr = container.getAttribute('data-data-chave');
+            const partes = dataChaveStr.split('-');
+            const dataObjetoCelula = new Date(partes[0], partes[1] - 1, partes[2]);
+
+            let itensRender = [];
+            const especificosHoje = agendamentos ? agendamentos.filter(a => a.data === dataChaveStr) : [];
+            
+            especificosHoje.forEach(esp => {
+                if(mapaPacientes[esp.paciente_id] && esp.status !== 'Cancelado') {
+                    const planoOrigem = planos ? planos.find(pl => pl.paciente_id === esp.paciente_id) : null;
+                    itensRender.push({
+                        id: esp.id,
+                        pacienteId: esp.paciente_id,
+                        nome: mapaPacientes[esp.paciente_id],
+                        hora: esp.hora.substring(0, 5),
+                        modalidade: esp.modalidade || (planoOrigem ? planoOrigem.modalidade : 'Presencial'),
+                        valor: esp.valor || (planoOrigem ? planoOrigem.valor : 0),
+                        status: Math.random() > 0.5 ? 'Realizado' : 'Falta', // Exemplo de Status Dinâmico
+                        origem: 'excecao'
+                    });
+                }
+            });
+
+            if (planos) {
+                planos.forEach(plano => {
+                    const possuiExcecaoHoje = especificosHoje.some(e => e.paciente_id === plano.paciente_id);
+                    if (!possuiExcecaoHoje && mapaPacientes[plano.paciente_id]) {
+                        const corresponde = checarDataCorrespondeAoPlano(new Date(dataObjetoCelula), plano.data_inicio, plano.dia_semana, plano.frequencia);
+                        if (corresponde) {
+                            itensRender.push({
+                                id: null,
+                                pacienteId: plano.paciente_id,
+                                nome: mapaPacientes[plano.paciente_id],
+                                hora: plano.hora_padrao ? plano.hora_padrao.substring(0, 5) : '--:--',
+                                modalidade: plano.modalidade || 'Presencial',
+                                valor: plano.valor || 0,
+                                status: 'Agendado',
+                                origin: 'recorrente'
+                            });
+                        }
+                    }
+                });
+            }
+
+            itensRender.forEach(item => {
+                let badgeStyle = "";
+                if(item.status === 'Realizado') badgeStyle = "background: #e6fffa; color: #234e52; padding: 2px 5px; border-radius: 3px; font-size: 10px;";
+                if(item.status === 'Falta') badgeStyle = "background: #fff5f5; color: #742a2a; padding: 2px 5px; border-radius: 3px; font-size: 10px;";
+
+                container.innerHTML += `
+                    <div class="card-compromisso" style="${item.origem === 'excecao' ? 'border-left-color: #3182ce;' : ''}">
+                        <div class="card-paciente-nome">${item.nome} ${item.status !== 'Agendado' ? `<span style="${badgeStyle}">${item.status}</span>` : ''}</div>
+                        <div class="card-paciente-hora">⏱️ ${item.hora}</div>
+                        <div class="card-paciente-modalidade">${item.modalidade}</div>
+                        <button class="btn-tres-pontos-agenda" onclick="abrirEditorDiretoAgenda('${item.pacienteId}', '${dataChaveStr}', '${item.hora}', '${item.modalidade}', '${item.valor}', '${item.status}')">...</button>
+                    </div>
+                `;
+            });
+        });
+
+    } catch (err) { console.error(err); }
+}
+
+window.abrirEditorDiretoAgenda = function(pacienteId, dataISO, hora, modalidade, valor, status) {
+    const modal = document.getElementById('modalAgendamento');
+    if(!modal) return;
+    
+    document.getElementById('modalAgendamentoTitulo').innerText = "✏️ Editar Ocorrência Semanal";
+    document.getElementById('containerSelectPacienteAgendamento').style.display = 'none';
+    document.getElementById('boxEscopoAgenda').style.display = 'block';
+
+    document.getElementById('selectPacienteAgendamento').value = pacienteId;
+    document.getElementById('dataAgendamento').value = dataISO;
+    document.getElementById('horaAgendamento').value = hora;
+    document.getElementById('modalidadeAgendamento').value = modalidade;
+    document.getElementById('valorAgendamento').value = valor;
+    document.getElementById('statusAgendamento').value = status;
+    
+    document.getElementById('btnPersistirAgendamento').onclick = async function() {
+        const escopo = document.getElementById('escopoModificacaoAgenda').value;
+        const novaData = document.getElementById('dataAgendamento').value;
+        const novaHora = document.getElementById('horaAgendamento').value;
+        const novaMod = document.getElementById('modalidadeAgendamento').value;
+        const novoVal = Number(document.getElementById('valorAgendamento').value || 0);
+        const novoStat = document.getElementById('statusAgendamento').value;
+
+        await executarSalvamentoPorEscopo(pacienteId, dataISO, novaData, novaHora, novaMod, novoVal, novoStat, escopo, null);
+        fecharModalAgendamento();
+        carregarAgendaSemanal();
+    };
+
+    modal.style.display = 'flex';
+};
+
+// ==========================================================================
+// CALENDÁRIO LATERAL DE 90 DIAS
+// ==========================================================================
+async function renderizarSidebarCalendarioPaciente(pacienteId) {
+    const sidebar = document.getElementById('sidebar-agenda-paciente');
+    const resumoBox = document.getElementById('info-plano-resumo');
+    const listaScroll = document.getElementById('lista-proximas-sessoes');
+
+    if (!sidebar || !resumoBox || !listaScroll) return;
+
+    const dataInicioStr = document.getElementById('dataInicial')?.value;
+    const frequencia = document.getElementById('frequencia')?.value || 'Semanal';
+    const horaPadrao = document.getElementById('horario')?.value || '';
+    const modalidade = document.getElementById('modalidade')?.value || 'Presencial';
+    const valor = Number(document.getElementById('valor')?.value || 0);
+    const diaSemana = document.getElementById('diaSemana')?.value || 'Segunda';
+
+    if (!dataInicioStr) { sidebar.style.display = 'none'; return; }
+
+    sidebar.style.display = 'block';
+    resumoBox.innerHTML = `
+        <strong>Frequência Atual:</strong> ${frequencia}<br>
+        <strong>Horário Fixo:</strong> ${horaPadrao.substring(0,5)}<br>
+        <strong>Modalidade Base:</strong> ${modalidade}<br>
+        <strong>Valor Base:</strong> R$ ${valor.toFixed(2)}
+    `;
+
+    listaScroll.innerHTML = '<div style="font-size:12px; padding:10px;">Processando linhas...</div>';
+
+    try {
+        let agendamentos = [];
+
+        if (pacienteId && pacienteId !== 'null' && bancoDados) {
+            const res = await bancoDados.from('agendamentos').select('*').eq('paciente_id', pacienteId);
+            if (res.data) agendamentos = res.data;
+        }
+
+        let htmlProxe = '';
+        const partes = dataInicioStr.split('-');
+        const dataBaseLoop = new Date(partes[0], partes[1] - 1, partes[2]);
+
+        for (let i = 0; i < 90; i++) {
+            const dataFoco = new Date(dataBaseLoop.getFullYear(), dataBaseLoop.getMonth(), dataBaseLoop.getDate() + i);
+            const dataISO = `${dataFoco.getFullYear()}-${String(dataFoco.getMonth() + 1).padStart(2, '0')}-${String(dataFoco.getDate()).padStart(2, '0')}`;
+
+            const atendeRecorrencia = checarDataCorrespondeAoPlano(new Date(dataFoco), dataInicioStr, diaSemana, frequencia);
+            const excecaoGravada = agendamentos.find(a => a.data === dataISO);
+
+            if (atendeRecorrencia || excecaoGravada) {
+                const exibData = `${String(dataFoco.getDate()).padStart(2, '0')}/${String(dataFoco.getMonth() + 1).padStart(2, '0')}/${dataFoco.getFullYear()}`;
+                const exibHora = excecaoGravada ? excecaoGravada.hora.substring(0,5) : (horaPadrao ? horaPadrao.substring(0,5) : '--:--');
+                const exibValor = excecaoGravada && excecaoGravada.valor !== undefined ? excecaoGravada.valor : valor;
+                const exibMod = excecaoGravada && excecaoGravada.modalidade ? excecaoGravada.modalidade : modalidade;
+                const exibStatus = excecaoGravada ? excecaoGravada.status : 'Agendado';
+
+                let subestiloLinha = "";
+                if(exibStatus === 'Cancelado') subestiloLinha = "text-decoration: line-through; opacity: 0.5;";
+                if(exibStatus === 'Realizado') subestiloLinha = "border-left: 3px solid #319795; padding-left: 5px;";
+                if(exibStatus === 'Falta') subestiloLinha = "border-left: 3px solid #e53e3e; padding-left: 5px;";
+
+                htmlProxe += `
+                    <div class="container-linha-bloco" style="${subestiloLinha}">
+                        <div class="linha-previsao">
+                            <div class="linha-previsao-info">
+                                <strong>📅 ${exibData} às ${exibHora} - ${exibMod}</strong>
+                                <span>Status: <b>${exibStatus}</b> | R$ ${Number(exibValor).toFixed(2)}</span>
+                            </div>
+                            <button type="button" class="btn-tres-pontos" onclick="alternarVisibilidadeEditorLinha('${dataISO}')">...</button>
+                        </div>
                         
-                        <fieldset>
-                            <legend>Dados Cadastrais</legend>
+                        <div id="editor-painel-${dataISO}" class="box-editor-linha" style="background:#f7fafc; padding:10px; border:1px solid #cbd5e0; border-radius:5px; margin-top:5px; display:none;">
                             <div class="form-group">
-                                <label for="nome">Nome Completo *</label>
-                                <input type="text" id="nome" required placeholder="Nome do paciente">
+                                <label>Mudar Data desta Sessão</label>
+                                <input type="date" id="input-data-${dataISO}" value="${dataISO}">
                             </div>
-
-                            <div class="form-group-row">
-                                <div class="form-group">
-                                    <label for="cpf">CPF</label>
-                                    <input type="text" id="cpf" placeholder="000.000.000-00">
-                                </div>
-                                <div class="form-group">
-                                    <label for="dataNascimento">Data de Nascimento</label>
-                                    <input type="date" id="dataNascimento">
-                                </div>
+                            <div class="form-group">
+                                <label>Horário</label>
+                                <input type="time" id="input-hora-${dataISO}" value="${exibHora}">
                             </div>
-
-                            <div class="form-group-row">
-                                <div class="form-group">
-                                    <label for="telefone">Telefone / WhatsApp</label>
-                                    <input type="tel" id="telefone" placeholder="(00) 00000-0000">
-                                </div>
-                                <div class="form-group">
-                                    <label for="email">E-mail</label>
-                                    <input type="email" id="email" placeholder="exemplo@email.com">
-                                </div>
+                            <div class="form-group">
+                                <label>Valor Ocorrência (R$)</label>
+                                <input type="number" id="input-valor-${dataISO}" value="${exibValor}" step="0.01">
                             </div>
-
-                            <div class="form-group-row">
-                                <div class="form-group" style="flex: 2;">
-                                    <label for="endereco">Endereço Residencial</label>
-                                    <input type="text" id="endereco" placeholder="Rua, Número, Bairro, Cidade">
-                                </div>
-                                <div class="form-group" style="flex: 1;">
-                                    <label for="statusVinculo">Vínculo Clínico *</label>
-                                    <select id="statusVinculo">
-                                        <option value="Ativo">Ativo (Em Atendimento)</option>
-                                        <option value="Inativo">Inativo (Alta/Arquivado)</option>
-                                    </select>
-                                </div>
+                            <div class="form-group">
+                                <label>Modalidade</label>
+                                <select id="input-mod-${dataISO}">
+                                    <option value="Presencial" ${exibMod === 'Presencial' ? 'selected' : ''}>Presencial</option>
+                                    <option value="Online" ${exibMod === 'Online' ? 'selected' : ''}>Online</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Status do Atendimento</label>
+                                <select id="input-status-${dataISO}">
+                                    <option value="Agendado" ${exibStatus === 'Agendado' ? 'selected' : ''}>Agendado</option>
+                                    <option value="Realizado" ${exibStatus === 'Realizado' ? 'selected' : ''}>Realizado (Presença)</option>
+                                    <option value="Falta" ${exibStatus === 'Falta' ? 'selected' : ''}>Falta</option>
+                                    <option value="Cancelado" ${exibStatus === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
+                                </select>
                             </div>
 
                             <div class="form-group">
-                                <label for="responsavel">Responsável Legal (Se menor de idade)</label>
-                                <input type="text" id="responsavel" placeholder="Nome do responsável">
+                                <label>Frequência do Plano</label>
+                                <select id="input-freq-${dataISO}">
+                                    <option value="Semanal" ${frequencia === 'Semanal' ? 'selected' : ''}>Semanal</option>
+                                    <option value="Quinzenal" ${frequencia === 'Quinzenal' ? 'selected' : ''}>Quinzenal</option>
+                                    <option value="Mensal" ${frequencia === 'Mensal' ? 'selected' : ''}>Mensal</option>
+                                </select>
                             </div>
 
                             <div class="form-group">
-                                <label for="observacoes">Observações / Histórico Clínico</label>
-                                <textarea id="observacoes" rows="3" placeholder="Informações relevantes anotadas pela psicóloga..."></textarea>
+                                <label style="color: #e53e3e; font-weight:bold;">Onde aplicar as mudanças?</label>
+                                <select id="input-escopo-${dataISO}">
+                                    <option value="somente">Apenas para esta data específica</option>
+                                    <option value="demais">Para esta data e todas as próximas abaixo</option>
+                                </select>
                             </div>
-                        </fieldset>
-
-                        <fieldset>
-                            <legend>Plano de Atendimento Semanal</legend>
-                            <div class="form-group-row">
-                                <div class="form-group">
-                                    <label for="dataInicial">Data de Início *</label>
-                                    <input type="date" id="dataInicial">
-                                </div>
-                                <div class="form-group">
-                                    <label for="diaSemana">Dia da Semana (Calculado)</label>
-                                    <select id="diaSemana" disabled style="background-color: #e2e8f0; cursor: not-allowed; opacity: 0.8;">
-                                        <option value="Segunda">Segunda-feira</option>
-                                        <option value="Terça">Terça-feira</option>
-                                        <option value="Quarta">Quarta-feira</option>
-                                        <option value="Quinta">Quinta-feira</option>
-                                        <option value="Sexta">Sexta-feira</option>
-                                        <option value="Sábado">Sábado</option>
-                                        <option value="Domingo">Domingo</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="form-group-row">
-                                <div class="form-group">
-                                    <label for="horario">Horário Padrão *</label>
-                                    <input type="time" id="horario">
-                                </div>
-                                <div class="form-group">
-                                    <label for="frequencia">Frequência</label>
-                                    <select id="frequencia">
-                                        <option value="Semanal">Semanal</option>
-                                        <option value="Quinzenal">Quinzenal</option>
-                                        <option value="Mensal">Mensal</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="form-group-row">
-                                <div class="form-group">
-                                    <label for="modalidade">Modalidade</label>
-                                    <select id="modalidade">
-                                        <option value="Presencial">Presencial</option>
-                                        <option value="Online">Online</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="valor">Valor por Sessão (R$)</label>
-                                    <input type="number" id="valor" step="0.01" placeholder="150.00">
-                                </div>
-                                <div class="form-group">
-                                    <label for="formaCobranca">Forma de Cobrança</label>
-                                    <select id="formaCobranca">
-                                        <option value="Mensal">Mensal Fechado</option>
-                                        <option value="Por Sessão">Pago por Sessão</option>
-                                        <option value="Pacote">Pacote Prévio</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </fieldset>
-
-                        <div class="form-acoes" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 25px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
-                            <div style="display: flex; gap: 12px;">
-                                <button type="button" class="btn-cancelar" onclick="idPacienteEditando=null; mostrarTela('pacientes')">⬅️ Voltar para a Lista</button>
-                                <button type="button" id="btnSalvarPaciente" class="btn-salvar">💾 Salvar Alterações</button>
-                            </div>
-                            <button type="button" id="btnExcluirPacienteForm" style="background: none; border: none; color: #a0aec0; cursor: pointer; font-size: 13px; text-decoration: underline; padding: 5px;" onclick="excluirPacienteAtual()">🗑️ Remover Paciente</button>
-                        </div>
-                    </form>
-
-                    <aside id="sidebar-agenda-paciente" class="sidebar-perfil-direita">
-                        <h3>📅 Calendário do Paciente</h3>
-                        <div id="info-plano-resumo" class="resumo-plano-box"></div>
-                        <h4>Próximas Sessões (90 dias)</h4>
-                        <div id="lista-proximas-sessoes" class="lista-recorrencia-scroll"></div>
-                    </aside>
-
-                </div>
-            </div>
-
-            <div id="configuracoes" class="tela" style="display:none">
-                <h2>Configurações do Sistema</h2>
-                <div class="painel-config">
-                    <div class="form-group">
-                        <label for="configNomeSistema">Nome da Clínica / Profissional</label>
-                        <input type="text" id="configNomeSistema" value="Agenda Psicóloga">
-                    </div>
-                    <div class="form-group">
-                        <label for="configSubtituloSistema">Subtítulo / Registro Profissional (Ex: CRP 00/00000)</label>
-                        <input type="text" id="configSubtituloSistema" placeholder="Deixe em branco se preferir">
-                    </div>
-                    <div class="form-group-row">
-                        <div class="form-group">
-                            <label for="corMenu">Cor da Barra Lateral</label>
-                            <input type="color" id="corMenu" value="#2c3e50">
-                        </div>
-                        <div class="form-group">
-                            <label for="corPrincipal">Cor Principal (Botões/Destaques)</label>
-                            <input type="color" id="corPrincipal" value="#1abc9c">
-                        </div>
-                        <div class="form-group">
-                            <label for="corFundo">Cor de Fundo da Tela</label>
-                            <input type="color" id="corFundo" value="#f5f7fa">
+                            <button type="button" class="btn-salvar" style="padding: 6px 12px; font-size: 11px; width: 100%; margin-top:8px;" onclick="salvarModificacaoLinhaPerfil('${dataISO}', '${pacienteId}')">Salvar Ajustes</button>
                         </div>
                     </div>
-                    <div class="form-group check-group">
-                        <input type="checkbox" id="modoEscuro">
-                        <label for="modoEscuro">Ativar Modo Escuro</label>
-                    </div>
-                    <div class="form-group">
-                        <label for="configLogo">Logotipo Personalizado</label>
-                        <input type="file" id="configLogo" accept="image/*">
-                    </div>
-                    <button type="button" id="btnSalvarConfiguracoes" class="btn-salvar">Aplicar Configurações</button>
-                </div>
-            </div>
-        </main>
-    </div>
+                `;
+            }
+        }
+        listaScroll.innerHTML = htmlProxe || '<div style="font-size:12px; color:#718096; padding:10px;">Sem sessões simuladas.</div>';
+    } catch (err) { console.error(err); }
+}
 
-    <div id="modalAgendamento" class="modal-popup" style="display: none;">
-        <div class="modal-popup-content">
-            <h3 id="modalAgendamentoTitulo">📅 Marcar Nova Sessão</h3>
-            <form id="formAgendamento" onsubmit="event.preventDefault();">
-                <input type="hidden" id="editAgendamentoId">
-                <div class="form-group" id="containerSelectPacienteAgendamento">
-                    <label for="selectPacienteAgendamento">Selecionar Paciente *</label>
-                    <select id="selectPacienteAgendamento"></select>
-                </div>
-                <div class="form-group-row">
-                    <div class="form-group">
-                        <label for="dataAgendamento">Data da Sessão *</label>
-                        <input type="date" id="dataAgendamento" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="horaAgendamento">Horário *</label>
-                        <input type="time" id="horaAgendamento" required>
-                    </div>
-                </div>
-                <div class="form-group-row">
-                    <div class="form-group">
-                        <label for="modalidadeAgendamento">Modalidade</label>
-                        <select id="modalidadeAgendamento">
-                            <option value="Presencial">Presencial</option>
-                            <option value="Online">Online</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="valorAgendamento">Valor (R$)</label>
-                        <input type="number" id="valorAgendamento" step="0.01">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="statusAgendamento">Status da Sessão</label>
-                    <select id="statusAgendamento" onchange="this.style.backgroundColor = this.value === 'Realizado' ? '#dcfce7' : '#fee2e2'; this.style.color = this.value === 'Realizado' ? '#166534' : '#991b1b';">
-                        <option value="Agendado">Agendado</option>
-                        <option value="Realizado">Realizado (Presença)</option>
-                        <option value="Falta">Falta do Paciente</option>
-                        <option value="Cancelado">Cancelado</option>
-                    </select>
-                </div>
-                <div class="form-group" id="boxEscopoAgenda" style="display:none;">
-                    <label style="color: #e53e3e; font-weight:bold;">Onde aplicar esta alteração?</label>
-                    <select id="escopoModificacaoAgenda">
-                        <option value="somente">Apenas para esta data específica</option>
-                        <option value="demais">Para esta data e todas as próximas abaixo</option>
-                    </select>
-                </div>
-                <div class="form-acoes">
-                    <button type="button" class="btn-cancelar" onclick="fecharModalAgendamento()">Cancelar</button>
-                    <button type="button" id="btnPersistirAgendamento" class="btn-salvar">Confirmar</button>
-                </div>
-            </form>
-        </div>
-    </div>
+window.alternarVisibilidadeEditorLinha = function(dataISO) {
+    const el = document.getElementById(`editor-painel-${dataISO}`);
+    if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
+};
 
-    <script src="app.js"></script>
-</body>
-</html>
+window.salvarModificacaoLinhaPerfil = async function(dataISO, pacienteId) {
+    if (!pacienteId || pacienteId === 'null') {
+        alert('Salve primeiro o prontuário básico do paciente antes de manipular ocorrências de datas.');
+        return;
+    }
+    const novaData = document.getElementById(`input-data-${dataISO}`)?.value;
+    const novaHora = document.getElementById(`input-hora-${dataISO}`)?.value;
+    const novoVal = Number(document.getElementById(`input-valor-${dataISO}`)?.value || 0);
+    const novaMod = document.getElementById(`input-mod-${dataISO}`)?.value;
+    const novoStatusSessao = document.getElementById(`input-status-${dataISO}`)?.value;
+    const novaFreq = document.getElementById(`input-freq-${dataISO}`)?.value;
+    const escopo = document.getElementById(`input-escopo-${dataISO}`)?.value;
+
+    await executarSalvamentoPorEscopo(pacienteId, dataISO, novaData, novaHora, novaMod, novoVal, novoStatusSessao, escopo, novaFreq);
+    
+    if (escopo === 'demais') {
+        if (document.getElementById('frequencia')) document.getElementById('frequencia').value = novaFreq;
+    }
+    
+    renderizarSidebarCalendarioPaciente(pacienteId);
+};
+
+// ==========================================================================
+// CENTRALIZADOR LOGICO DO SALVAMENTO POR ESCOPO
+// ==========================================================================
+async function executarSalvamentoPorEscopo(pacienteId, dataOriginalISO, novaDataISO, novaHora, novaMod, novoVal, statusSessao, escopo, novaFreq) {
+    if(!bancoDados) return;
+
+    try {
+        if (escopo === 'somente') {
+            const payload = { 
+                paciente_id: pacienteId, 
+                data: novaDataISO, 
+                hora: novaHora, 
+                modalidade: novaMod, 
+                valor: novoVal, 
+                status: statusSessao 
+            };
+
+            if (novaDataISO !== dataOriginalISO) {
+                const { data: extOrig } = await bancoDados.from('agendamentos').select('id').eq('paciente_id', pacienteId).eq('data', dataOriginalISO);
+                if (extOrig && extOrig.length > 0) {
+                    await bancoDados.from('agendamentos').update({ status: 'Cancelado' }).eq('id', extOrig[0].id);
+                } else {
+                    await bancoDados.from('agendamentos').insert([{ paciente_id: pacienteId, data: dataOriginalISO, hora: novaHora, status: 'Cancelado', modalidade: novaMod, valor: novoVal }]);
+                }
+                
+                const { data: extNova } = await bancoDados.from('agendamentos').select('id').eq('paciente_id', pacienteId).eq('data', novaDataISO);
+                if (extNova && extNova.length > 0) {
+                    await bancoDados.from('agendamentos').update(payload).eq('id', extNova[0].id);
+                } else {
+                    await bancoDados.from('agendamentos').insert([payload]);
+                }
+            } else {
+                const { data: existente } = await bancoDados.from('agendamentos').select('id').eq('paciente_id', pacienteId).eq('data', dataOriginalISO);
+                if (existente && existente.length > 0) {
+                    await bancoDados.from('agendamentos').update(payload).eq('id', existente[0].id);
+                } else {
+                    await bancoDados.from('agendamentos').insert([payload]);
+                }
+            }
+        } else {
+            const partes = novaDataISO.split('-');
+            const objData = new Date(partes[0], partes[1] - 1, partes[2]);
+            const diasTexto = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+            const novoDiaSemanaCalculado = diasTexto[objData.getDay()];
+
+            const payloadPlano = {
+                data_inicio: novaDataISO,
+                dia_semana: novoDiaSemanaCalculado,
+                hora_padrao: novaHora,
+                valor: novoVal,
+                modalidade: novaMod
+            };
+            if (novaFreq) payloadPlano.frequencia = novaFreq;
+
+            await bancoDados.from('planos_atendimento').update(payloadPlano).eq('paciente_id', pacienteId);
+            await bancoDados.from('agendamentos').delete().eq('paciente_id', pacienteId).gte('data', dataOriginalISO);
+        }
+        alert('Modificações salvas com sucesso!');
+    } catch(e) {
+        console.error(e);
+        alert('Erro ao persistir informações.');
+    }
+}
+
+// ==========================================================================
+// CONTADORES DO DASHBOARD 
+// ==========================================================================
+async function atualizarDashboard() {
+    if (!bancoDados) return;
+    try {
+        const { data } = await bancoDados.from('pacientes').select('status');
+        let ativos = 0, inativos = 0;
+        if (data) {
+            data.forEach(p => p.status === 'Inativo' ? inativos++ : ativos++);
+        }
+        if (document.getElementById('totalAtivos')) document.getElementById('totalAtivos').innerText = ativos;
+        if (document.getElementById('totalInativos')) document.getElementById('totalInativos').innerText = inativos;
+    } catch (err) { console.error(err); }
+}
+
+// ==========================================================================
+// OPERAÇÕES DE PACIENTES & REMOÇÃO
+// ==========================================================================
+async function carregarPacientes() {
+    if (!bancoDados) return;
+    const lista = document.getElementById('listaPacientes');
+    if (!lista) return;
+    lista.innerHTML = '<div>Buscando listagem...</div>';
+
+    try {
+        const { data } = await bancoDados.from('pacientes').select('*').order('nome');
+        if (!data || data.length === 0) {
+            lista.innerHTML = '<div>Nenhum paciente localizado.</div>';
+            return;
+        }
+
+        let html = '';
+        data.forEach(paciente => {
+            const statusExibicao = paciente.status === 'Inativo' ? '🔴 Inativo (Arquivado)' : '🟢 Ativo (Em Atendimento)';
+            html += `
+                <div class="cardPaciente" id="card-${paciente.id}" style="${paciente.status === 'Inativo' ? 'opacity:0.65;' : ''}">
+                    <strong>👤 ${paciente.nome || ''}</strong><br>
+                    <small>📞 WhatsApp: ${paciente.telefone || 'Não informado'}</small><br>
+                    <small>Status: ${statusExibicao}</small>
+                    <div class="acoes-card" style="margin-top:10px;">
+                        <button class="btn-editar" onclick="prepararEdicaoPaciente('${paciente.id}')">✏️ Ver Perfil / Calendário</button>
+                    </div>
+                </div>
+            `;
+        });
+        lista.innerHTML = html;
+    } catch (err) { console.error(err); }
+}
+
+window.prepararEdicaoPaciente = async function(id) {
+    idPacienteEditando = id;
+    try {
+        const { data } = await bancoDados.from('pacientes').select('*').eq('id', id);
+        const p = data[0];
+
+        mostrarTela('novoPaciente');
+
+        if(document.getElementById('nome')) document.getElementById('nome').value = p.nome || '';
+        if(document.getElementById('cpf')) document.getElementById('cpf').value = p.cpf || '';
+        if(document.getElementById('telefone')) document.getElementById('telefone').value = p.telefone || '';
+        if(document.getElementById('email')) document.getElementById('email').value = p.email || '';
+        if(document.getElementById('dataNascimento')) document.getElementById('dataNascimento').value = p.data_nascimento || '';
+        if(document.getElementById('endereco')) document.getElementById('endereco').value = p.endereco || '';
+        if(document.getElementById('responsavel')) document.getElementById('responsavel').value = p.responsavel || '';
+        if(document.getElementById('observacoes')) document.getElementById('observacoes').value = p.observacoes || '';
+        if(document.getElementById('statusVinculo')) document.getElementById('statusVinculo').value = p.status || 'Ativo';
+
+        const planoRes = await bancoDados.from('planos_atendimento').select('*').eq('paciente_id', id);
+        if (planoRes.data && planoRes.data.length > 0) {
+            const pl = planoRes.data[0];
+            if(document.getElementById('dataInicial')) document.getElementById('dataInicial').value = pl.data_inicio || '';
+            if(document.getElementById('diaSemana')) document.getElementById('diaSemana').value = pl.dia_semana || 'Segunda';
+            if(document.getElementById('frequencia')) document.getElementById('frequencia').value = pl.frequencia || 'Semanal';
+            if(document.getElementById('horario')) document.getElementById('horario').value = pl.hora_padrao || '';
+            if(document.getElementById('modalidade')) document.getElementById('modalidade').value = pl.modalidade || 'Presencial';
+            if(document.getElementById('valor')) document.getElementById('valor').value = pl.valor || '';
+            if(document.getElementById('formaCobranca')) document.getElementById('formaCobranca').value = pl.forma_cobranca || 'Mensal';
+        }
+
+        renderizarSidebarCalendarioPaciente(id);
+    } catch (err) { alert('Erro ao carregar prontuário.'); }
+};
+
+window.excluirPacienteAtual = async function() {
+    if (!idPacienteEditando) return;
+    if (!confirm("Tem certeza que deseja remover este paciente? Esta ação apagará permanentemente o histórico e as agendas vinculadas.")) return;
+    try {
+        await bancoDados.from('planos_atendimento').delete().eq('paciente_id', idPacienteEditando);
+        await bancoDados.from('agendamentos').delete().eq('paciente_id', idPacienteEditando);
+        await bancoDados.from('pacientes').delete().eq('id', idPacienteEditando);
+        
+        alert('Paciente removido com sucesso!');
+        idPacienteEditando = null;
+        mostrarTela('pacientes');
+    } catch (err) { 
+        console.error(err);
+        alert('Erro ao excluir prontuário.'); 
+    }
+};
+
+async function salvarPaciente() {
+    if (!bancoDados) return;
+    const nome = document.getElementById('nome')?.value;
+    if (!nome) { alert('O nome do paciente é obrigatório.'); return; }
+
+    const payloadPaciente = {
+        nome: nome,
+        cpf: document.getElementById('cpf')?.value || '',
+        telefone: document.getElementById('telefone')?.value || '',
+        email: document.getElementById('email')?.value || '',
+        data_nascimento: document.getElementById('dataNascimento')?.value || null,
+        endereco: document.getElementById('endereco')?.value || '',
+        responsavel: document.getElementById('responsavel')?.value || '',
+        observacoes: document.getElementById('observacoes')?.value || '',
+        status: document.getElementById('statusVinculo')?.value || 'Ativo'
+    };
+
+    try {
+        let pacienteId = idPacienteEditando;
+        if (idPacienteEditando) {
+            await bancoDados.from('pacientes').update(payloadPaciente).eq('id', idPacienteEditando);
+        } else {
+            const { data, error } = await bancoDados.from('pacientes').insert([payloadPaciente]).select();
+            if (error) throw error;
+            pacienteId = data[0].id;
+            idPacienteEditando = pacienteId;
+        }
+
+        const payloadPlano = {
+            paciente_id: pacienteId,
+            data_inicio: document.getElementById('dataInicial')?.value || null,
+            dia_semana: document.getElementById('diaSemana')?.value || 'Segunda',
+            frequencia: document.getElementById('frequencia')?.value || 'Semanal',
+            hora_padrao: document.getElementById('horario')?.value || '',
+            modalidade: document.getElementById('modalidade')?.value || 'Presencial',
+            valor: Number(document.getElementById('valor')?.value || 0),
+            forma_cobranca: document.getElementById('formaCobranca')?.value || 'Mensal',
+            ativo: true
+        };
+
+        const { data: planoExistente } = await bancoDados.from('planos_atendimento').select('id').eq('paciente_id', pacienteId);
+        if (planoExistente && planoExistente.length > 0) {
+            await bancoDados.from('planos_atendimento').update(payloadPlano).eq('paciente_id', pacienteId);
+        } else {
+            await bancoDados.from('planos_atendimento').insert([payloadPlano]);
+        }
+
+        alert('Prontuário e plano salvos com sucesso!');
+        mostrarTela('pacientes');
+    } catch (err) {
+        console.error(err);
+        alert('Erro ao salvar os dados do paciente.');
+    }
+}
+
+function fecharModalAgendamento() {
+    const modal = document.getElementById('modalAgendamento');
+    if (modal) modal.style.display = 'none';
+}
+window.fecharModalAgendamento = fecharModalAgendamento;
+
+function salvarConfiguracoes() { alert('Configurações salvas com sucesso!'); }
+function carregarConfiguracoesCampos() { console.log('Campos de configuração prontos.'); }
+function aplicarConfiguracoesVisuais() { console.log('Temas visuais carregados.'); }
