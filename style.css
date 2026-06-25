@@ -112,17 +112,20 @@ body {
 .coluna-dia h3 { text-align: center; padding: 10px; font-size: 12px; background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--cor-borda); }
 .slots-agendamentos { padding: 6px; }
 
+/* MODIFICAÇÃO CIRÚRGICA: Adicionado position:relative e padding para comportar os 3 pontos */
 .card-compromisso {
     background: #e6fffa;
     border-left: 4px solid #319795;
     color: #234e52;
     padding: 8px;
+    padding-right: 22px; /* Abre espaço para o botão não sobrepor o nome do paciente */
     margin-bottom: 6px;
     border-radius: 6px;
     font-size: 12px;
     display: flex;
     flex-direction: column;
     gap: 2px;
+    position: relative !important; /* Torna o card a referência para o posicionamento do botão */
 }
 
 .card-paciente-nome { font-weight: bold; color: var(--cor-texto); word-break: break-all; }
@@ -167,6 +170,7 @@ body.dark-mode .card-paciente-nome { color: #ffffff; }
     padding-right: 5px;
 }
 
+/* MODIFICAÇÃO CIRÚRGICA: Suporte para o botão relativo no calendário lateral */
 .linha-previsao {
     padding: 10px;
     border-bottom: 1px solid var(--cor-borda);
@@ -174,18 +178,41 @@ body.dark-mode .card-paciente-nome { color: #ffffff; }
     justify-content: space-between;
     align-items: center;
     font-size: 13px;
+    position: relative !important;
 }
 
 .linha-previsao-info span { display: block; font-size: 11px; color: #718096; }
 
-.btn-tres-pontos {
-    background: none;
-    border: none;
-    font-weight: bold;
-    font-size: 16px;
-    cursor: pointer;
-    color: var(--cor-texto);
-    padding: 0 5px;
+/* MODIFICAÇÃO CIRÚRGICA: Fixa os 3 pontos discretamente no canto superior direito de qualquer card */
+.btn-tres-pontos,
+.btn-tres-pontos-agenda {
+    position: absolute !important;
+    top: 4px !important;
+    right: 4px !important;
+    background: none !important;
+    border: none !important;
+    font-weight: bold !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    color: #a0aec0 !important; /* Cinza bem discreto por padrão */
+    padding: 2px 5px !important;
+    line-height: 1 !important;
+    border-radius: 4px !important;
+    transition: all 0.2s;
+}
+
+/* Realce sutil ao passar o mouse */
+.btn-tres-pontos:hover,
+.btn-tres-pontos-agenda:hover {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+    color: var(--cor-texto) !important;
+}
+
+/* Ajuste de realce do botão para o modo escuro */
+body.dark-mode .btn-tres-pontos:hover,
+body.dark-mode .btn-tres-pontos-agenda:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
 }
 
 .box-editor-linha {
