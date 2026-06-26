@@ -14,7 +14,21 @@
             --sidebar-bg: #1e293b;
             --primary-color: #2563eb;
             --text-main: #334155;
-            --border-color: #e2e8f0;
+            --border-color: #cbd5e1;
+            --card-bg: #ffffff;
+            --text-dark: #0f172a;
+            --grid-border: #000000;
+        }
+
+        /* MODIFICADORES PARA TEMA ESCURO */
+        body.dark-theme {
+            --bg-primary: #0f172a;
+            --sidebar-bg: #020617;
+            --text-main: #cbd5e1;
+            --border-color: #334155;
+            --card-bg: #1e293b;
+            --text-dark: #f8fafc;
+            --grid-border: #475569;
         }
 
         body {
@@ -24,9 +38,10 @@
             background-color: var(--bg-primary);
             color: var(--text-main);
             display: flex;
+            transition: background-color 0.3s;
         }
 
-        /* SIDEBAR PRINCIPAL */
+        /* SIDEBAR PRINCIPAL CENTRALIZADA */
         .sidebar-menu {
             width: 260px;
             height: 100vh;
@@ -37,37 +52,35 @@
             left: 0;
             padding: 20px 0;
             box-sizing: border-box;
-            transition: background-color 0.3s ease;
         }
 
         .sidebar-brand {
-            padding: 0 20px 20px 20px;
+            padding: 10px 20px 20px 20px;
             border-bottom: 1px solid #334155;
             margin-bottom: 20px;
             display: flex;
             flex-direction: column;
+            align-items: center; /* Centralização horizontal absoluta */
+            text-align: center;
             gap: 6px;
-            align-items: center;
         }
 
         .sidebar-brand img {
-            max-width: 100%;
-            max-height: 60px;
+            max-width: 90%;
+            max-height: 70px;
             object-fit: contain;
             display: none;
-            margin-bottom: 5px;
+            margin: 0 auto 5px auto;
         }
 
         .sidebar-brand-title {
             font-size: 1.15rem;
             font-weight: bold;
-            text-align: center;
             color: #ffffff;
         }
 
         .sidebar-brand-subtitle {
             font-size: 0.8rem;
-            text-align: center;
             color: #cbd5e1;
         }
 
@@ -90,7 +103,6 @@
             color: white;
         }
 
-        /* SUBMENU ANINHADO */
         .sidebar-submenu {
             padding-left: 15px;
             display: none;
@@ -104,14 +116,13 @@
             font-size: 0.88rem;
         }
 
-        /* CONTEÚDO E LAYOUT COLETIVO */
+        /* LAYOUT PRINCIPAL */
         .main-wrapper {
             margin-left: 260px;
             flex: 1;
             padding: 30px;
             box-sizing: border-box;
             min-height: 100vh;
-            position: relative;
         }
 
         .header-secao {
@@ -123,7 +134,7 @@
         .header-secao h1 {
             margin: 0;
             font-size: 1.75rem;
-            color: #0f172a;
+            color: var(--text-dark);
         }
 
         .tela {
@@ -138,83 +149,106 @@
         }
 
         .card-ind {
-            background: white;
+            background: var(--card-bg);
             padding: 20px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
             flex: 1;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
         }
 
         .card-ind h3 { margin: 0 0 10px 0; font-size: 0.9rem; color: #64748b; text-transform: uppercase; }
-        .card-ind p { margin: 0; font-size: 1.8rem; font-weight: bold; color: #1e293b; }
+        .card-ind p { margin: 0; font-size: 1.8rem; font-weight: bold; color: var(--text-dark); }
 
-        /* GRADE DA AGENDA */
+        /* EQUALIZAÇÃO E CORES ESTILO SPREADSHEET (IMAGE_F2B2EE.PNG) */
         .semana-bloco {
             margin-bottom: 35px;
-            background: white;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            border: 1px solid var(--grid-border);
             overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01);
+        }
+
+        .semana-titulo {
+            background: #ffffff !important;
+            color: #000000 !important;
+            text-align: center;
+            padding: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            border-bottom: 1px solid var(--grid-border);
         }
 
         .grade-agenda {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            background: #f1f5f9;
+            background: var(--grid-border);
             gap: 1px;
         }
 
-        .coluna-dia {
-            background: white;
-            min-height: 200px;
-            padding: 10px;
-        }
-
-        .coluna-dia h3 {
-            margin: 0 0 10px 0;
+        .coluna-dia-titulo {
+            padding: 8px 4px;
             font-size: 0.85rem;
-            color: #475569;
-            border-bottom: 1px dashed var(--border-color);
-            padding-bottom: 5px;
+            text-align: center;
+            font-weight: bold;
         }
 
-        /* CARDS COMPROMISSO */
-        .slots-agendamentos {
+        /* Mapeamento exato de cores do print */
+        .dia-seg, .dia-ter, .dia-qua, .dia-qui, .dia-sex {
+            background-color: #2c9a42 !important;
+            color: #ffffff !important;
+        }
+        .dia-sab {
+            background-color: #ff9800 !important;
+            color: #ffffff !important;
+        }
+        .dia-dom {
+            background-color: #ffebee !important;
+            color: #b71c1c !important;
+        }
+
+        .coluna-dia-conteudo {
+            background: var(--card-bg);
             display: flex;
             flex-direction: column;
-            gap: 8px;
         }
 
+        /* Células uniformes com bordas completas */
         .card-compromisso {
-            background: #f8fafc;
-            border: 1px solid var(--border-color);
-            border-left: 4px solid #10b981;
-            padding: 8px;
-            border-radius: 4px;
-            position: relative;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 4px;
+            text-align: center;
             font-size: 0.8rem;
+            min-height: 52px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
         }
 
-        .card-paciente-nome { font-weight: bold; color: #1e293b; margin-bottom: 3px; padding-right: 15px;}
-        .card-paciente-hora { color: #64748b; }
-        .card-paciente-modalidade { color: #0284c7; font-weight: 500; }
+        .card-paciente-nome { font-weight: bold; color: var(--text-dark); margin-bottom: 2px; }
+        .card-paciente-hora { color: #64748b; font-size: 0.78rem; }
+
+        .cell-vazia {
+            background: var(--card-bg);
+        }
 
         .btn-tres-pontos-agenda {
             position: absolute;
-            top: 2px;
-            right: 2px;
+            top: 1px;
+            right: 3px;
             background: transparent;
             border: none;
             cursor: pointer;
             font-weight: bold;
             color: #94a3b8;
+            font-size: 0.75rem;
         }
 
         /* FORMULÁRIOS */
         .form-container {
-            background: white;
+            background: var(--card-bg);
             padding: 25px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
@@ -242,6 +276,8 @@
 
         .form-group input, .form-group select, .form-group textarea {
             padding: 8px 12px;
+            background: var(--bg-primary);
+            color: var(--text-main);
             border: 1px solid var(--border-color);
             border-radius: 6px;
             font-size: 0.9rem;
@@ -255,92 +291,32 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
-            transition: background-color 0.2s;
         }
 
-        .btn-principal:hover { filter: brightness(0.9); }
-
-        /* SIDEBAR DE CALENDÁRIO LATERAL (90 DIAS) */
+        /* CALENDÁRIO LATERAL */
         #sidebar-agenda-paciente {
             width: 320px;
-            background: white;
+            background: var(--card-bg);
             border-left: 1px solid var(--border-color);
             position: fixed;
-            top: 0;
-            right: 0;
-            height: 100vh;
+            top: 0; right: 0; height: 100vh;
             display: none;
-            box-shadow: -4px 0 10px rgba(0,0,0,0.02);
             box-sizing: border-box;
             padding: 20px;
             z-index: 90;
         }
 
-        .lista-scroll-previsoes {
-            height: calc(100vh - 180px);
-            overflow-y: auto;
-            margin-top: 15px;
-        }
-
-        .container-linha-bloco {
-            background: #f8fafc;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            margin-bottom: 10px;
-            padding: 10px;
-        }
-
-        .linha-previsao {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .linha-previsao-info { font-size: 0.8rem; display: flex; flex-direction: column; }
-
-        .btn-tres-pontos {
-            background: transparent; border: none; cursor: pointer; font-weight: bold; color: #64748b;
-        }
-
+        .lista-scroll-previsoes { height: calc(100vh - 180px); overflow-y: auto; margin-top: 15px; }
+        .container-linha-bloco { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 10px; padding: 10px; }
+        
         /* MODAL */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(15, 23, 42, 0.6);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-        }
-
-        .modal-box {
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            width: 450px;
-            max-width: 90%;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-        }
-
-        /* LISTAGEM DE PACIENTES */
-        .grid-pacientes {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .cardPaciente {
-            background: white;
-            border: 1px solid var(--border-color);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-
-        .btn-editar {
-            background: #e2e8f0; color: #334155; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; width: 100%; font-weight: 500;
-        }
-        .btn-editar:hover { background: #cbd5e1; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); display: none; justify-content: center; align-items: center; z-index: 100; }
+        .modal-box { background: var(--card-bg); padding: 25px; border-radius: 8px; width: 450px; max-width: 90%; }
+        
+        /* GRADE PACIENTES */
+        .grid-pacientes { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .cardPaciente { background: var(--card-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 8px; }
+        .btn-editar { background: #e2e8f0; color: #334155; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; width: 100%; }
     </style>
 </head>
 <body>
@@ -354,7 +330,6 @@
         </div>
         <button onclick="mostrarTela('dashboard')">📅 Agenda</button>
         
-        <!-- Grupo de Pacientes -->
         <button onclick="alternarSubmenuPacientes()">👥 Pacientes ▾</button>
         <div id="submenuPacientes" class="sidebar-submenu">
             <button onclick="mostrarTela('pacientes')">📋 Ver Listagem</button>
@@ -427,10 +402,8 @@
                         </div>
                     </div>
                     <div class="form-group" style="margin-bottom: 15px;">
-                        <div class="form-group">
-                            <label>Endereço Residencial</label>
-                            <input type="text" id="endereco">
-                        </div>
+                        <label>Endereço Residencial</label>
+                        <input type="text" id="endereco">
                     </div>
                     <div class="form-row">
                         <div class="form-group">
@@ -500,11 +473,11 @@
             </div>
         </div>
 
-        <!-- TELA: CONFIGURAÇÕES RESTAURADAS COM TÍTULO, SUBTÍTULO E LOGO -->
+        <!-- TELA: CONFIGURAÇÕES COMPLETA -->
         <div id="configuracoes" class="tela">
             <div class="form-container">
                 <h3>Configurações de Identidade Visual da Clínica</h3>
-                <p>Personalize os títulos do cabeçalho da barra lateral, logotipo e o esquema de cores da interface.</p>
+                <p>Personalize as informações, logotipo e o comportamento visual da plataforma.</p>
                 
                 <div class="form-row">
                     <div class="form-group">
@@ -517,38 +490,51 @@
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label>URL do Logotipo do Topo (Link da Imagem)</label>
-                    <input type="text" id="cfgLogoUrl" placeholder="https://exemplo.com/seu-logo.png">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>URL do Logotipo (Link da Imagem)</label>
+                        <input type="text" id="cfgLogoUrl" placeholder="https://exemplo.com/seu-logo.png">
+                    </div>
+                    <div class="form-group">
+                        <label>Ou Anexar Logotipo Local (Upload)</label>
+                        <input type="file" id="cfgLogoFile" accept="image/*">
+                    </div>
                 </div>
 
                 <div class="form-row">
+                    <div class="form-group">
+                        <label>Tema de Cores Geral</label>
+                        <select id="cfgTemaSistema">
+                            <option value="claro">☀️ Tema Claro</option>
+                            <option value="escuro">🌙 Tema Escuro</option>
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label>Cor de Fundo da Lateral (Sidebar)</label>
                         <input type="color" id="cfgCorSidebar" value="#1e293b">
                     </div>
                     <div class="form-group">
-                        <label>Cor Principal (Botões e Destaques)</label>
+                        <label>Cor de Destaque (Botões)</label>
                         <input type="color" id="cfgCorPrincipal" value="#2563eb">
                     </div>
                 </div>
 
                 <div style="margin-top: 25px;">
-                    <button type="button" id="btnSalvarConfiguracoes" class="btn-principal">Salvar Identidade Visual</button>
+                    <button type="button" id="btnSalvarConfiguracoes" class="btn-principal">Salvar Configurações</button>
                 </div>
             </div>
         </div>
 
     </div>
 
-    <!-- SIDEBAR COMPLEMENTAR: HISTÓRICO DE PROJEÇÕES (90 DIAS) -->
+    <!-- SIDEBAR COMPLEMENTAR -->
     <div id="sidebar-agenda-paciente">
         <h3 style="margin-top: 0; font-size: 1.1rem; border-bottom:1px solid var(--border-color); padding-bottom:10px;">Projeções e Histórico (90 dias)</h3>
-        <div id="info-plano-resumo" style="font-size: 0.85rem; background:#f1f5f9; padding:10px; border-radius:6px;"></div>
+        <div id="info-plano-resumo" style="font-size: 0.85rem; background:#f1f5f9; padding:10px; border-radius:6px; color:#334155;"></div>
         <div id="lista-proximas-sessoes" class="lista-scroll-previsoes"></div>
     </div>
 
-    <!-- MODAL GLOBAL DE EDIÇÃO DE OCORRÊNCIAS DA AGENDA -->
+    <!-- MODAL GLOBAL -->
     <div id="modalAgendamento" class="modal-overlay">
         <div class="modal-box">
             <h3 id="modalAgendamentoTitulo" style="margin-top:0;">Editar Ocorrência</h3>
@@ -602,7 +588,7 @@
             </div>
 
             <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
-                <button type="button" style="background:#cbd5e1; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;" onclick="fecharModalAgendamento()">Cancelar</button>
+                <button type="button" style="background:#cbd5e1; color:#334155; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;" onclick="fecharModalAgendamento()">Cancelar</button>
                 <button type="button" id="btnPersistirAgendamento" class="btn-principal" style="padding:8px 15px;">Confirmar Ajustes</button>
             </div>
         </div>
