@@ -1,6 +1,3 @@
-// ==========================================================================
-// CONFIGURAÇÕES DE CONEXÃO DO SUPABASE
-// ==========================================================================
 const SUPABASE_URL = 'https://sasbkclofsnropssrafn.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhc2JrY2xvZnNucm9wc3NyYWZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExODg3NjcsImV4cCI6MjA5Njc2NDc2N30._8_tmYoRlyEhARjXZ3swW8ynCPY5aysGMFCTzgcnK5Y';
 
@@ -12,15 +9,12 @@ if (window.supabase) {
 }
 
 let idPacienteEditando = null;
+let uploadLogoBase64 = ""; // Armazena temporariamente a conversão do arquivo de logo
 
-// ==========================================================================
-// DINÂMICA DA SIDEBAR LATERAL (SUBMENUS E GERENCIAMENTO VISUAL)
-// ==========================================================================
+// Dynamic Sidebar
 function alternarSubmenuPacientes() {
     const sub = document.getElementById('submenuPacientes');
-    if (sub) {
-        sub.style.display = (sub.style.display === 'flex') ? 'none' : 'flex';
-    }
+    if (sub) sub.style.display = (sub.style.display === 'flex') ? 'none' : 'flex';
 }
 window.alternarSubmenuPacientes = alternarSubmenuPacientes;
 
@@ -30,24 +24,18 @@ function acionarMenuNovoPaciente() {
 }
 window.acionarMenuNovoPaciente = acionarMenuNovoPaciente;
 
-// ==========================================================================
-// NAVEGAÇÃO INTERNA SPA
-// ==========================================================================
+// SPA Navigation
 function mostrarTela(nomeTela) {
     document.querySelectorAll('.tela').forEach(tela => tela.style.display = 'none');
-    
     const telaAlvo = document.getElementById(nomeTela);
     if (telaAlvo) telaAlvo.style.display = 'block';
 
     const sidePerfil = document.getElementById('sidebar-agenda-paciente');
     if (sidePerfil) sidePerfil.style.display = 'none';
 
-    if (nomeTela !== 'pacientes' && nomeTela !== 'novoPaciente') {
-        const sub = document.getElementById('submenuPacientes');
-        if (sub) sub.style.display = 'none';
-    } else {
-        const sub = document.getElementById('submenuPacientes');
-        if (sub) sub.style.display = 'flex';
+    const sub = document.getElementById('submenuPacientes');
+    if (sub) {
+        sub.style.display = (nomeTela === 'pacientes' || nomeTela === 'novoPaciente') ? 'flex' : 'none';
     }
 
     const btnExcluirForm = document.getElementById('btnExcluirPacienteForm');
@@ -89,7 +77,7 @@ function mostrarTela(nomeTela) {
 }
 window.mostrarTela = mostrarTela;
 
-// Inicializações estruturais
+// Lifecycle handlers
 window.addEventListener('load', () => {
     aplicarConfiguracoesVisuais();
     mostrarTela('dashboard');
@@ -109,16 +97,28 @@ document.addEventListener('DOMContentLoaded', () => {
             renderizarSidebarCalendarioPaciente(idPacienteEditando);
         });
     });
+
+    // Evento de captura do Logotipo anexado localmente
+    document.getElementById('cfgLogoFile')?.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                uploadLogoBase64 = evt.target.result;
+                const urlInput = document.getElementById('cfgLogoUrl');
+                if (urlInput) urlInput.value = "(Arquivo local anexado)";
+            };
+            reader.readAsDataURL(file);
+        }
+    });
 });
 
 function atualizarDiaSemanaAutomatico() {
     const inputData = document.getElementById('dataInicial');
     if (!inputData || !inputData.value) return;
-    
     const partes = inputData.value.split('-');
     const dataObjeto = new Date(partes[0], partes[1] - 1, partes[2]);
     const diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-    
     const selectDia = document.getElementById('diaSemana');
     if (selectDia) {
         selectDia.removeAttribute('disabled');
@@ -131,74 +131,26 @@ function checarDataCorrespondeAoPlano(dataAlvoObj, dataInicioStr, diaSemanaPlan,
     if (!dataInicioStr) return false;
     const partes = dataInicioStr.split('-');
     const dataInicioObj = new Date(partes[0], partes[1] - 1, partes[2]);
-    
     dataAlvoObj.setHours(0,0,0,0);
     dataInicioObj.setHours(0,0,0,0);
-
     if (dataAlvoObj < dataInicioObj) return false;
-
     const diferencaTime = dataAlvoObj.getTime() - dataInicioObj.getTime();
     const diferencaDias = Math.round(diferencaTime / (1000 * 60 * 60 * 24));
-
     if (diferencaDias % 7 !== 0) return false;
-
     const diferencaSemanas = diferencaDias / 7;
-
     if (frequenciaPlan === 'Semanal') return true;
     if (frequenciaPlan === 'Quinzenal') return diferencaSemanas % 2 === 0;
     if (frequenciaPlan === 'Mensal') return diferencaSemanas % 4 === 0;
-
     return false;
 }
 
 // ==========================================================================
-// RENDERIZAÇÃO DA AGENDA SEMANAL
+// AGENDA ESTILO PLANILHA COM AUTOAJUSTE DE ALTURA (IMAGE_F2B2EE.PNG)
 // ==========================================================================
 async function carregarAgendaSemanal() {
     const containerGeral = document.getElementById('grade-agenda-container');
     if (!containerGeral) return;
-    containerGeral.innerHTML = '<div style="padding: 10px;">Carregando compromissos...</div>';
-
-    const hoje = new Date();
-    const diaSemanaAtual = hoje.getDay(); 
-    const diffSegunda = diaSemanaAtual === 0 ? -6 : 1 - diaSemanaAtual;
-    
-    const segundaCorrente = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-    segundaCorrente.setDate(segundaCorrente.getDate() + diffSegunda);
-
-    let htmlSemanas = '';
-    const nomesDiasSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
-    const formatarDataSimples = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
-
-    for (let s = 0; s < 5; s++) {
-        const dataInicioBloco = new Date(segundaCorrente);
-        dataInicioBloco.setDate(segundaCorrente.getDate() + (s * 7));
-        const dataFimBloco = new Date(dataInicioBloco);
-        dataFimBloco.setDate(dataInicioBloco.getDate() + 6); 
-
-        htmlSemanas += `
-            <div class="semana-bloco">
-                <div class="semana-titulo" style="background-color: #d1e7dd; color: #0f5132; text-align: center; padding: 10px 15px; font-weight: bold; font-size: 1.1rem; border-bottom: 1px solid #badbcc;">
-                    📅 Semana: de ${formatarDataSimples(dataInicioBloco)} a ${formatarDataSimples(dataFimBloco)}
-                </div>
-                <div class="grade-agenda">
-        `;
-
-        for (let d = 0; d < 7; d++) {
-            const dataDiaCell = new Date(dataInicioBloco);
-            dataDiaCell.setDate(dataInicioBloco.getDate() + d);
-            const dataISOChave = `${dataDiaCell.getFullYear()}-${String(dataDiaCell.getMonth() + 1).padStart(2, '0')}-${String(dataDiaCell.getDate()).padStart(2, '0')}`;
-            
-            htmlSemanas += `
-                <div class="coluna-dia">
-                    <h3>${nomesDiasSemana[d]}. ${String(dataDiaCell.getDate()).padStart(2, '0')}/${String(dataDiaCell.getMonth() + 1).padStart(2, '0')}</h3>
-                    <div class="slots-agendamentos" data-data-chave="${dataISOChave}"></div>
-                </div>
-            `;
-        }
-        htmlSemanas += `</div></div>`;
-    }
-    containerGeral.innerHTML = htmlSemanas;
+    containerGeral.innerHTML = '<div style="padding: 10px;">Carregando compromissos organizados...</div>';
 
     if (!bancoDados) return;
 
@@ -210,66 +162,129 @@ async function carregarAgendaSemanal() {
         const mapaPacientes = {};
         if (pacientes) pacientes.forEach(p => mapaPacientes[p.id] = p.nome);
 
-        document.querySelectorAll('.slots-agendamentos').forEach(container => {
-            const dataChaveStr = container.getAttribute('data-data-chave');
-            const partes = dataChaveStr.split('-');
-            const dataObjetoCelula = new Date(partes[0], partes[1] - 1, partes[2]);
+        const hoje = new Date();
+        const diaSemanaAtual = hoje.getDay(); 
+        const diffSegunda = diaSemanaAtual === 0 ? -6 : 1 - diaSemanaAtual;
+        
+        const segundaCorrente = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+        segundaCorrente.setDate(segundaCorrente.getDate() + diffSegunda);
 
-            let itensRender = [];
-            const especificosHoje = agendamentos ? agendamentos.filter(a => a.data === dataChaveStr) : [];
-            
-            especificosHoje.forEach(esp => {
-                if(mapaPacientes[esp.paciente_id] && esp.status !== 'Cancelado') {
-                    const planoOrigem = planos ? planos.find(pl => pl.paciente_id === esp.paciente_id) : null;
-                    itensRender.push({
-                        id: esp.id,
-                        pacienteId: esp.paciente_id,
-                        nome: mapaPacientes[esp.paciente_id],
-                        hora: esp.hora.substring(0, 5),
-                        modalidade: esp.modalidade || (planoOrigem ? planoOrigem.modalidade : 'Presencial'),
-                        valor: esp.valor || (planoOrigem ? planoOrigem.valor : 0),
-                        status: esp.status || 'Agendado',
-                        origem: 'excecao'
-                    });
-                }
-            });
+        let htmlSemanas = '';
+        const nomesDiasSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+        const classesDias = ['dia-seg', 'dia-ter', 'dia-qua', 'dia-qui', 'dia-sex', 'dia-sab', 'dia-dom'];
+        const formatarDataSimples = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 
-            if (planos) {
-                planos.forEach(plano => {
-                    const possuiExcecaoHoje = especificosHoje.some(e => e.paciente_id === plano.paciente_id);
-                    if (!possuiExcecaoHoje && mapaPacientes[plano.paciente_id]) {
-                        const corresponde = checarDataCorrespondeAoPlano(new Date(dataObjetoCelula), plano.data_inicio, plano.dia_semana, plano.frequencia);
-                        if (corresponde) {
-                            itensRender.push({
-                                id: null,
-                                pacienteId: plano.paciente_id,
-                                nome: mapaPacientes[plano.paciente_id],
-                                hora: plano.hora_padrao ? plano.hora_padrao.substring(0, 5) : '--:--',
-                                modalidade: plano.modalidade || 'Presencial',
-                                valor: plano.valor || 0,
-                                status: 'Agendado',
-                                origem: 'recorrente'
-                            });
-                        }
+        // Renderiza 5 blocos de semana seguintes
+        for (let s = 0; s < 5; s++) {
+            const dataInicioBloco = new Date(segundaCorrente);
+            dataInicioBloco.setDate(segundaCorrente.getDate() + (s * 7));
+            const dataFimBloco = new Date(dataInicioBloco);
+            dataFimBloco.setDate(dataInicioBloco.getDate() + 6); 
+
+            // Passo 1: Mapear os agendamentos estruturados de cada um dos 7 dias para saber a altura máxima
+            let dadosSemanaCorrente = [];
+            let maxPacientesNaSemana = 1; // Força no mínimo 1 linha em branco estrutural estilo planilha
+
+            for (let d = 0; d < 7; d++) {
+                const dataDiaCell = new Date(dataInicioBloco);
+                dataDiaCell.setDate(dataInicioBloco.getDate() + d);
+                const dataISOChave = `${dataDiaCell.getFullYear()}-${String(dataDiaCell.getMonth() + 1).padStart(2, '0')}-${String(dataDiaCell.getDate()).padStart(2, '0')}`;
+                
+                let itensDoDia = [];
+                const especificosHoje = agendamentos ? agendamentos.filter(a => a.data === dataISOChave) : [];
+                
+                especificosHoje.forEach(esp => {
+                    if(mapaPacientes[esp.paciente_id] && esp.status !== 'Cancelado') {
+                        const planoOrigem = planos ? planos.find(pl => pl.paciente_id === esp.paciente_id) : null;
+                        itensDoDia.push({
+                            id: esp.id,
+                            pacienteId: esp.paciente_id,
+                            nome: mapaPacientes[esp.paciente_id],
+                            hora: esp.hora.substring(0, 5),
+                            modalidade: esp.modalidade || (planoOrigem ? planoOrigem.modalidade : 'Presencial'),
+                            valor: esp.valor || (planoOrigem ? planoOrigem.valor : 0),
+                            status: esp.status || 'Agendado'
+                        });
                     }
                 });
+
+                if (planos) {
+                    planos.forEach(plano => {
+                        const possuiExcecaoHoje = especificosHoje.some(e => e.paciente_id === plano.paciente_id);
+                        if (!possuiExcecaoHoje && mapaPacientes[plano.paciente_id]) {
+                            const corresponde = checarDataCorrespondeAoPlano(new Date(dataDiaCell), plano.data_inicio, plano.dia_semana, plano.frequencia);
+                            if (corresponde) {
+                                itensDoDia.push({
+                                    id: null,
+                                    pacienteId: plano.paciente_id,
+                                    nome: mapaPacientes[plano.paciente_id],
+                                    hora: plano.hora_padrao ? plano.hora_padrao.substring(0, 5) : '--:--',
+                                    modalidade: plano.modalidade || 'Presencial',
+                                    valor: plano.valor || 0,
+                                    status: 'Agendado'
+                                });
+                            }
+                        }
+                    });
+                }
+
+                dadosSemanaCorrente.push({
+                    dataISO: dataISOChave,
+                    itens: itensDoDia,
+                    tituloTexto: `${nomesDiasSemana[d].toLowerCase().substring(0, 3)}. ${String(dataDiaCell.getDate()).padStart(2, '0')}/${String(dataDiaCell.getMonth() + 1).padStart(2, '0')}/${dataDiaCell.getFullYear()}`,
+                    classeCor: classesDias[d]
+                });
+
+                if (itensDoDia.length > maxPacientesNaSemana) {
+                    maxPacientesNaSemana = itensDoDia.length;
+                }
             }
 
-            itensRender.forEach(item => {
-                let badgeStyle = "";
-                if(item.status === 'Realizado') badgeStyle = "background: #e6fffa; color: #234e52; padding: 2px 5px; border-radius: 3px; font-size: 10px;";
-                if(item.status === 'Falta') badgeStyle = "background: #fff5f5; color: #742a2a; padding: 2px 5px; border-radius: 3px; font-size: 10px;";
-
-                container.innerHTML += `
-                    <div class="card-compromisso" style="${item.origem === 'excecao' ? 'border-left-color: #3182ce;' : ''}">
-                        <div class="card-paciente-nome">${item.nome} ${item.status !== 'Agendado' ? `<span style="${badgeStyle}">${item.status}</span>` : ''}</div>
-                        <div class="card-paciente-hora">⏱️ ${item.hora}</div>
-                        <div class="card-paciente-modalidade">${item.modalidade}</div>
-                        <button class="btn-tres-pontos-agenda" onclick="abrirEditorDiretoAgenda('${item.pacienteId}', '${dataChaveStr}', '${item.hora}', '${item.modalidade}', '${item.valor}', '${item.status}')">...</button>
+            // Passo 2: Montar a grade HTML baseada no teto máximo calculado (Se ajusta automaticamente por semana)
+            htmlSemanas += `
+                <div class="semana-bloco">
+                    <div class="semana-titulo">
+                        🗓️ Agenda da Semana: ${formatarDataSimples(dataInicioBloco)} a ${formatarDataSimples(dataFimBloco)}
                     </div>
-                `;
+                    <div class="grade-agenda">
+            `;
+
+            // Renderizar linha superior de títulos (Dias)
+            dadosSemanaCorrente.forEach(dia => {
+                htmlSemanas += `<div class="coluna-dia-titulo ${dia.classeCor}">${dia.tituloTexto}</div>`;
             });
-        });
+
+            // Renderizar as colunas verticais. Cada uma terá EXATAMENTE a quantidade maxPacientesNaSemana
+            dadosSemanaCorrente.forEach(dia => {
+                htmlSemanas += `<div class="coluna-dia-conteudo">`;
+                
+                for (let r = 0; r < maxPacientesNaSemana; r++) {
+                    const compromisso = dia.itens[r];
+                    if (compromisso) {
+                        let statusBadge = "";
+                        if(compromisso.status === 'Realizado') statusBadge = "background:#e6fffa; color:#234e52; padding:1px 3px; border-radius:3px; font-size:10px;";
+                        if(compromisso.status === 'Falta') statusBadge = "background:#fff5f5; color:#742a2a; padding:1px 3px; border-radius:3px; font-size:10px;";
+
+                        htmlSemanas += `
+                            <div class="card-compromisso">
+                                <div class="card-paciente-nome">${compromisso.nome}</div>
+                                <div class="card-paciente-hora">${compromisso.hora} — ${compromisso.modalidade}</div>
+                                ${compromisso.status !== 'Agendado' ? `<div style="margin-top:2px;"><span style="${statusBadge}">${compromisso.status}</span></div>` : ''}
+                                <button class="btn-tres-pontos-agenda" onclick="abrirEditorDiretoAgenda('${compromisso.pacienteId}', '${dia.dataISO}', '${compromisso.hora}', '${compromisso.modalidade}', '${compromisso.valor}', '${compromisso.status}')">...</button>
+                            </div>
+                        `;
+                    } else {
+                        // Célula vazia estrutural para manter o grid alinhado simetricamente
+                        htmlSemanas += `<div class="card-compromisso cell-vazia">&nbsp;</div>`;
+                    }
+                }
+                
+                htmlSemanas += `</div>`;
+            });
+
+            htmlSemanas += `</div></div>`;
+        }
+        containerGeral.innerHTML = htmlSemanas;
 
     } catch (err) { console.error(err); }
 }
@@ -305,14 +320,11 @@ window.abrirEditorDiretoAgenda = function(pacienteId, dataISO, hora, modalidade,
     modal.style.display = 'flex';
 };
 
-// ==========================================================================
-// CALENDÁRIO LATERAL DE 90 DIAS
-// ==========================================================================
+// Calendário Auxiliar Perfil (90 dias)
 async function renderizarSidebarCalendarioPaciente(pacienteId) {
     const sidebar = document.getElementById('sidebar-agenda-paciente');
     const resumoBox = document.getElementById('info-plano-resumo');
     const listaScroll = document.getElementById('lista-proximas-sessoes');
-
     if (!sidebar || !resumoBox || !listaScroll) return;
 
     const dataInicioStr = document.getElementById('dataInicial')?.value;
@@ -323,7 +335,6 @@ async function renderizarSidebarCalendarioPaciente(pacienteId) {
     const diaSemana = document.getElementById('diaSemana')?.value || 'Segunda';
 
     if (!dataInicioStr) { sidebar.style.display = 'none'; return; }
-
     sidebar.style.display = 'block';
     resumoBox.innerHTML = `
         <strong>Frequência Atual:</strong> ${frequencia}<br>
@@ -336,7 +347,6 @@ async function renderizarSidebarCalendarioPaciente(pacienteId) {
 
     try {
         let agendamentos = [];
-
         if (pacienteId && pacienteId !== 'null' && bancoDados) {
             const res = await bancoDados.from('agendamentos').select('*').eq('paciente_id', pacienteId);
             if (res.data) agendamentos = res.data;
@@ -349,80 +359,21 @@ async function renderizarSidebarCalendarioPaciente(pacienteId) {
         for (let i = 0; i < 90; i++) {
             const dataFoco = new Date(dataBaseLoop.getFullYear(), dataBaseLoop.getMonth(), dataBaseLoop.getDate() + i);
             const dataISO = `${dataFoco.getFullYear()}-${String(dataFoco.getMonth() + 1).padStart(2, '0')}-${String(dataFoco.getDate()).padStart(2, '0')}`;
-
             const atendeRecorrencia = checarDataCorrespondeAoPlano(new Date(dataFoco), dataInicioStr, diaSemana, frequencia);
-            const excecaoGravada = agendamentos.find(a => a.data === dataISO);
+            const激烈excecao = agendamentos.find(a => a.data === dataISO);
 
-            if (atendeRecorrencia || excecaoGravada) {
+            if (atendeRecorrencia || 激烈excecao) {
                 const exibData = `${String(dataFoco.getDate()).padStart(2, '0')}/${String(dataFoco.getMonth() + 1).padStart(2, '0')}/${dataFoco.getFullYear()}`;
-                const exibHora = excecaoGravada ? excecaoGravada.hora.substring(0,5) : (horaPadrao ? horaPadrao.substring(0,5) : '--:--');
-                const exibValor = excecaoGravada && excecaoGravada.valor !== undefined ? excecaoGravada.valor : valor;
-                const exibMod = excecaoGravada && excecaoGravada.modalidade ? excecaoGravada.modalidade : modalidade;
-                const exibStatus = excecaoGravada ? excecaoGravada.status : 'Agendado';
-
-                let subestiloLinha = "";
-                if(exibStatus === 'Cancelado') subestiloLinha = "text-decoration: line-through; opacity: 0.5;";
-                if(exibStatus === 'Realizado') subestiloLinha = "border-left: 3px solid #319795; padding-left: 5px;";
-                if(exibStatus === 'Falta') subestiloLinha = "border-left: 3px solid #e53e3e; padding-left: 5px;";
+                const exibHora = 激烈excecao ? 激烈excecao.hora.substring(0,5) : (horaPadrao ? horaPadrao.substring(0,5) : '--:--');
+                const exibValor = 激烈excecao && 激烈excecao.valor !== undefined ? 激烈excecao.valor : valor;
+                const exibMod = 激烈excecao && 激烈excecao.modalidade ? 激烈excecao.modalidade : modalidade;
+                const exibStatus = 激烈excecao ? 激烈excecao.status : 'Agendado';
 
                 htmlProxe += `
-                    <div class="container-linha-bloco" style="${subestiloLinha}">
-                        <div class="linha-previsao">
-                            <div class="linha-previsao-info">
-                                <strong>📅 ${exibData} às ${exibHora} - ${exibMod}</strong>
-                                <span>Status: <b>${exibStatus}</b> | R$ ${Number(exibValor).toFixed(2)}</span>
-                            </div>
-                            <button type="button" class="btn-tres-pontos" onclick="alternarVisibilidadeEditorLinha('${dataISO}')">...</button>
-                        </div>
-                        
-                        <div id="editor-painel-${dataISO}" class="box-editor-linha" style="background:#f7fafc; padding:10px; border:1px solid #cbd5e0; border-radius:5px; margin-top:5px; display:none;">
-                            <div class="form-group">
-                                <label>Mudar Data desta Sessão</label>
-                                <input type="date" id="input-data-${dataISO}" value="${dataISO}">
-                            </div>
-                            <div class="form-group">
-                                <label>Horário</label>
-                                <input type="time" id="input-hora-${dataISO}" value="${exibHora}">
-                            </div>
-                            <div class="form-group">
-                                <label>Valor Ocorrência (R$)</label>
-                                <input type="number" id="input-valor-${dataISO}" value="${exibValor}" step="0.01">
-                            </div>
-                            <div class="form-group">
-                                <label>Modalidade</label>
-                                <select id="input-mod-${dataISO}">
-                                    <option value="Presencial" ${exibMod === 'Presencial' ? 'selected' : ''}>Presencial</option>
-                                    <option value="Online" ${exibMod === 'Online' ? 'selected' : ''}>Online</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Status do Atendimento</label>
-                                <select id="input-status-${dataISO}">
-                                    <option value="Agendado" ${exibStatus === 'Agendado' ? 'selected' : ''}>Agendado</option>
-                                    <option value="Realizado" ${exibStatus === 'Realizado' ? 'selected' : ''}>Realizado (Presença)</option>
-                                    <option value="Falta" ${exibStatus === 'Falta' ? 'selected' : ''}>Falta</option>
-                                    <option value="Cancelado" ${exibStatus === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Frequência do Plano</label>
-                                <select id="input-freq-${dataISO}">
-                                    <option value="Semanal" ${frequencia === 'Semanal' ? 'selected' : ''}>Semanal</option>
-                                    <option value="Quinzenal" ${frequencia === 'Quinzenal' ? 'selected' : ''}>Quinzenal</option>
-                                    <option value="Mensal" ${frequencia === 'Mensal' ? 'selected' : ''}>Mensal</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label style="color: #e53e3e; font-weight:bold;">Onde aplicar as mudanças?</label>
-                                <select id="input-escopo-${dataISO}">
-                                    <option value="somente">Apenas para esta data específica</option>
-                                    <option value="demais">Para esta data e todas as próximas abaixo</option>
-                                </select>
-                            </div>
-                            <button type="button" class="btn-salvar" style="padding: 6px 12px; font-size: 11px; width: 100%; margin-top:8px;" onclick="salvarModificacaoLinhaPerfil('${dataISO}', '${pacienteId}')">Salvar Ajustes</button>
+                    <div class="container-linha-bloco">
+                        <div style="font-size:0.8rem;">
+                            <strong>📅 ${exibData} às ${exibHora} - ${exibMod}</strong><br>
+                            <span>Status: <b>${exibStatus}</b> | R$ ${Number(exibValor).toFixed(2)}</span>
                         </div>
                     </div>
                 `;
@@ -432,140 +383,59 @@ async function renderizarSidebarCalendarioPaciente(pacienteId) {
     } catch (err) { console.error(err); }
 }
 
-window.alternarVisibilidadeEditorLinha = function(dataISO) {
-    const el = document.getElementById(`editor-painel-${dataISO}`);
-    if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
-};
-
-window.salvarModificacaoLinhaPerfil = async function(dataISO, pacienteId) {
-    if (!pacienteId || pacienteId === 'null') {
-        alert('Salve primeiro o prontuário básico do paciente antes de manipular ocorrências de datas.');
-        return;
-    }
-    const novaData = document.getElementById(`input-data-${dataISO}`)?.value;
-    const novaHora = document.getElementById(`input-hora-${dataISO}`)?.value;
-    const novoVal = Number(document.getElementById(`input-valor-${dataISO}`)?.value || 0);
-    const novaMod = document.getElementById(`input-mod-${dataISO}`)?.value;
-    const novoStatusSessao = document.getElementById(`input-status-${dataISO}`)?.value;
-    const novaFreq = document.getElementById(`input-freq-${dataISO}`)?.value;
-    const escopo = document.getElementById(`input-escopo-${dataISO}`)?.value;
-
-    await executarSalvamentoPorEscopo(pacienteId, dataISO, novaData, novaHora, novaMod, novoVal, novoStatusSessao, escopo, novaFreq);
-    
-    if (escopo === 'demais') {
-        if (document.getElementById('frequencia')) document.getElementById('frequencia').value = novaFreq;
-    }
-    
-    renderizarSidebarCalendarioPaciente(pacienteId);
-};
-
-// ==========================================================================
-// CENTRALIZADOR LÓGICO DO SALVAMENTO POR ESCOPO
-// ==========================================================================
 async function executarSalvamentoPorEscopo(pacienteId, dataOriginalISO, novaDataISO, novaHora, novaMod, novoVal, statusSessao, escopo, novaFreq) {
     if(!bancoDados) return;
-
     try {
         if (escopo === 'somente') {
-            const payload = { 
-                paciente_id: pacienteId, 
-                data: novaDataISO, 
-                hora: novaHora, 
-                modalidade: novaMod, 
-                valor: novoVal, 
-                status: statusSessao 
-            };
-
+            const payload = { paciente_id: pacienteId, data: novaDataISO, hora: novaHora, modalidade: novaMod, valor: novoVal, status: statusSessao };
             if (novaDataISO !== dataOriginalISO) {
-                const { data: extOrig } = await bancoDados.from('agendamentos').select('id').eq('paciente_id', pacienteId).eq('data', dataOriginalISO);
-                if (extOrig && extOrig.length > 0) {
-                    await bancoDados.from('agendamentos').update({ status: 'Cancelado' }).eq('id', extOrig[0].id);
-                } else {
-                    await bancoDados.from('agendamentos').insert([{ paciente_id: pacienteId, data: dataOriginalISO, hora: novaHora, status: 'Cancelado', modalidade: novaMod, valor: novoVal }]);
-                }
-                
-                const { data: extNova } = await bancoDados.from('agendamentos').select('id').eq('paciente_id', pacienteId).eq('data', novaDataISO);
-                if (extNova && extNova.length > 0) {
-                    await bancoDados.from('agendamentos').update(payload).eq('id', extNova[0].id);
-                } else {
-                    await bancoDados.from('agendamentos').insert([payload]);
-                }
+                await bancoDados.from('agendamentos').insert([{ paciente_id: pacienteId, data: dataOriginalISO, hora: novaHora, status: 'Cancelado', modalidade: novaMod, valor: novoVal }]);
+            }
+            const { data: extNova } = await bancoDados.from('agendamentos').select('id').eq('paciente_id', pacienteId).eq('data', novaDataISO);
+            if (extNova && extNova.length > 0) {
+                await bancoDados.from('agendamentos').update(payload).eq('id', extNova[0].id);
             } else {
-                const { data: existente } = await bancoDados.from('agendamentos').select('id').eq('paciente_id', pacienteId).eq('data', dataOriginalISO);
-                if (existente && existente.length > 0) {
-                    await bancoDados.from('agendamentos').update(payload).eq('id', existente[0].id);
-                } else {
-                    await bancoDados.from('agendamentos').insert([payload]);
-                }
+                await bancoDados.from('agendamentos').insert([payload]);
             }
         } else {
             const partes = novaDataISO.split('-');
             const objData = new Date(partes[0], partes[1] - 1, partes[2]);
             const diasTexto = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-            const novoDiaSemanaCalculado = diasTexto[objData.getDay()];
-
-            const payloadPlano = {
-                data_inicio: novaDataISO,
-                dia_semana: novoDiaSemanaCalculado,
-                hora_padrao: novaHora,
-                valor: novoVal,
-                modalidade: novaMod
-            };
+            const payloadPlano = { data_inicio: novaDataISO, dia_semana: diasTexto[objData.getDay()], hora_padrao: novaHora, valor: novoVal, modalidade: novaMod };
             if (novaFreq) payloadPlano.frequencia = novaFreq;
-
             await bancoDados.from('planos_atendimento').update(payloadPlano).eq('paciente_id', pacienteId);
             await bancoDados.from('agendamentos').delete().eq('paciente_id', pacienteId).gte('data', dataOriginalISO);
         }
         alert('Modificações salvas com sucesso!');
-    } catch(e) {
-        console.error(e);
-        alert('Erro ao persistir informações.');
-    }
+    } catch(e) { console.error(e); }
 }
 
-// ==========================================================================
-// CONTADORES DO DASHBOARD 
-// ==========================================================================
 async function atualizarDashboard() {
     if (!bancoDados) return;
     try {
         const { data } = await bancoDados.from('pacientes').select('status');
         let ativos = 0, inativos = 0;
-        if (data) {
-            data.forEach(p => p.status === 'Inativo' ? inativos++ : ativos++);
-        }
+        if (data) data.forEach(p => p.status === 'Inativo' ? inativos++ : ativos++);
         if (document.getElementById('totalAtivos')) document.getElementById('totalAtivos').innerText = ativos;
         if (document.getElementById('totalInativos')) document.getElementById('totalInativos').innerText = inativos;
     } catch (err) { console.error(err); }
 }
 
-// ==========================================================================
-// OPERAÇÕES DE PACIENTES & REMOÇÃO
-// ==========================================================================
 async function carregarPacientes() {
     if (!bancoDados) return;
     const lista = document.getElementById('listaPacientes');
     if (!lista) return;
     lista.innerHTML = '<div>Buscando listagem...</div>';
-
     try {
         const { data } = await bancoDados.from('pacientes').select('*').order('nome');
-        if (!data || data.length === 0) {
-            lista.innerHTML = '<div>Nenhum paciente localizado.</div>';
-            return;
-        }
-
+        if (!data || data.length === 0) { lista.innerHTML = '<div>Nenhum paciente localizado.</div>'; return; }
         let html = '';
         data.forEach(paciente => {
-            const statusExibicao = paciente.status === 'Inativo' ? '🔴 Inativo (Arquivado)' : '🟢 Ativo (Em Atendimento)';
             html += `
-                <div class="cardPaciente" id="card-${paciente.id}" style="${paciente.status === 'Inativo' ? 'opacity:0.65;' : ''}">
+                <div class="cardPaciente" style="${paciente.status === 'Inativo' ? 'opacity:0.65;' : ''}">
                     <strong>👤 ${paciente.nome || ''}</strong><br>
-                    <small>📞 WhatsApp: ${paciente.telefone || 'Não informado'}</small><br>
-                    <small>Status: ${statusExibicao}</small>
-                    <div class="acoes-card" style="margin-top:10px;">
-                        <button class="btn-editar" onclick="prepararEdicaoPaciente('${paciente.id}')">✏️ Ver Perfil / Calendário</button>
-                    </div>
+                    <small>WhatsApp: ${paciente.telefone || 'Não informado'}</small><br>
+                    <button class="btn-editar" style="margin-top:10px;" onclick="prepararEdicaoPaciente('${paciente.id}')">✏️ Ver Perfil / Calendário</button>
                 </div>
             `;
         });
@@ -578,9 +448,7 @@ window.prepararEdicaoPaciente = async function(id) {
     try {
         const { data } = await bancoDados.from('pacientes').select('*').eq('id', id);
         const p = data[0];
-
         mostrarTela('novoPaciente');
-
         if(document.getElementById('nome')) document.getElementById('nome').value = p.nome || '';
         if(document.getElementById('cpf')) document.getElementById('cpf').value = p.cpf || '';
         if(document.getElementById('telefone')) document.getElementById('telefone').value = p.telefone || '';
@@ -602,108 +470,86 @@ window.prepararEdicaoPaciente = async function(id) {
             if(document.getElementById('valor')) document.getElementById('valor').value = pl.valor || '';
             if(document.getElementById('formaCobranca')) document.getElementById('formaCobranca').value = pl.forma_cobranca || 'Mensal';
         }
-
         renderizarSidebarCalendarioPaciente(id);
     } catch (err) { alert('Erro ao carregar prontuário.'); }
-};
-
-window.excluirPacienteAtual = async function() {
-    if (!idPacienteEditando) return;
-    if (!confirm("Tem certeza que deseja remover este paciente? Esta ação apagará permanentemente o histórico e as agendas vinculadas.")) return;
-    try {
-        await bancoDados.from('planos_atendimento').delete().eq('paciente_id', idPacienteEditando);
-        await bancoDados.from('agendamentos').delete().eq('paciente_id', idPacienteEditando);
-        await bancoDados.from('pacientes').delete().eq('id', idPacienteEditando);
-        
-        alert('Paciente removido com sucesso!');
-        idPacienteEditando = null;
-        mostrarTela('pacientes');
-    } catch (err) { 
-        console.error(err);
-        alert('Erro ao excluir prontuário.'); 
-    }
 };
 
 async function salvarPaciente() {
     if (!bancoDados) return;
     const nome = document.getElementById('nome')?.value;
-    if (!nome) { alert('O nome do paciente é obrigatório.'); return; }
-
+    if (!nome) { alert('O nome é obrigatório.'); return; }
     const payloadPaciente = {
-        nome: nome,
-        cpf: document.getElementById('cpf')?.value || '',
-        telefone: document.getElementById('telefone')?.value || '',
-        email: document.getElementById('email')?.value || '',
-        data_nascimento: document.getElementById('dataNascimento')?.value || null,
-        endereco: document.getElementById('endereco')?.value || '',
-        responsavel: document.getElementById('responsavel')?.value || '',
-        observacoes: document.getElementById('observacoes')?.value || '',
+        nome: nome, cpf: document.getElementById('cpf')?.value || '',
+        telefone: document.getElementById('telefone')?.value || '', email: document.getElementById('email')?.value || '',
+        data_nascimento: document.getElementById('dataNascimento')?.value || null, endereco: document.getElementById('endereco')?.value || '',
+        responsavel: document.getElementById('responsavel')?.value || '', observacoes: document.getElementById('observacoes')?.value || '',
         status: document.getElementById('statusVinculo')?.value || 'Ativo'
     };
-
     try {
         let pacienteId = idPacienteEditando;
         if (idPacienteEditando) {
             await bancoDados.from('pacientes').update(payloadPaciente).eq('id', idPacienteEditando);
         } else {
-            const { data, error } = await bancoDados.from('pacientes').insert([payloadPaciente]).select();
-            if (error) throw error;
-            pacienteId = data[0].id;
-            idPacienteEditando = pacienteId;
+            const { data } = await bancoDados.from('pacientes').insert([payloadPaciente]).select();
+            pacienteId = data[0].id; idPacienteEditando = pacienteId;
         }
-
         const payloadPlano = {
-            paciente_id: pacienteId,
-            data_inicio: document.getElementById('dataInicial')?.value || null,
-            dia_semana: document.getElementById('diaSemana')?.value || 'Segunda',
-            frequencia: document.getElementById('frequencia')?.value || 'Semanal',
-            hora_padrao: document.getElementById('horario')?.value || '',
-            modalidade: document.getElementById('modalidade')?.value || 'Presencial',
-            valor: Number(document.getElementById('valor')?.value || 0),
-            forma_cobranca: document.getElementById('formaCobranca')?.value || 'Mensal',
-            ativo: true
+            paciente_id: pacienteId, data_inicio: document.getElementById('dataInicial')?.value || null,
+            dia_semana: document.getElementById('diaSemana')?.value || 'Segunda', frequencia: document.getElementById('frequencia')?.value || 'Semanal',
+            hora_padrao: document.getElementById('horario')?.value || '', modalidade: document.getElementById('modalidade')?.value || 'Presencial',
+            valor: Number(document.getElementById('valor')?.value || 0), forma_cobranca: document.getElementById('formaCobranca')?.value || 'Mensal', ativo: true
         };
-
         const { data: planoExistente } = await bancoDados.from('planos_atendimento').select('id').eq('paciente_id', pacienteId);
         if (planoExistente && planoExistente.length > 0) {
             await bancoDados.from('planos_atendimento').update(payloadPlano).eq('paciente_id', pacienteId);
         } else {
             await bancoDados.from('planos_atendimento').insert([payloadPlano]);
         }
-
-        alert('Prontuário e plano salvos com sucesso!');
+        alert('Prontuário salvo com sucesso!');
         mostrarTela('pacientes');
-    } catch (err) {
-        console.error(err);
-        alert('Erro ao salvar os dados do paciente.');
-    }
+    } catch (err) { alert('Erro ao salvar.'); }
 }
 
+window.excluirPacienteAtual = async function() {
+    if (!idPacienteEditando || !confirm("Remover permanentemente este registro?")) return;
+    try {
+        await bancoDados.from('planos_atendimento').delete().eq('paciente_id', idPacienteEditando);
+        await bancoDados.from('agendamentos').delete().eq('paciente_id', idPacienteEditando);
+        await bancoDados.from('pacientes').delete().eq('id', idPacienteEditando);
+        idPacienteEditando = null;
+        mostrarTela('pacientes');
+    } catch (err) { console.error(err); }
+};
+
 // ==========================================================================
-// PERSISTÊNCIA DINÂMICA DE MARCA, CORES E TEXTOS (LOCALSTORAGE)
+// INTEGRAÇÃO DE ARQUIVOS LOCAL, MARCA CENTRADA E TEMA ESCURO
 // ==========================================================================
 function carregarConfiguracoesCampos() {
     if(document.getElementById('cfgTituloClinica')) document.getElementById('cfgTituloClinica').value = localStorage.getItem('cfg_titulo_clinica') || 'Clínica Integrada';
     if(document.getElementById('cfgSubtituloClinica')) document.getElementById('cfgSubtituloClinica').value = localStorage.getItem('cfg_subtitulo_clinica') || 'Gestão de Saúde';
-    if(document.getElementById('cfgLogoUrl')) document.getElementById('cfgLogoUrl').value = localStorage.getItem('cfg_logo_url') || '';
+    if(document.getElementById('cfgTemaSistema')) document.getElementById('cfgTemaSistema').value = localStorage.getItem('cfg_tema_sistema') || 'claro';
     if(document.getElementById('cfgCorSidebar')) document.getElementById('cfgCorSidebar').value = localStorage.getItem('cfg_cor_sidebar') || '#1e293b';
     if(document.getElementById('cfgCorPrincipal')) document.getElementById('cfgCorPrincipal').value = localStorage.getItem('cfg_cor_principal') || '#2563eb';
+    
+    const urlLogoSalva = localStorage.getItem('cfg_logo_url') || '';
+    if (document.getElementById('cfgLogoUrl')) {
+        document.getElementById('cfgLogoUrl').value = urlLogoSalva.startsWith('data:image') ? '(Arquivo local anexado)' : urlLogoSalva;
+    }
 }
 
 function aplicarConfiguracoesVisuais() {
     const titulo = localStorage.getItem('cfg_titulo_clinica') || 'Clínica Integrada';
     const subtitulo = localStorage.getItem('cfg_subtitulo_clinica') || 'Gestão de Saúde';
     const logoUrl = localStorage.getItem('cfg_logo_url') || '';
+    const tema = localStorage.getItem('cfg_tema_sistema') || 'claro';
     const corSidebar = localStorage.getItem('cfg_cor_sidebar') || '#1e293b';
     const corPrincipal = localStorage.getItem('cfg_cor_principal') || '#2563eb';
     
-    // Atualiza os elementos de identificação do topo da barra lateral
-    const txtTitulo = document.getElementById('nomeClinicaTexto');
-    if (txtTitulo) txtTitulo.innerText = titulo;
+    // Atualiza Textos
+    if (document.getElementById('nomeClinicaTexto')) document.getElementById('nomeClinicaTexto').innerText = titulo;
+    if (document.getElementById('subtituloClinicaTexto')) document.getElementById('subtituloClinicaTexto').innerText = subtitulo;
 
-    const txtSubtitulo = document.getElementById('subtituloClinicaTexto');
-    if (txtSubtitulo) txtSubtitulo.innerText = subtitulo;
-
+    // Atualiza e exibe Logotipo
     const imgLogo = document.getElementById('logoClinicaDisplay');
     if (imgLogo) {
         if (logoUrl) {
@@ -714,6 +560,14 @@ function aplicarConfiguracoesVisuais() {
         }
     }
     
+    // Aplica o Tema Escuro / Claro nativamente no Body
+    if (tema === 'escuro') {
+        document.body.classList.add('dark-theme');
+    } else {
+        document.body.classList.remove('dark-theme');
+    }
+    
+    // Injeta cores personalizadas dinamicamente
     document.documentElement.style.setProperty('--sidebar-bg', corSidebar);
     document.documentElement.style.setProperty('--primary-color', corPrincipal);
 }
@@ -721,18 +575,29 @@ function aplicarConfiguracoesVisuais() {
 function salvarConfiguracoes() {
     const titulo = document.getElementById('cfgTituloClinica')?.value || 'Clínica Integrada';
     const subtitulo = document.getElementById('cfgSubtituloClinica')?.value || 'Gestão de Saúde';
-    const logoUrl = document.getElementById('cfgLogoUrl')?.value || '';
+    const tema = document.getElementById('cfgTemaSistema')?.value || 'claro';
     const corSidebar = document.getElementById('cfgCorSidebar')?.value || '#1e293b';
     const corPrincipal = document.getElementById('cfgCorPrincipal')?.value || '#2563eb';
     
     localStorage.setItem('cfg_titulo_clinica', titulo);
     localStorage.setItem('cfg_subtitulo_clinica', subtitulo);
-    localStorage.setItem('cfg_logo_url', logoUrl);
+    localStorage.setItem('cfg_tema_sistema', tema);
     localStorage.setItem('cfg_cor_sidebar', corSidebar);
     localStorage.setItem('cfg_cor_principal', corPrincipal);
     
+    // Valida se o usuário anexou arquivo ou usou link
+    if (uploadLogoBase64) {
+        localStorage.setItem('cfg_logo_url', uploadLogoBase64);
+        uploadLogoBase64 = ""; // limpa cache temporário
+    } else {
+        const urlInput = document.getElementById('cfgLogoUrl')?.value || '';
+        if (urlInput && urlInput !== '(Arquivo local anexado)') {
+            localStorage.setItem('cfg_logo_url', urlInput);
+        }
+    }
+    
     aplicarConfiguracoesVisuais();
-    alert('Identidade visual atualizada com sucesso!');
+    alert('Configurações aplicadas e sincronizadas com sucesso!');
 }
 
 function fecharModalAgendamento() {
