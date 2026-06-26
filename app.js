@@ -42,7 +42,6 @@ function mostrarTela(nomeTela) {
     const sidePerfil = document.getElementById('sidebar-agenda-paciente');
     if (sidePerfil) sidePerfil.style.display = 'none';
 
-    // Se não for uma tela de pacientes, fecha o submenu da lateral de forma limpa
     if (nomeTela !== 'pacientes' && nomeTela !== 'novoPaciente') {
         const sub = document.getElementById('submenuPacientes');
         if (sub) sub.style.display = 'none';
@@ -60,7 +59,7 @@ function mostrarTela(nomeTela) {
         'dashboard': 'Agenda',
         'pacientes': 'Listagem de Pacientes Cadastrados',
         'novoPaciente': idPacienteEditando ? 'Perfil e Histórico Clínico' : 'Cadastro de Novo Paciente',
-        'configuracoes': 'Parâmetros do Sistema'
+        'configuracoes': 'Configurações do Sistema'
     };
     
     const elTituloSeção = document.getElementById('tituloSeção');
@@ -681,19 +680,30 @@ async function salvarPaciente() {
 }
 
 // ==========================================================================
-// PERSISTÊNCIA DINÂMICA DE CORES E LOGOTIPO (LOCALSTORAGE)
+// PERSISTÊNCIA DINÂMICA DE MARCA, CORES E TEXTOS (LOCALSTORAGE)
 // ==========================================================================
 function carregarConfiguracoesCampos() {
+    if(document.getElementById('cfgTituloClinica')) document.getElementById('cfgTituloClinica').value = localStorage.getItem('cfg_titulo_clinica') || 'Clínica Integrada';
+    if(document.getElementById('cfgSubtituloClinica')) document.getElementById('cfgSubtituloClinica').value = localStorage.getItem('cfg_subtitulo_clinica') || 'Gestão de Saúde';
     if(document.getElementById('cfgLogoUrl')) document.getElementById('cfgLogoUrl').value = localStorage.getItem('cfg_logo_url') || '';
     if(document.getElementById('cfgCorSidebar')) document.getElementById('cfgCorSidebar').value = localStorage.getItem('cfg_cor_sidebar') || '#1e293b';
     if(document.getElementById('cfgCorPrincipal')) document.getElementById('cfgCorPrincipal').value = localStorage.getItem('cfg_cor_principal') || '#2563eb';
 }
 
 function aplicarConfiguracoesVisuais() {
+    const titulo = localStorage.getItem('cfg_titulo_clinica') || 'Clínica Integrada';
+    const subtitulo = localStorage.getItem('cfg_subtitulo_clinica') || 'Gestão de Saúde';
     const logoUrl = localStorage.getItem('cfg_logo_url') || '';
     const corSidebar = localStorage.getItem('cfg_cor_sidebar') || '#1e293b';
     const corPrincipal = localStorage.getItem('cfg_cor_principal') || '#2563eb';
     
+    // Atualiza os elementos de identificação do topo da barra lateral
+    const txtTitulo = document.getElementById('nomeClinicaTexto');
+    if (txtTitulo) txtTitulo.innerText = titulo;
+
+    const txtSubtitulo = document.getElementById('subtituloClinicaTexto');
+    if (txtSubtitulo) txtSubtitulo.innerText = subtitulo;
+
     const imgLogo = document.getElementById('logoClinicaDisplay');
     if (imgLogo) {
         if (logoUrl) {
@@ -709,10 +719,14 @@ function aplicarConfiguracoesVisuais() {
 }
 
 function salvarConfiguracoes() {
+    const titulo = document.getElementById('cfgTituloClinica')?.value || 'Clínica Integrada';
+    const subtitulo = document.getElementById('cfgSubtituloClinica')?.value || 'Gestão de Saúde';
     const logoUrl = document.getElementById('cfgLogoUrl')?.value || '';
     const corSidebar = document.getElementById('cfgCorSidebar')?.value || '#1e293b';
     const corPrincipal = document.getElementById('cfgCorPrincipal')?.value || '#2563eb';
     
+    localStorage.setItem('cfg_titulo_clinica', titulo);
+    localStorage.setItem('cfg_subtitulo_clinica', subtitulo);
     localStorage.setItem('cfg_logo_url', logoUrl);
     localStorage.setItem('cfg_cor_sidebar', corSidebar);
     localStorage.setItem('cfg_cor_principal', corPrincipal);
