@@ -42,13 +42,11 @@
 
         .sidebar-brand {
             padding: 0 20px 20px 20px;
-            font-size: 1.2rem;
-            font-weight: bold;
             border-bottom: 1px solid #334155;
             margin-bottom: 20px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 6px;
             align-items: center;
         }
 
@@ -57,6 +55,20 @@
             max-height: 60px;
             object-fit: contain;
             display: none;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-brand-title {
+            font-size: 1.15rem;
+            font-weight: bold;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        .sidebar-brand-subtitle {
+            font-size: 0.8rem;
+            text-align: center;
+            color: #cbd5e1;
         }
 
         .sidebar-menu button {
@@ -333,22 +345,23 @@
 </head>
 <body>
 
-    <!-- MENU LATERAL RESTAURADO -->
+    <!-- MENU LATERAL RE-ESTRUTURADO -->
     <div class="sidebar-menu">
         <div class="sidebar-brand">
             <img id="logoClinicaDisplay" src="" alt="Logo da Clínica">
-            <span id="nomeClinicaTexto">Clínica Integrada</span>
+            <div id="nomeClinicaTexto" class="sidebar-brand-title">Clínica Integrada</div>
+            <div id="subtituloClinicaTexto" class="sidebar-brand-subtitle">Gestão de Saúde</div>
         </div>
         <button onclick="mostrarTela('dashboard')">📅 Agenda</button>
         
-        <!-- Grupo Dinâmico de Pacientes -->
+        <!-- Grupo de Pacientes -->
         <button onclick="alternarSubmenuPacientes()">👥 Pacientes ▾</button>
         <div id="submenuPacientes" class="sidebar-submenu">
             <button onclick="mostrarTela('pacientes')">📋 Ver Listagem</button>
             <button onclick="acionarMenuNovoPaciente()">➕ Novo Paciente</button>
         </div>
         
-        <button onclick="mostrarTela('configuracoes')">⚙️ Parâmetros</button>
+        <button onclick="mostrarTela('configuracoes')">⚙️ Configurações</button>
     </div>
 
     <!-- WRAPPER PRINCIPAL -->
@@ -358,7 +371,7 @@
             <h1 id="tituloSeção">Agenda</h1>
         </div>
 
-        <!-- TELA PRINCIPAL UNIFICADA (DASHBOARD + AGENDA INTEGRADA) -->
+        <!-- TELA PRINCIPAL UNIFICADA (DASHBOARD + AGENDA) -->
         <div id="dashboard" class="tela" style="display: block;">
             <div class="cards-indicadores">
                 <div class="card-ind">
@@ -378,7 +391,7 @@
             <div id="listaPacientes" class="grid-pacientes"></div>
         </div>
 
-        <!-- TELA: FORMULÁRIO DE CADASTRO / PERFIL -->
+        <!-- TELA: CADASTRO / PERFIL -->
         <div id="novoPaciente" class="tela">
             <div class="form-container">
                 <form id="formPaciente">
@@ -487,14 +500,25 @@
             </div>
         </div>
 
-        <!-- TELA: PARAMETROS COM CONFIGURAÇÃO DE CORES E LOGO ATIVAS -->
+        <!-- TELA: CONFIGURAÇÕES RESTAURADAS COM TÍTULO, SUBTÍTULO E LOGO -->
         <div id="configuracoes" class="tela">
             <div class="form-container">
-                <h3>Configurações Globais e Identidade Visual</h3>
-                <p>Gerencie as configurações de ambiente, cores do sistema e logotipo da marca.</p>
+                <h3>Configurações de Identidade Visual da Clínica</h3>
+                <p>Personalize os títulos do cabeçalho da barra lateral, logotipo e o esquema de cores da interface.</p>
                 
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Título Principal da Clínica</label>
+                        <input type="text" id="cfgTituloClinica" placeholder="Ex: Clínica Integrada">
+                    </div>
+                    <div class="form-group">
+                        <label>Subtítulo / Especialidade</label>
+                        <input type="text" id="cfgSubtituloClinica" placeholder="Ex: Gestão de Saúde / Psicologia">
+                    </div>
+                </div>
+
                 <div class="form-group" style="margin-bottom: 15px;">
-                    <label>URL do Logotipo da Clínica (Link de Imagem)</label>
+                    <label>URL do Logotipo do Topo (Link da Imagem)</label>
                     <input type="text" id="cfgLogoUrl" placeholder="https://exemplo.com/seu-logo.png">
                 </div>
 
@@ -510,7 +534,7 @@
                 </div>
 
                 <div style="margin-top: 25px;">
-                    <button type="button" id="btnSalvarConfiguracoes" class="btn-principal">Salvar Parâmetros</button>
+                    <button type="button" id="btnSalvarConfiguracoes" class="btn-principal">Salvar Identidade Visual</button>
                 </div>
             </div>
         </div>
