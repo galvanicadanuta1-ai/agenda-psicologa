@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Agenda Integrada</title>
     
-    <!-- Biblioteca do Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
@@ -18,17 +17,34 @@
             --card-bg: #ffffff;
             --text-dark: #0f172a;
 
-            /* VARIÁVEIS DOS CABEÇALHOS (MODO CLARO) */
-            --semana-bg: #ffffff;
+            /* VARIÁVEIS DOS CABEÇALHOS MODERNIZADAS (MODO CLARO) */
+            --semana-bg: #f1f5f9;
             --semana-text: #0f172a;
-            --border-grade: #000000; /* Linhas nítidas estilo planilha tradicional */
+            --border-grade: #e2e8f0; /* Tons suaves no lugar de linhas pretas rígidas */
             
-            --bg-dia-util: #2c9a42;
-            --text-dia-util: #ffffff;
-            --bg-dia-sab: #ff9800;
-            --text-dia-sab: #ffffff;
-            --bg-dia-dom: #ffebee;
-            --text-dia-dom: #b71c1c;
+            --bg-dia-util: #e6f4ea;   /* Verde pastel suave e moderno */
+            --text-dia-util: #137333;  /* Texto legível de alta qualidade */
+            --bg-dia-sab: #fef7e0;    /* Laranja/Amarelo pastel suave */
+            --text-dia-sab: #b06000;   /* Texto legível */
+            --bg-dia-dom: #fce8e6;    /* Vermelho pastel suave */
+            --text-dia-dom: #c5221f;   /* Texto legível */
+
+            /* CORES DE STATUS MODERNAS (MODO CLARO) */
+            --bg-status-agendado: #f1f5f9;       /* Levemente cinza */
+            --text-status-agendado: #475569;
+            --border-status-agendado: #cbd5e1;
+
+            --bg-status-realizado: #e6f4ea;      /* Levemente verde */
+            --text-status-realizado: #137333;
+            --border-status-realizado: #a3cfbb;
+
+            --bg-status-falta: #fce8e6;          /* Vermelho suave */
+            --text-status-falta: #c5221f;
+            --border-status-falta: #f5c2c7;
+
+            --bg-status-cancelado: #fafafa;      /* Cinza fosco */
+            --text-status-cancelado: #9e9e9e;
+            --border-status-cancelado: #e0e0e0;
         }
 
         /* MODIFICADORES PARA TEMA ESCURO (TOTALMENTE RE-ESTILIZADO) */
@@ -43,7 +59,7 @@
             /* CABEÇALHOS MODERNOS E CONFORTÁVEIS À NOITE */
             --semana-bg: #1e293b;
             --semana-text: #f8fafc;
-            --border-grade: #334155; /* Substitui as linhas pretas por um grafite elegante */
+            --border-grade: #334155; /* Grafite elegante */
             
             --bg-dia-util: #064e3b;  /* Verde esmeralda escuro e sofisticado */
             --text-dia-util: #34d399; /* Texto menta de alta leitura */
@@ -51,6 +67,23 @@
             --text-dia-sab: #fb923c; /* Texto laranja suave */
             --bg-dia-dom: #450a0a;   /* Vermelho vinho profundo */
             --text-dia-dom: #fca5a5; /* Texto rosa/red pastel */
+
+            /* CORES DE STATUS MODERNAS (MODO ESCURO) */
+            --bg-status-agendado: #1e293b;
+            --text-status-agendado: #cbd5e1;
+            --border-status-agendado: #334155;
+
+            --bg-status-realizado: #064e3b;
+            --text-status-realizado: #6fe7b7;
+            --border-status-realizado: #047857;
+
+            --bg-status-falta: #450a0a;
+            --text-status-falta: #fca5a5;
+            --border-status-falta: #7f1d1d;
+
+            --bg-status-cancelado: #111827;
+            --text-status-cancelado: #6b7280;
+            --border-status-cancelado: #1f2937;
         }
 
         body {
@@ -126,19 +159,6 @@
             color: var(--text-dark);
         }
 
-        .sidebar-submenu {
-            padding-left: 15px;
-            display: none;
-            flex-direction: column;
-        }
-
-        .sidebar-submenu button {
-            width: 85%;
-            margin: 2px 5%;
-            padding: 8px 12px;
-            font-size: 0.88rem;
-        }
-
         /* LAYOUT PRINCIPAL */
         .main-wrapper {
             margin-left: 260px;
@@ -188,9 +208,10 @@
             margin-bottom: 35px;
             background: var(--card-bg);
             border: 1px solid var(--border-grade);
-            border-radius: 8px; /* Suavização dos cantos da tabela */
+            border-radius: 12px; /* Cantos arredondados modernos */
             overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            padding: 6px; /* Respiro interno para os blocos */
             transition: border-color 0.3s, box-shadow 0.3s;
         }
 
@@ -209,16 +230,16 @@
         .grade-agenda {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            background: var(--border-grade); 
-            gap: 1px; 
+            background: transparent; /* Remove linhas pretas cruas */
+            gap: 4px; 
             transition: background-color 0.3s;
         }
 
         .coluna-dia {
             display: flex;
             flex-direction: column;
-            background: var(--border-grade);
-            gap: 1px; 
+            background: transparent;
+            gap: 4px; 
             transition: background-color 0.3s;
         }
 
@@ -228,6 +249,7 @@
             text-align: center;
             font-weight: 600;
             border-bottom: 1px solid var(--border-grade);
+            border-radius: 6px;
             text-transform: lowercase; 
             transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
@@ -246,27 +268,69 @@
             color: var(--text-dia-dom) !important;
         }
 
-        /* Células de Compromissos */
+        /* Células de Compromissos (ESTILO BLOCO MODERNO) */
         .card-compromisso {
             background: var(--card-bg);
-            padding: 12px 6px;
+            padding: 10px 6px;
             text-align: center;
-            font-size: 0.8rem;
-            min-height: 65px;
+            font-size: 0.82rem;
+            min-height: 70px;
+            margin: 2px; /* Separa visualmente como blocos independentes */
+            border-radius: 8px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             position: relative;
-            transition: background-color 0.3s;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            transition: all 0.2s ease;
         }
+
+        .card-compromisso:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Estilização Dinâmica por Status */
+        .card-compromisso.status-realizado {
+            background-color: var(--bg-status-realizado) !important;
+            color: var(--text-status-realizado) !important;
+            border-color: var(--border-status-realizado) !important;
+        }
+        .card-compromisso.status-realizado .card-paciente-nome { color: var(--text-status-realizado) !important; }
+        .card-compromisso.status-realizado .card-paciente-hora { color: var(--text-status-realizado) !important; opacity: 0.8; }
+
+        .card-compromisso.status-agendado {
+            background-color: var(--bg-status-agendado) !important;
+            color: var(--text-status-agendado) !important;
+            border-color: var(--border-status-agendado) !important;
+        }
+        .card-compromisso.status-agendado .card-paciente-nome { color: var(--text-status-dark) !important; }
+        .card-compromisso.status-agendado .card-paciente-hora { color: var(--text-status-agendado) !important; }
+
+        .card-compromisso.status-falta {
+            background-color: var(--bg-status-falta) !important;
+            color: var(--text-status-falta) !important;
+            border-color: var(--border-status-falta) !important;
+        }
+        .card-compromisso.status-falta .card-paciente-nome { color: var(--text-status-falta) !important; }
+
+        .card-compromisso.status-cancelado {
+            background-color: var(--bg-status-cancelado) !important;
+            color: var(--text-status-cancelado) !important;
+            border-color: var(--border-status-cancelado) !important;
+        }
+        .card-compromisso.status-cancelado .card-paciente-nome { color: var(--text-status-cancelado) !important; }
 
         .card-paciente-nome { font-weight: 600; color: var(--text-dark); margin-bottom: 2px; }
         .card-paciente-hora { color: #64748b; font-size: 0.78rem; }
 
         .cell-vazia {
             background: var(--card-bg) !important;
+            border: 1px dashed var(--border-color) !important;
+            opacity: 0.5;
         }
 
         .btn-tres-pontos-agenda {
@@ -359,7 +423,6 @@
 </head>
 <body>
 
-    <!-- MENU LATERAL RE-ESTRUTURADO -->
     <div class="sidebar-menu">
         <div class="sidebar-brand">
             <img id="logoClinicaDisplay" src="" alt="Logo da Clínica">
@@ -367,24 +430,16 @@
             <div id="subtituloClinicaTexto" class="sidebar-brand-subtitle">Gestão de Saúde</div>
         </div>
         <button onclick="mostrarTela('dashboard')">📅 Agenda</button>
-        
-        <button onclick="alternarSubmenuPacientes()">👥 Pacientes ▾</button>
-        <div id="submenuPacientes" class="sidebar-submenu">
-            <button onclick="mostrarTela('pacientes')">📋 Ver Listagem</button>
-            <button onclick="acionarMenuNovoPaciente()">➕ Novo Paciente</button>
-        </div>
-        
+        <button onclick="mostrarTela('pacientes')">👥 Pacientes</button>
         <button onclick="mostrarTela('configuracoes')">⚙️ Configurações</button>
     </div>
 
-    <!-- WRAPPER PRINCIPAL -->
     <div class="main-wrapper">
         
         <div class="header-secao">
             <h1 id="tituloSeção">Agenda</h1>
         </div>
 
-        <!-- TELA PRINCIPAL (DASHBOARD + AGENDA) -->
         <div id="dashboard" class="tela" style="display: block;">
             <div class="cards-indicadores">
                 <div class="card-ind">
@@ -399,12 +454,13 @@
             <div id="grade-agenda-container"></div>
         </div>
 
-        <!-- TELA: LISTAGEM DE PACIENTES -->
         <div id="pacientes" class="tela">
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                <button onclick="acionarMenuNovoPaciente()" class="btn-principal">➕ Novo Paciente</button>
+            </div>
             <div id="listaPacientes" class="grid-pacientes"></div>
         </div>
 
-        <!-- TELA: CADASTRO / PERFIL -->
         <div id="novoPaciente" class="tela">
             <div class="form-container">
                 <form id="formPaciente">
@@ -511,7 +567,6 @@
             </div>
         </div>
 
-        <!-- TELA: CONFIGURAÇÕES COMPLETA -->
         <div id="configuracoes" class="tela">
             <div class="form-container">
                 <h3>Configurações de Identidade Visual da Clínica</h3>
@@ -565,14 +620,12 @@
 
     </div>
 
-    <!-- SIDEBAR COMPLEMENTAR -->
     <div id="sidebar-agenda-paciente">
         <h3 style="margin-top: 0; font-size: 1.1rem; border-bottom:1px solid var(--border-color); padding-bottom:10px;">Projeções e Histórico (90 dias)</h3>
         <div id="info-plano-resumo" style="font-size: 0.85rem; background:#f1f5f9; padding:10px; border-radius:6px; color:#334155;"></div>
         <div id="lista-proximas-sessoes" class="lista-scroll-previsoes"></div>
     </div>
 
-    <!-- MODAL GLOBAL -->
     <div id="modalAgendamento" class="modal-overlay">
         <div class="modal-box">
             <h3 id="modalAgendamentoTitulo" style="margin-top:0;">Editar Ocorrência</h3>
@@ -632,7 +685,6 @@
         </div>
     </div>
 
-    <!-- Vinculação do arquivo de script externo -->
     <script src="app.js"></script>
 </body>
 </html>
