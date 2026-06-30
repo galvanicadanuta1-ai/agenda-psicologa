@@ -11,6 +11,14 @@ if (window.supabase) {
 let idPacienteEditando = null;
 let uploadLogoBase64 = ""; // Armazena temporariamente a conversão do arquivo de logo
 
+// Mapeamento de classes CSS de acordo com o status
+const MAPA_CLASSES_STATUS = {
+    'Realizado': 'status-realizado',
+    'Falta': 'status-falta',
+    'Agendado': 'status-agendado',
+    'Cancelado': 'status-cancelado'
+};
+
 // Dynamic Sidebar
 function alternarSubmenuPacientes() {
     const sub = document.getElementById('submenuPacientes');
@@ -43,9 +51,10 @@ function mostrarTela(nomeTela) {
         btnExcluirForm.style.display = (nomeTela === 'novoPaciente' && idPacienteEditando) ? 'inline-block' : 'none';
     }
 
+    // Ajustado para mudar o título para apenas "Pacientes" na tela de listagem
     const titulosModulos = {
         'dashboard': 'Agenda',
-        'pacientes': 'Listagem de Pacientes Cadastrados',
+        'pacientes': 'Pacientes',
         'novoPaciente': idPacienteEditando ? 'Perfil e Histórico Clínico' : 'Cadastro de Novo Paciente',
         'configuracoes': 'Configurações do Sistema'
     };
@@ -145,7 +154,7 @@ function checarDataCorrespondeAoPlano(dataAlvoObj, dataInicioStr, diaSemanaPlan,
 }
 
 // ==========================================================================
-// AGENDA ESTILO PLANILHA COM AUTOAJUSTE DE ALTURA (IMAGE_F2B2EE.PNG)
+// AGENDA ESTILO PLANILHA COM AUTOAJUSTE DE ALTURA E CLASSES MODERNAS
 // ==========================================================================
 async function carregarAgendaSemanal() {
     const containerGeral = document.getElementById('grade-agenda-container');
@@ -200,7 +209,7 @@ async function carregarAgendaSemanal() {
                             id: esp.id,
                             pacienteId: esp.paciente_id,
                             nome: mapaPacientes[esp.paciente_id],
-                            hora: esp.hora.substring(0, 5),
+                            hora: esp.hora ? esp.hora.substring(0, 5) : '--:--',
                             modalidade: esp.modalidade || (planoOrigem ? planoOrigem.modalidade : 'Presencial'),
                             valor: esp.valor || (planoOrigem ? planoOrigem.valor : 0),
                             status: esp.status || 'Agendado'
@@ -240,7 +249,7 @@ async function carregarAgendaSemanal() {
                 }
             }
 
-            // Passo 2: Montar a grade HTML baseada no teto máximo calculado (Se ajusta automaticamente por semana)
+            // Passo 2: Montar a grade HTML baseada no teto máximo calculado
             htmlSemanas += `
                 <div class="semana-bloco">
                     <div class="semana-titulo">
@@ -254,22 +263,20 @@ async function carregarAgendaSemanal() {
                 htmlSemanas += `<div class="coluna-dia-titulo ${dia.classeCor}">${dia.tituloTexto}</div>`;
             });
 
-            // Renderizar as colunas verticais. Cada uma terá EXATAMENTE a quantidade maxPacientesNaSemana
+            // Renderizar as colunas verticais com injeção das classes de status dinâmicas
             dadosSemanaCorrente.forEach(dia => {
                 htmlSemanas += `<div class="coluna-dia-conteudo">`;
                 
                 for (let r = 0; r < maxPacientesNaSemana; r++) {
                     const compromisso = dia.itens[r];
                     if (compromisso) {
-                        let statusBadge = "";
-                        if(compromisso.status === 'Realizado') statusBadge = "background:#e6fffa; color:#234e52; padding:1px 3px; border-radius:3px; font-size:10px;";
-                        if(compromisso.status === 'Falta') statusBadge = "background:#fff5f5; color:#742a2a; padding:1px 3px; border-radius:3px; font-size:10px;";
+                        const classeStatus = MAPA_CLASSES_STATUS[compromisso.status] || 'status-agendado';
 
                         htmlSemanas += `
-                            <div class="card-compromisso">
+                            <div class="card-compromisso ${classeStatus}">
                                 <div class="card-paciente-nome">${compromisso.nome}</div>
                                 <div class="card-paciente-hora">${compromisso.hora} — ${compromisso.modalidade}</div>
-                                ${compromisso.status !== 'Agendado' ? `<div style="margin-top:2px;"><span style="${statusBadge}">${compromisso.status}</span></div>` : ''}
+                                ${compromisso.status !== 'Agendado' ? `<div class="card-paciente-status-badge"><span>${compromisso.status}</span></div>` : ''}
                                 <button class="btn-tres-pontos-agenda" onclick="abrirEditorDiretoAgenda('${compromisso.pacienteId}', '${dia.dataISO}', '${compromisso.hora}', '${compromisso.modalidade}', '${compromisso.valor}', '${compromisso.status}')">...</button>
                             </div>
                         `;
@@ -320,7 +327,9 @@ window.abrirEditorDiretoAgenda = function(pacienteId, dataISO, hora, modalidade,
     modal.style.display = 'flex';
 };
 
-// Calendário Auxiliar Perfil (90 dias)
+// ==========================================================================
+// CALENDÁRIO AUXILIAR PERFIL (90 DIAS) - SEGURO CONTRA TRAVAMENTOS
+// ==========================================================================
 async function renderizarSidebarCalendarioPaciente(pacienteId) {
     const sidebar = document.getElementById('sidebar-agenda-paciente');
     const resumoBox = document.getElementById('info-plano-resumo');
@@ -336,9 +345,11 @@ async function renderizarSidebarCalendarioPaciente(pacienteId) {
 
     if (!dataInicioStr) { sidebar.style.display = 'none'; return; }
     sidebar.style.display = 'block';
+    
+    const horaExibResumo = horaPadrao ? horaPadrao.substring(0,5) : '--:--';
     resumoBox.innerHTML = `
         <strong>Frequência Atual:</strong> ${frequencia}<br>
-        <strong>Horário Fixo:</strong> ${horaPadrao.substring(0,5)}<br>
+        <strong>Horário Fixo:</strong> ${horaExibResumo}<br>
         <strong>Modalidade Base:</strong> ${modalidade}<br>
         <strong>Valor Base:</strong> R$ ${valor.toFixed(2)}
     `;
@@ -356,21 +367,32 @@ async function renderizarSidebarCalendarioPaciente(pacienteId) {
         const partes = dataInicioStr.split('-');
         const dataBaseLoop = new Date(partes[0], partes[1] - 1, partes[2]);
 
+        // Proteção: Garante que se a data inicial inserida for inválida, o loop não execute dados corrompidos
+        if (isNaN(dataBaseLoop.getTime())) {
+            listaScroll.innerHTML = '<div style="font-size:12px; color:#e53e3e; padding:10px;">Data de início inválida.</div>';
+            return;
+        }
+
         for (let i = 0; i < 90; i++) {
             const dataFoco = new Date(dataBaseLoop.getFullYear(), dataBaseLoop.getMonth(), dataBaseLoop.getDate() + i);
             const dataISO = `${dataFoco.getFullYear()}-${String(dataFoco.getMonth() + 1).padStart(2, '0')}-${String(dataFoco.getDate()).padStart(2, '0')}`;
             const atendeRecorrencia = checarDataCorrespondeAoPlano(new Date(dataFoco), dataInicioStr, diaSemana, frequencia);
-            const激烈excecao = agendamentos.find(a => a.data === dataISO);
+            
+            // Correção aqui: De 'const激烈excecao' para 'const excecao' de forma limpa e segura
+            const excecao = agendamentos.find(a => a.data === dataISO);
 
-            if (atendeRecorrencia || 激烈excecao) {
+            if (atendeRecorrencia || excecao) {
                 const exibData = `${String(dataFoco.getDate()).padStart(2, '0')}/${String(dataFoco.getMonth() + 1).padStart(2, '0')}/${dataFoco.getFullYear()}`;
-                const exibHora = 激烈excecao ? 激烈excecao.hora.substring(0,5) : (horaPadrao ? horaPadrao.substring(0,5) : '--:--');
-                const exibValor = 激烈excecao && 激烈excecao.valor !== undefined ? 激烈excecao.valor : valor;
-                const exibMod = 激烈excecao && 激烈excecao.modalidade ? 激烈excecao.modalidade : modalidade;
-                const exibStatus = 激烈excecao ? 激烈excecao.status : 'Agendado';
+                
+                // Proteção contra valores nulos no método substring
+                const exibHora = excecao ? (excecao.hora ? excecao.hora.substring(0,5) : '--:--') : (horaPadrao ? horaPadrao.substring(0,5) : '--:--');
+                const exibValor = excecao && excecao.valor !== undefined ? excecao.valor : valor;
+                const exibMod = excecao && excecao.modalidade ? excecao.modalidade : modalidade;
+                const exibStatus = excecao ? excecao.status : 'Agendado';
+                const classeStatusSide = MAPA_CLASSES_STATUS[exibStatus] || 'status-agendado';
 
                 htmlProxe += `
-                    <div class="container-linha-bloco">
+                    <div class="container-linha-bloco ${classeStatusSide}">
                         <div style="font-size:0.8rem;">
                             <strong>📅 ${exibData} às ${exibHora} - ${exibMod}</strong><br>
                             <span>Status: <b>${exibStatus}</b> | R$ ${Number(exibValor).toFixed(2)}</span>
@@ -380,7 +402,10 @@ async function renderizarSidebarCalendarioPaciente(pacienteId) {
             }
         }
         listaScroll.innerHTML = htmlProxe || '<div style="font-size:12px; color:#718096; padding:10px;">Sem sessões simuladas.</div>';
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+        console.error(err); 
+        listaScroll.innerHTML = '<div style="font-size:12px; color:#e53e3e; padding:10px;">Erro ao processar simulação do calendário.</div>';
+    }
 }
 
 async function executarSalvamentoPorEscopo(pacienteId, dataOriginalISO, novaDataISO, novaHora, novaMod, novoVal, statusSessao, escopo, novaFreq) {
@@ -595,13 +620,6 @@ function salvarConfiguracoes() {
             localStorage.setItem('cfg_logo_url', urlInput);
         }
     }
-    
     aplicarConfiguracoesVisuais();
-    alert('Configurações aplicadas e sincronizadas com sucesso!');
+    alert('Configurações salvas com sucesso!');
 }
-
-function fecharModalAgendamento() {
-    const modal = document.getElementById('modalAgendamento');
-    if (modal) modal.style.display = 'none';
-}
-window.fecharModalAgendamento = fecharModalAgendamento;
