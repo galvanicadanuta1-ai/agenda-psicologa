@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestão Clínica - Danuta</title>
+    <title>Clínica Danuta</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+    <!-- BARRA DE NAVEGAÇÃO SUPERIOR -->
     <nav class="navbar-sistema">
         <div class="logo-sistema">Clínica Danuta</div>
         <div class="menu-navegacao">
@@ -16,30 +17,32 @@
         </div>
     </nav>
 
+    <!-- CONTAINER PRINCIPAL -->
     <div class="dashboard-wrapper">
         
+        <!-- CARDS DE MÉTRICAS -->
         <div class="metricas-cards-container">
             <div class="card-metrica">
                 <span class="card-metrica-titulo">PACIENTES ATIVOS</span>
-                <span class="card-metrica-valor" id="qtd-ativos">2</span>
+                <span class="card-metrica-valor">2</span>
             </div>
             <div class="card-metrica">
                 <span class="card-metrica-titulo">PACIENTES INATIVOS</span>
-                <span class="card-metrica-valor" id="qtd-inativos">0</span>
+                <span class="card-metrica-valor">0</span>
             </div>
         </div>
 
-        // ==========================================================================
-        // TELA 1: VISUALIZAÇÃO DA AGENDA SEMANAL (CONTEÚDO COMPLETO RESTAURADO)
-        // ==========================================================================
+        <!-- TELA 1: AGENDA SEMANAL -->
         <div id="tela-agenda-semanal" class="secao-tela-sistema">
             <header class="dashboard-header">
                 <h1>Agenda de Atendimentos</h1>
             </header>
 
+            <!-- SEMANA 1 -->
             <div class="agenda-semana-container">
                 <div class="agenda-semana-titulo">📅 Agenda da Semana: 22/06/2026 a 28/06/2026</div>
                 <div class="grid-agenda-semanal">
+                    <!-- Segunda -->
                     <div class="coluna-dia">
                         <div class="header-dia seg">seg. 22/06/2026</div>
                         <div class="card-consulta-grid online">
@@ -47,6 +50,7 @@
                             <span class="horario-mod">19:30 — On-Line</span>
                         </div>
                     </div>
+                    <!-- Terça -->
                     <div class="coluna-dia">
                         <div class="header-dia ter">ter. 23/06/2026</div>
                         <div class="card-consulta-grid online">
@@ -62,6 +66,7 @@
                             <span class="horario-mod">18:00 — On-Line</span>
                         </div>
                     </div>
+                    <!-- Quarta -->
                     <div class="coluna-dia">
                         <div class="header-dia qua">qua. 24/06/2026</div>
                         <div class="card-consulta-grid presencial">
@@ -81,6 +86,7 @@
                             <span class="horario-mod">18:15 — Presencial</span>
                         </div>
                     </div>
+                    <!-- Quinta -->
                     <div class="coluna-dia">
                         <div class="header-dia qui">qui. 25/06/2026</div>
                         <div class="card-consulta-grid online">
@@ -104,6 +110,7 @@
                             <span class="horario-mod">20:00 — On-Line</span>
                         </div>
                     </div>
+                    <!-- Sexta -->
                     <div class="coluna-dia">
                         <div class="header-dia sex">sex. 26/06/2026</div>
                         <div class="card-consulta-grid online">
@@ -127,6 +134,7 @@
                             <span class="horario-mod">19:00 — Presencial</span>
                         </div>
                     </div>
+                    <!-- Sábado -->
                     <div class="coluna-dia">
                         <div class="header-dia sab">sáb. 27/06/2026</div>
                         <div class="card-consulta-grid online">
@@ -134,6 +142,7 @@
                             <span class="horario-mod">08:30 — On-Line</span>
                         </div>
                     </div>
+                    <!-- Domingo -->
                     <div class="coluna-dia">
                         <div class="header-dia dom">dom. 28/06/2026</div>
                         <div class="card-consulta-grid online">
@@ -144,9 +153,11 @@
                 </div>
             </div>
 
+            <!-- SEMANA 2 -->
             <div class="agenda-semana-container" style="margin-top: 30px;">
                 <div class="agenda-semana-titulo">📅 Agenda da Semana: 29/06/2026 a 05/07/2026</div>
                 <div class="grid-agenda-semanal">
+                    <!-- Segunda -->
                     <div class="coluna-dia">
                         <div class="header-dia seg">seg. 29/06/2026</div>
                         <div class="card-consulta-grid online">
@@ -158,6 +169,7 @@
                             <span class="horario-mod">19:00 — On-Line</span>
                         </div>
                     </div>
+                    <!-- Terça -->
                     <div class="coluna-dia">
                         <div class="header-dia ter">ter. 30/06/2026</div>
                         <div class="card-consulta-grid online">
@@ -169,6 +181,7 @@
                             <span class="horario-mod">18:00 — On-Line</span>
                         </div>
                     </div>
+                    <!-- Quarta -->
                     <div class="coluna-dia">
                         <div class="header-dia qua">qua. 01/07/2026</div>
                         <div class="card-consulta-grid presencial">
@@ -176,6 +189,7 @@
                             <span class="horario-mod">18:15 — Presencial</span>
                         </div>
                     </div>
+                    <!-- Quinta -->
                     <div class="coluna-dia">
                         <div class="header-dia qui">qui. 02/07/2026</div>
                         <div class="card-consulta-grid online">
@@ -197,6 +211,7 @@
                             <span class="horario-mod">21:00 — Presencial</span>
                         </div>
                     </div>
+                    <!-- Sexta -->
                     <div class="coluna-dia">
                         <div class="header-dia sex">sex. 03/07/2026</div>
                         <div class="card-consulta-grid presencial">
@@ -224,6 +239,7 @@
                             <span class="horario-mod">19:00 — Presencial</span>
                         </div>
                     </div>
+                    <!-- Sábado -->
                     <div class="coluna-dia">
                         <div class="header-dia sab">sáb. 04/07/2026</div>
                         <div class="card-consulta-grid online">
@@ -235,6 +251,7 @@
                             <span class="horario-mod">14:00 — On-Line</span>
                         </div>
                     </div>
+                    <!-- Domingo -->
                     <div class="coluna-dia">
                         <div class="header-dia dom">dom. 05/07/2026</div>
                         <div class="card-consulta-grid online">
@@ -250,9 +267,7 @@
             </div>
         </div>
 
-        // ==========================================================================
-        // TELA 2: FORMULÁRIO DE PRONTUÁRIO E SIDEBAR DE PACIENTE (CORRIGIDA)
-        // ==========================================================================
+        <!-- TELA 2: FORMULÁRIO DE PRONTUÁRIO -->
         <div id="tela-prontuario-paciente" class="secao-tela-sistema" style="display: none;">
             <div class="tela-perfil-prontuario-container">
                 
@@ -261,20 +276,20 @@
                         
                         <div class="form-group-full">
                             <label for="enderecoResidencial">Endereço Residencial</label>
-                            <input type="text" id="enderecoResidencial" name="enderecoResidencial" placeholder="Digite o endereço completo">
+                            <input type="text" id="enderecoResidencial" placeholder="Digite o endereço completo">
                         </div>
 
                         <div class="form-row-dois-campos">
                             <div class="form-group">
                                 <label for="vinculoStatus">Vínculo / Status</label>
-                                <select id="vinculoStatus" name="vinculoStatus">
+                                <select id="vinculoStatus">
                                     <option value="Ativo" selected>Ativo</option>
                                     <option value="Inativo">Inativo</option>
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label for="observacoesGerais">Observações Gerais</label>
-                                <textarea id="observacoesGerais" name="observacoesGerais" rows="3" placeholder="Anotações gerais sobre o paciente..."></textarea>
+                                <textarea id="observacoesGerais" rows="3" placeholder="Anotações gerais sobre o paciente..."></textarea>
                             </div>
                         </div>
 
@@ -283,11 +298,11 @@
                         <div class="form-row-dois-campos">
                             <div class="form-group">
                                 <label for="dataInicial">Data Inicial do Plano</label>
-                                <input type="date" id="dataInicial" name="dataInicial" value="2026-06-25" onchange="atualizarSimulacaoAgenda()">
+                                <input type="date" id="dataInicial" value="2026-06-25" onchange="atualizarSimulacaoAgenda()">
                             </div>
                             <div class="form-group">
                                 <label for="diaSemana">Dia da Semana</label>
-                                <select id="diaSemana" name="diaSemana" onchange="atualizarSimulacaoAgenda()">
+                                <select id="diaSemana" onchange="atualizarSimulacaoAgenda()">
                                     <option value="Segunda">Segunda</option>
                                     <option value="Terça">Terça</option>
                                     <option value="Quarta">Quarta</option>
@@ -302,7 +317,7 @@
                         <div class="form-row-dois-campos">
                             <div class="form-group">
                                 <label for="frequencia">Frequência</label>
-                                <select id="frequencia" name="frequencia" onchange="atualizarSimulacaoAgenda()">
+                                <select id="frequencia" onchange="atualizarSimulacaoAgenda()">
                                     <option value="Semanal" selected>Semanal</option>
                                     <option value="Quinzenal">Quinzenal</option>
                                     <option value="Mensal">Mensal</option>
@@ -310,25 +325,25 @@
                             </div>
                             <div class="form-group">
                                 <label for="horario">Horário Fixo</label>
-                                <input type="time" id="horario" name="horario" value="20:00" onchange="atualizarSimulacaoAgenda()">
+                                <input type="time" id="horario" value="20:00" onchange="atualizarSimulacaoAgenda()">
                             </div>
                         </div>
 
                         <div class="form-row-tres-campos">
                             <div class="form-group">
                                 <label for="modalidade">Modalidade</label>
-                                <select id="modalidade" name="modalidade" onchange="atualizarSimulacaoAgenda()">
+                                <select id="modalidade" onchange="atualizarSimulacaoAgenda()">
                                     <option value="Online" selected>Online</option>
                                     <option value="Presencial">Presencial</option>
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label for="valor">Valor da Sessão (R$)</label>
-                                <input type="number" id="valor" name="valor" value="200" step="0.01" onchange="atualizarSimulacaoAgenda()">
+                                <input type="number" id="valor" value="200" step="0.01" onchange="atualizarSimulacaoAgenda()">
                             </div>
                             <div class="form-group">
                                 <label for="cicloCobranca">Ciclo de Cobrança</label>
-                                <select id="cicloCobranca" name="cicloCobranca">
+                                <select id="cicloCobranca">
                                     <option value="Semanal">Semanal</option>
                                     <option value="Quinzenal">Quinzenal</option>
                                     <option value="Mensal" selected>Mensal</option>
@@ -337,62 +352,21 @@
                         </div>
 
                         <div class="container-botoes-acoes">
-                            <button type="button" id="btnSalvarPaciente" class="btn-principal" onclick="executarAcaoSalvar()">
-                                Salvar Prontuário
-                            </button>
-                            <button type="button" id="btnExcluirPacienteForm" class="btn-perigo-remover" onclick="executarAcaoRemover()">
-                                Remover
-                            </button>
+                            <button type="button" class="btn-principal" onclick="alert('Salvo!')">Salvar Prontuário</button>
                         </div>
 
                     </form>
                 </div>
 
+                <!-- SIDEBAR DA AGENDA DO PACIENTE -->
                 <div id="sidebar-agenda-paciente" class="sidebar-historico-agenda">
-                    <div class="box-resumo-plano" id="info-plano-resumo">
-                        </div>
-                    <div class="lista-scroll-sessoes" id="lista-proximas-sessoes">
-                        </div>
+                    <div class="box-resumo-plano" id="info-plano-resumo"></div>
+                    <div class="lista-scroll-sessoes" id="lista-proximas-sessoes"></div>
                 </div>
 
             </div>
         </div>
 
-    </div>
-
-    <div id="modalEditorAgenda" class="modal-sobreposto-agenda">
-        <div class="modal-conteudo-agenda">
-            <h3>Editar Sessão Específica</h3>
-            <input type="hidden" id="modalEdicaoDataISO">
-            <div class="form-group-modal">
-                <label for="modalEdicaoHora">Hora:</label>
-                <input type="time" id="modalEdicaoHora">
-            </div>
-            <div class="form-group-modal">
-                <label for="modalEdicaoModalidade">Modalidade:</label>
-                <select id="modalEdicaoModalidade">
-                    <option value="Online">Online</option>
-                    <option value="Presencial">Presencial</option>
-                </select>
-            </div>
-            <div class="form-group-modal">
-                <label for="modalEdicaoValor">Valor (R$):</label>
-                <input type="number" id="modalEdicaoValor" step="0.01">
-            </div>
-            <div class="form-group-modal">
-                <label for="modalEdicaoStatus">Status:</label>
-                <select id="modalEdicaoStatus">
-                    <option value="Agendado">Agendado</option>
-                    <option value="Realizado">Realizado</option>
-                    <option value="Faltou">Faltou</option>
-                    <option value="Cancelado">Cancelado</option>
-                </select>
-            </div>
-            <div class="modal-botoes-linha">
-                <button type="button" class="btn-modal-salvar" onclick="salvarAlteracaoDiretaAgenda()">Aplicar</button>
-                <button type="button" class="btn-modal-fechar" onclick="fecharModalEditorAgenda()">Cancelar</button>
-            </div>
-        </div>
     </div>
 
     <script src="app.js"></script>
