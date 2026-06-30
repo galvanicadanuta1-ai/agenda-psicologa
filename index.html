@@ -3,17 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Agenda e Prontuários - Clínica</title>
+    <title>Sistema de Gestão Clínica - Danuta</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+    <nav class="navbar-sistema">
+        <div class="logo-sistema">Clínica Danuta</div>
+        <div class="menu-navegacao">
+            <button class="btn-nav active" id="nav-agenda" onclick="alternarTela('agenda')">📅 Agenda Semanal</button>
+            <button class="btn-nav" id="nav-prontuario" onclick="alternarTela('prontuario')">👤 Prontuário do Paciente</button>
+        </div>
+    </nav>
+
     <div class="dashboard-wrapper">
         
-        <header class="dashboard-header">
-            <h1>Agenda</h1>
-        </header>
-
         <div class="metricas-cards-container">
             <div class="card-metrica">
                 <span class="card-metrica-titulo">PACIENTES ATIVOS</span>
@@ -25,108 +29,335 @@
             </div>
         </div>
 
-        <div class="tela-perfil-prontuario-container">
-            
-            <div class="formulario-lado-esquerdo">
-                <form id="formProntuarioPaciente" onsubmit="event.preventDefault();">
-                    
-                    <div class="form-group-full">
-                        <label for="enderecoResidencial">Endereço Residencial</label>
-                        <input type="text" id="enderecoResidencial" name="enderecoResidencial" placeholder="Digite o endereço completo">
-                    </div>
+        // ==========================================================================
+        // TELA 1: VISUALIZAÇÃO DA AGENDA SEMANAL (CONTEÚDO COMPLETO RESTAURADO)
+        // ==========================================================================
+        <div id="tela-agenda-semanal" class="secao-tela-sistema">
+            <header class="dashboard-header">
+                <h1>Agenda de Atendimentos</h1>
+            </header>
 
-                    <div class="form-row-dois-campos">
-                        <div class="form-group">
-                            <label for="vinculoStatus">Vínculo / Status</label>
-                            <select id="vinculoStatus" name="vinculoStatus">
-                                <option value="Ativo" selected>Ativo</option>
-                                <option value="Inativo">Inativo</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="observacoesGerais">Observações Gerais</label>
-                            <textarea id="observacoesGerais" name="observacoesGerais" rows="3" placeholder="Anotações gerais sobre o paciente..."></textarea>
+            <div class="agenda-semana-container">
+                <div class="agenda-semana-titulo">📅 Agenda da Semana: 22/06/2026 a 28/06/2026</div>
+                <div class="grid-agenda-semanal">
+                    <div class="coluna-dia">
+                        <div class="header-dia seg">seg. 22/06/2026</div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Lara Costella</span>
+                            <span class="horario-mod">19:30 — On-Line</span>
                         </div>
                     </div>
-
-                    <h2 class="section-title-formulario">Plano Clínico Recorrente</h2>
-
-                    <div class="form-row-dois-campos">
-                        <div class="form-group">
-                            <label for="dataInicial">Data Inicial do Plano</label>
-                            <input type="date" id="dataInicial" name="dataInicial" value="2026-06-25" onchange="atualizarSimulacaoAgenda()">
+                    <div class="coluna-dia">
+                        <div class="header-dia ter">ter. 23/06/2026</div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Mirela Dutra</span>
+                            <span class="horario-mod">15:00 — On-Line</span>
                         </div>
-                        <div class="form-group">
-                            <label for="diaSemana">Dia da Semana</label>
-                            <select id="diaSemana" name="diaSemana" onchange="atualizarSimulacaoAgenda()">
-                                <option value="Segunda">Segunda</option>
-                                <option value="Terça">Terça</option>
-                                <option value="Quarta">Quarta</option>
-                                <option value="Quinta" selected>Quinta</option>
-                                <option value="Sexta">Sexta</option>
-                                <option value="Sábado">Sábado</option>
-                                <option value="Domingo">Domingo</option>
-                            </select>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Viviane Marin</span>
+                            <span class="horario-mod">16:00 — On-Line</span>
+                        </div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Charla Marquês</span>
+                            <span class="horario-mod">18:00 — On-Line</span>
                         </div>
                     </div>
-
-                    <div class="form-row-dois-campos">
-                        <div class="form-group">
-                            <label for="frequencia">Frequência</label>
-                            <select id="frequencia" name="frequencia" onchange="atualizarSimulacaoAgenda()">
-                                <option value="Semanal" selected>Semanal</option>
-                                <option value="Quinzenal">Quinzenal</option>
-                                <option value="Mensal">Mensal</option>
-                            </select>
+                    <div class="coluna-dia">
+                        <div class="header-dia qua">qua. 24/06/2026</div>
+                        <div class="card-consulta-grid presencial">
+                            <span class="nome">Daiane e Jorge</span>
+                            <span class="horario-mod">13:30 — Presencial</span>
                         </div>
-                        <div class="form-group">
-                            <label for="horario">Horário Fixo</label>
-                            <input type="time" id="horario" name="horario" value="20:00" onchange="atualizarSimulacaoAgenda()">
+                        <div class="card-consulta-grid presencial">
+                            <span class="nome">Egon Josué</span>
+                            <span class="horario-mod">16:15 — Presencial</span>
                         </div>
-                    </div>
-
-                    <div class="form-row-tres-campos">
-                        <div class="form-group">
-                            <label for="modalidade">Modalidade</label>
-                            <select id="modalidade" name="modalidade" onchange="atualizarSimulacaoAgenda()">
-                                <option value="Online" selected>Online</option>
-                                <option value="Presencial">Presencial</option>
-                            </select>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Charla Marquês</span>
+                            <span class="horario-mod">17:30 — On-Line</span>
                         </div>
-                        <div class="form-group">
-                            <label for="valor">Valor da Sessão (R$)</label>
-                            <input type="number" id="valor" name="valor" value="200" step="0.01" onchange="atualizarSimulacaoAgenda()">
-                        </div>
-                        <div class="form-group">
-                            <label for="cicloCobranca">Ciclo de Cobrança</label>
-                            <select id="cicloCobranca" name="cicloCobranca">
-                                <option value="Semanal">Semanal</option>
-                                <option value="Quinzenal">Quinzenal</option>
-                                <option value="Mensal" selected>Mensal</option>
-                            </select>
+                        <div class="card-consulta-grid presencial">
+                            <span class="nome">Arthur</span>
+                            <span class="horario-mod">18:15 — Presencial</span>
                         </div>
                     </div>
-
-                    <div class="container-botoes-acoes">
-                        <button type="button" id="btnSalvarPaciente" class="btn-principal" onclick="executarAcaoSalvar()">
-                            Salvar Prontuário
-                        </button>
-                        <button type="button" id="btnExcluirPacienteForm" class="btn-perigo-remover" onclick="executarAcaoRemover()">
-                            Remover
-                        </button>
+                    <div class="coluna-dia">
+                        <div class="header-dia qui">qui. 25/06/2026</div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Cléia Bosa</span>
+                            <span class="horario-mod">15:00 — On-Line</span>
+                        </div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Gabrielli Fortunatti</span>
+                            <span class="horario-mod">16:30 — On-Line</span>
+                        </div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Chayane</span>
+                            <span class="horario-mod">18:00 — On-Line</span>
+                        </div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Kristen</span>
+                            <span class="horario-mod">19:00 — On-Line</span>
+                        </div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Viviane Almeida</span>
+                            <span class="horario-mod">20:00 — On-Line</span>
+                        </div>
                     </div>
-
-                </form>
+                    <div class="coluna-dia">
+                        <div class="header-dia sex">sex. 26/06/2026</div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Julia Pelssari</span>
+                            <span class="horario-mod">11:00 — On-Line</span>
+                        </div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Franciele</span>
+                            <span class="horario-mod">12:30 — On-Line</span>
+                        </div>
+                        <div class="card-consulta-grid presencial">
+                            <span class="nome">Bruno</span>
+                            <span class="horario-mod">17:00 — Presencial</span>
+                        </div>
+                        <div class="card-consulta-grid presencial">
+                            <span class="nome">Rodrigo Bortoli</span>
+                            <span class="horario-mod">18:00 — Presencial</span>
+                        </div>
+                        <div class="card-consulta-grid presencial">
+                            <span class="nome">Ketlin e Arialdo</span>
+                            <span class="horario-mod">19:00 — Presencial</span>
+                        </div>
+                    </div>
+                    <div class="coluna-dia">
+                        <div class="header-dia sab">sáb. 27/06/2026</div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Brenda da Silva</span>
+                            <span class="horario-mod">08:30 — On-Line</span>
+                        </div>
+                    </div>
+                    <div class="coluna-dia">
+                        <div class="header-dia dom">dom. 28/06/2026</div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">William Andrade</span>
+                            <span class="horario-mod">08:00 — On-Line</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div id="sidebar-agenda-paciente" class="sidebar-historico-agenda">
-                <div class="box-resumo-plano" id="info-plano-resumo">
+            <div class="agenda-semana-container" style="margin-top: 30px;">
+                <div class="agenda-semana-titulo">📅 Agenda da Semana: 29/06/2026 a 05/07/2026</div>
+                <div class="grid-agenda-semanal">
+                    <div class="coluna-dia">
+                        <div class="header-dia seg">seg. 29/06/2026</div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Kauã Rodrigues</span>
+                            <span class="horario-mod">18:00 — On-Line</span>
+                        </div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Marcela Sauer</span>
+                            <span class="horario-mod">19:00 — On-Line</span>
+                        </div>
                     </div>
-                <div class="lista-scroll-sessoes" id="lista-proximas-sessoes">
+                    <div class="coluna-dia">
+                        <div class="header-dia ter">ter. 30/06/2026</div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Cléia Bosa</span>
+                            <span class="horario-mod">15:00 — On-Line</span>
+                        </div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Juliana Maffeis</span>
+                            <span class="horario-mod">18:00 — On-Line</span>
+                        </div>
                     </div>
+                    <div class="coluna-dia">
+                        <div class="header-dia qua">qua. 01/07/2026</div>
+                        <div class="card-consulta-grid presencial">
+                            <span class="nome">Arthur</span>
+                            <span class="horario-mod">18:15 — Presencial</span>
+                        </div>
+                    </div>
+                    <div class="coluna-dia">
+                        <div class="header-dia qui">qui. 02/07/2026</div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Maria Eduarda</span>
+                            <span class="horario-mod">18:00 — On-Line</span>
+                        </div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Andressa da Rosa</span>
+                            <span class="horario-mod">20:00 — On-Line</span>
+                        </div>
+                        <div class="card-consulta-grid online mapeado-excecao">
+                            <button class="btn-acoes-card-grid">...</button>
+                            <span class="nome">Teste1</span>
+                            <span class="horario-mod">20:00 — Online</span>
+                        </div>
+                        <div class="card-consulta-grid presencial mapeado-excecao">
+                            <button class="btn-acoes-card-grid">...</button>
+                            <span class="nome">Marcelo Dallabarba</span>
+                            <span class="horario-mod">21:00 — Presencial</span>
+                        </div>
+                    </div>
+                    <div class="coluna-dia">
+                        <div class="header-dia sex">sex. 03/07/2026</div>
+                        <div class="card-consulta-grid presencial">
+                            <span class="nome">Gabriele e Gustavo</span>
+                            <span class="horario-mod">08:00 — Presencial</span>
+                        </div>
+                        <div class="card-consulta-grid presencial">
+                            <span class="nome">Giovani</span>
+                            <span class="horario-mod">16:15 — Presencial</span>
+                        </div>
+                        <div class="card-consulta-grid presencial">
+                            <span class="nome">Camila</span>
+                            <span class="horario-mod">17:00 — Presencial</span>
+                        </div>
+                        <div class="card-consulta-grid presencial">
+                            <span class="nome">Maicon</span>
+                            <span class="horario-mod">18:00 — Presencial</span>
+                        </div>
+                        <div class="card-consulta-grid presencial">
+                            <span class="nome">Elias</span>
+                            <span class="horario-mod">19:00 — Presencial</span>
+                        </div>
+                        <div class="card-consulta-grid presencial">
+                            <span class="nome">Ketlin e Arialdo</span>
+                            <span class="horario-mod">19:00 — Presencial</span>
+                        </div>
+                    </div>
+                    <div class="coluna-dia">
+                        <div class="header-dia sab">sáb. 04/07/2026</div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Brenda da Silva</span>
+                            <span class="horario-mod">08:30 — On-Line</span>
+                        </div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Júlia Borges</span>
+                            <span class="horario-mod">14:00 — On-Line</span>
+                        </div>
+                    </div>
+                    <div class="coluna-dia">
+                        <div class="header-dia dom">dom. 05/07/2026</div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">William Andrade</span>
+                            <span class="horario-mod">08:00 — On-Line</span>
+                        </div>
+                        <div class="card-consulta-grid online">
+                            <span class="nome">Lais Devos</span>
+                            <span class="horario-mod">10:00 — On-Line</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-
         </div>
+
+        // ==========================================================================
+        // TELA 2: FORMULÁRIO DE PRONTUÁRIO E SIDEBAR DE PACIENTE (CORRIGIDA)
+        // ==========================================================================
+        <div id="tela-prontuario-paciente" class="secao-tela-sistema" style="display: none;">
+            <div class="tela-perfil-prontuario-container">
+                
+                <div class="formulario-lado-esquerdo">
+                    <form id="formProntuarioPaciente" onsubmit="event.preventDefault();">
+                        
+                        <div class="form-group-full">
+                            <label for="enderecoResidencial">Endereço Residencial</label>
+                            <input type="text" id="enderecoResidencial" name="enderecoResidencial" placeholder="Digite o endereço completo">
+                        </div>
+
+                        <div class="form-row-dois-campos">
+                            <div class="form-group">
+                                <label for="vinculoStatus">Vínculo / Status</label>
+                                <select id="vinculoStatus" name="vinculoStatus">
+                                    <option value="Ativo" selected>Ativo</option>
+                                    <option value="Inativo">Inativo</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="observacoesGerais">Observações Gerais</label>
+                                <textarea id="observacoesGerais" name="observacoesGerais" rows="3" placeholder="Anotações gerais sobre o paciente..."></textarea>
+                            </div>
+                        </div>
+
+                        <h2 class="section-title-formulario">Plano Clínico Recorrente</h2>
+
+                        <div class="form-row-dois-campos">
+                            <div class="form-group">
+                                <label for="dataInicial">Data Inicial do Plano</label>
+                                <input type="date" id="dataInicial" name="dataInicial" value="2026-06-25" onchange="atualizarSimulacaoAgenda()">
+                            </div>
+                            <div class="form-group">
+                                <label for="diaSemana">Dia da Semana</label>
+                                <select id="diaSemana" name="diaSemana" onchange="atualizarSimulacaoAgenda()">
+                                    <option value="Segunda">Segunda</option>
+                                    <option value="Terça">Terça</option>
+                                    <option value="Quarta">Quarta</option>
+                                    <option value="Quinta" selected>Quinta</option>
+                                    <option value="Sexta">Sexta</option>
+                                    <option value="Sábado">Sábado</option>
+                                    <option value="Domingo">Domingo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row-dois-campos">
+                            <div class="form-group">
+                                <label for="frequencia">Frequência</label>
+                                <select id="frequencia" name="frequencia" onchange="atualizarSimulacaoAgenda()">
+                                    <option value="Semanal" selected>Semanal</option>
+                                    <option value="Quinzenal">Quinzenal</option>
+                                    <option value="Mensal">Mensal</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="horario">Horário Fixo</label>
+                                <input type="time" id="horario" name="horario" value="20:00" onchange="atualizarSimulacaoAgenda()">
+                            </div>
+                        </div>
+
+                        <div class="form-row-tres-campos">
+                            <div class="form-group">
+                                <label for="modalidade">Modalidade</label>
+                                <select id="modalidade" name="modalidade" onchange="atualizarSimulacaoAgenda()">
+                                    <option value="Online" selected>Online</option>
+                                    <option value="Presencial">Presencial</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="valor">Valor da Sessão (R$)</label>
+                                <input type="number" id="valor" name="valor" value="200" step="0.01" onchange="atualizarSimulacaoAgenda()">
+                            </div>
+                            <div class="form-group">
+                                <label for="cicloCobranca">Ciclo de Cobrança</label>
+                                <select id="cicloCobranca" name="cicloCobranca">
+                                    <option value="Semanal">Semanal</option>
+                                    <option value="Quinzenal">Quinzenal</option>
+                                    <option value="Mensal" selected>Mensal</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="container-botoes-acoes">
+                            <button type="button" id="btnSalvarPaciente" class="btn-principal" onclick="executarAcaoSalvar()">
+                                Salvar Prontuário
+                            </button>
+                            <button type="button" id="btnExcluirPacienteForm" class="btn-perigo-remover" onclick="executarAcaoRemover()">
+                                Remover
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+
+                <div id="sidebar-agenda-paciente" class="sidebar-historico-agenda">
+                    <div class="box-resumo-plano" id="info-plano-resumo">
+                        </div>
+                    <div class="lista-scroll-sessoes" id="lista-proximas-sessoes">
+                        </div>
+                </div>
+
+            </div>
+        </div>
+
     </div>
 
     <div id="modalEditorAgenda" class="modal-sobreposto-agenda">
@@ -165,11 +396,5 @@
     </div>
 
     <script src="app.js"></script>
-    <script>
-        // Inicialização simulada para demonstração em tela
-        window.addEventListener('DOMContentLoaded', () => {
-            renderizarSidebarCalendarioPaciente("paciente-abc-123");
-        });
-    </script>
 </body>
 </html>
