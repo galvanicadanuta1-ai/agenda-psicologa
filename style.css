@@ -1,4 +1,3 @@
-/* CONFIGURAÇÕES E RESETS GERAIS */
 * {
     margin: 0;
     padding: 0;
@@ -12,7 +11,7 @@ body {
     min-height: 100vh;
 }
 
-/* NAVBAR INTEGRADA */
+/* NAVBAR SUPERIOR */
 .navbar-sistema {
     display: flex;
     justify-content: space-between;
@@ -54,7 +53,7 @@ body {
     border-color: #3b82f6;
 }
 
-/* CONTAINER DO DASHBOARD */
+/* CARDS DE METRICAS */
 .dashboard-wrapper {
     max-width: 1400px;
     margin: 0 auto;
@@ -69,7 +68,6 @@ body {
     color: #ffffff;
 }
 
-/* CARDS DE METRICAS */
 .metricas-cards-container {
     display: flex;
     gap: 20px;
@@ -100,9 +98,7 @@ body {
     color: #ffffff;
 }
 
-/* ==========================================================================
-   ESTILIZAÇÃO DO GRID DA AGENDA SEMANAL (IMAGEM 1, 2 E 3)
-   ========================================================================== */
+/* GRID DA AGENDA */
 .agenda-semana-container {
     background-color: #111827;
     border: 1px solid #1f2937;
@@ -123,7 +119,7 @@ body {
 
 .grid-agenda-semanal {
     display: grid;
-    grid-template-columns: repeat(7, 12fr);
+    grid-template-columns: repeat(7, 1fr);
     gap: 10px;
     width: 100%;
 }
@@ -148,21 +144,10 @@ body {
     color: #ffffff;
 }
 
-/* Cores das tags de dia exatamente iguais aos prints */
-.header-dia.seg, .header-dia.ter, .header-dia.qua, .header-dia.qui, .header-dia.sex {
-    background-color: #2f855a;
-}
-.header-dia.sab {
-    background-color: #dd6b20;
-}
-.header-dia.dom {
-    background-color: #e53e3e;
-    background-opacity: 0.2;
-    color: #feb2b2;
-    border: 1px solid rgba(229, 62, 62, 0.4);
-}
+.header-dia.seg, .header-dia.ter, .header-dia.qua, .header-dia.qui, .header-dia.sex { background-color: #2f855a; }
+.header-dia.sab { background-color: #dd6b20; }
+.header-dia.dom { background-color: #e53e3e; }
 
-/* Cards das Consultas dentro do Grid */
 .card-consulta-grid {
     background-color: #1a202c;
     border-left: 4px solid #718096;
@@ -172,220 +157,37 @@ body {
     display: flex;
     flex-direction: column;
     gap: 3px;
-    position: relative;
 }
 
 .card-consulta-grid.online { border-left-color: #3182ce; }
 .card-consulta-grid.presencial { border-left-color: #38a169; }
 
-.card-consulta-grid.mapeado-excecao {
-    background-color: #ffffff;
-    color: #1a202c;
-    padding-right: 25px;
-}
-.card-consulta-grid.mapeado-excecao .horario-mod {
-    color: #4a5568;
-}
+.card-consulta-grid .nome { font-weight: 600; }
+.card-consulta-grid .horario-mod { font-size: 0.75rem; color: #a0aec0; }
 
-.card-consulta-grid .nome {
-    font-weight: 600;
-}
-
-.card-consulta-grid .horario-mod {
-    font-size: 0.75rem;
-    color: #a0aec0;
-}
-
-.btn-acoes-card-grid {
-    position: absolute;
-    right: 6px;
-    top: 4px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-    color: #718096;
-    font-size: 1rem;
-}
-
-/* ==========================================================================
-   ESTILIZAÇÃO DO PRONTUÁRIO E SIDEBAR (IMAGEM 4 E 5)
-   ========================================================================== */
-.tela-perfil-prontuario-container {
-    display: flex;
-    gap: 20px;
-    width: 100%;
-    align-items: flex-start;
-}
-
-.formulario-lado-esquerdo {
-    flex: 1;
-    min-width: 0;
-    background-color: #111827;
-    border: 1px solid #1f2937;
-    border-radius: 8px;
-    padding: 25px;
-}
+/* PRONTUÁRIO E FORMULÁRIO */
+.secao-tela-sistema { width: 100%; }
+.tela-perfil-prontuario-container { display: flex; gap: 20px; width: 100%; align-items: flex-start; }
+.formulario-lado-esquerdo { flex: 1; background-color: #111827; border: 1px solid #1f2937; border-radius: 8px; padding: 25px; }
 
 .form-group-full { margin-bottom: 18px; width: 100%; }
 .form-row-dois-campos { display: flex; gap: 16px; margin-bottom: 18px; }
-.form-row-dois-campos .form-group { flex: 1; min-width: 0; }
+.form-row-dois-campos .form-group { flex: 1; }
 .form-row-tres-campos { display: flex; gap: 16px; margin-bottom: 18px; }
-.form-row-tres-campos .form-group { flex: 1; min-width: 0; }
+.form-row-tres-campos .form-group { flex: 1; }
 .form-group { display: flex; flex-direction: column; gap: 6px; }
 
-.form-group-full label, .form-group label {
-    font-size: 0.85rem;
-    color: #e2e8f0;
-    font-weight: 500;
-}
-
-input[type="text"], input[type="date"], input[type="time"], input[type="number"], select, textarea {
-    width: 100%;
-    background-color: #1f2937;
-    border: 1px solid #374151;
-    border-radius: 6px;
-    padding: 10px 12px;
-    color: #ffffff;
-    font-size: 0.9rem;
-    outline: none;
-}
-
+label { font-size: 0.85rem; color: #e2e8f0; }
+input, select, textarea { width: 100%; background-color: #1f2937; border: 1px solid #374151; border-radius: 6px; padding: 10px; color: #ffffff; outline: none; }
 input:focus, select:focus, textarea:focus { border-color: #3b82f6; }
-textarea { resize: vertical; }
 
-.section-title-formulario {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin: 25px 0 15px 0;
-    color: #cbd5e1;
-    border-bottom: 1px solid #334155;
-    padding-bottom: 8px;
-}
+.section-title-formulario { font-size: 1.1rem; margin: 25px 0 15px 0; color: #cbd5e1; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+.container-botoes-acoes { margin-top: 20px; }
+.btn-principal { background-color: #10b981; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; cursor: pointer; }
 
-/* BOTÕES DE AÇÃO: ALINHADOS SEM ESMAGAR */
-.container-botoes-acoes {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    justify-content: flex-start;
-    margin-top: 30px;
-    padding-top: 15px;
-    border-top: 1px solid #1f2937;
-    width: 100%;
-}
-
-.btn-principal {
-    background-color: #10b981;
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 0.9rem;
-    padding: 10px 24px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.btn-principal:hover { background-color: #059669; }
-
-.btn-perigo-remover {
-    background-color: #ef4444;
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 0.9rem;
-    padding: 10px 24px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.btn-perigo-remover:hover { background-color: #dc2626; }
-
-/* BARRA LATERAL */
-.sidebar-historico-agenda {
-    width: 340px;
-    flex-shrink: 0;
-    background-color: #111827;
-    border: 1px solid #1f2937;
-    border-radius: 8px;
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.box-resumo-plano {
-    background-color: #edf2f7;
-    color: #2d3748;
-    border-radius: 6px;
-    padding: 12px;
-    font-size: 0.85rem;
-    line-height: 1.5;
-}
-
-.lista-scroll-sessoes {
-    max-height: 480px;
-    overflow-y: auto;
-}
-
-.container-linha-bloco {
-    position: relative;
-    background-color: #1a202c;
-    border-left: 4px solid #718096;
-    border-radius: 4px;
-    padding: 10px 42px 10px 12px;
-    margin-bottom: 8px;
-}
-
-.status-agendado-card { border-left-color: #3182ce; }
-.status-realizado-card { border-left-color: #38a169; }
-.status-faltou-card { border-left-color: #e53e3e; }
-.status-cancelado-card { border-left-color: #dd6b20; }
-
-.container-linha-bloco strong { color: #ffffff; display: block; margin-bottom: 3px; }
-.container-linha-bloco span { color: #a0aec0; }
-
-.btn-tres-pontos-agenda {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: transparent;
-    border: none;
-    color: #a0aec0;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 1.2rem;
-    padding: 6px;
-    z-index: 5;
-}
-
-.btn-tres-pontos-agenda:hover { color: #ffffff; }
-
-/* MODAL DE EDIÇÃO PONTUAL */
-.modal-sobreposto-agenda {
-    position: fixed;
-    top: 0; left: 0; width: 100vw; height: 100vh;
-    background-color: rgba(0,0,0,0.6);
-    display: none;
-    align-items: center; justify-content: center;
-    z-index: 100;
-}
-
-.modal-conteudo-agenda {
-    background-color: #1f2937;
-    border: 1px solid #374151;
-    border-radius: 8px;
-    padding: 20px;
-    width: 320px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.modal-conteudo-agenda h3 { font-size: 1rem; color: #ffffff; }
-.form-group-modal { display: flex; flex-direction: column; gap: 4px; }
-.form-group-modal label { font-size: 0.8rem; color: #cbd5e1; }
-.modal-botoes-linha { display: flex; gap: 10px; margin-top: 10px; }
-.btn-modal-salvar { flex: 1; background-color: #3b82f6; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: 600; }
-.btn-modal-fechar { flex: 1; background-color: #4b5563; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: 600; }
+/* SIDEBAR DA AGENDA */
+.sidebar-historico-agenda { width: 340px; background-color: #111827; border: 1px solid #1f2937; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 15px; }
+.box-resumo-plano { background-color: #edf2f7; color: #2d3748; border-radius: 6px; padding: 12px; font-size: 0.85rem; }
+.container-linha-bloco { background-color: #1a202c; border-left: 4px solid #3182ce; padding: 10px; margin-bottom: 8px; border-radius: 4px; }
+.container-linha-bloco strong { display: block; color: white; font-size: 0.85rem; }
+.container-linha-bloco span { color: #a0aec0; font-size: 0.8rem; }
