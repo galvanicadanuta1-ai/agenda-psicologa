@@ -1,4 +1,4 @@
-/* RESET DE ESTILOS GERAIS */
+/* CONFIGURAÇÕES E RESETS GERAIS */
 * {
     margin: 0;
     padding: 0;
@@ -9,25 +9,67 @@
 body {
     background-color: #0b111e;
     color: #f7fafc;
-    padding: 20px;
     min-height: 100vh;
 }
 
-/* WRAPPER PRINCIPAL */
+/* NAVBAR INTEGRADA */
+.navbar-sistema {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #111827;
+    border-bottom: 1px solid #1f2937;
+    padding: 12px 30px;
+    position: sticky;
+    top: 0;
+    z-index: 90;
+}
+
+.logo-sistema {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.menu-navegacao {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-nav {
+    background: transparent;
+    border: 1px solid #374151;
+    color: #9ca3af;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-nav:hover, .btn-nav.active {
+    background-color: #1f2937;
+    color: #ffffff;
+    border-color: #3b82f6;
+}
+
+/* CONTAINER DO DASHBOARD */
 .dashboard-wrapper {
     max-width: 1400px;
     margin: 0 auto;
     width: 100%;
+    padding: 25px;
 }
 
 .dashboard-header h1 {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     font-weight: 600;
     margin-bottom: 20px;
     color: #ffffff;
 }
 
-/* PLACAR DE PACIENTES */
+/* CARDS DE METRICAS */
 .metricas-cards-container {
     display: flex;
     gap: 20px;
@@ -38,11 +80,11 @@ body {
     background-color: #172033;
     border: 1px solid #23324d;
     border-radius: 8px;
-    padding: 20px;
-    min-width: 240px;
+    padding: 18px;
+    min-width: 220px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 .card-metrica-titulo {
@@ -53,12 +95,122 @@ body {
 }
 
 .card-metrica-valor {
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: 700;
     color: #ffffff;
 }
 
-/* CORREÇÃO DO LAYOUT: CONTAINER FLEXÍVEL E PROTEÇÃO DE ESTRUTURA */
+/* ==========================================================================
+   ESTILIZAÇÃO DO GRID DA AGENDA SEMANAL (IMAGEM 1, 2 E 3)
+   ========================================================================== */
+.agenda-semana-container {
+    background-color: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.agenda-semana-titulo {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    text-align: center;
+    background-color: #1f2937;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
+.grid-agenda-semanal {
+    display: grid;
+    grid-template-columns: repeat(7, 12fr);
+    gap: 10px;
+    width: 100%;
+}
+
+.coluna-dia {
+    background-color: #172033;
+    border: 1px solid #23324d;
+    border-radius: 6px;
+    padding: 8px;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.header-dia {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+    padding: 6px;
+    border-radius: 4px;
+    color: #ffffff;
+}
+
+/* Cores das tags de dia exatamente iguais aos prints */
+.header-dia.seg, .header-dia.ter, .header-dia.qua, .header-dia.qui, .header-dia.sex {
+    background-color: #2f855a;
+}
+.header-dia.sab {
+    background-color: #dd6b20;
+}
+.header-dia.dom {
+    background-color: #e53e3e;
+    background-opacity: 0.2;
+    color: #feb2b2;
+    border: 1px solid rgba(229, 62, 62, 0.4);
+}
+
+/* Cards das Consultas dentro do Grid */
+.card-consulta-grid {
+    background-color: #1a202c;
+    border-left: 4px solid #718096;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    position: relative;
+}
+
+.card-consulta-grid.online { border-left-color: #3182ce; }
+.card-consulta-grid.presencial { border-left-color: #38a169; }
+
+.card-consulta-grid.mapeado-excecao {
+    background-color: #ffffff;
+    color: #1a202c;
+    padding-right: 25px;
+}
+.card-consulta-grid.mapeado-excecao .horario-mod {
+    color: #4a5568;
+}
+
+.card-consulta-grid .nome {
+    font-weight: 600;
+}
+
+.card-consulta-grid .horario-mod {
+    font-size: 0.75rem;
+    color: #a0aec0;
+}
+
+.btn-acoes-card-grid {
+    position: absolute;
+    right: 6px;
+    top: 4px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    color: #718096;
+    font-size: 1rem;
+}
+
+/* ==========================================================================
+   ESTILIZAÇÃO DO PRONTUÁRIO E SIDEBAR (IMAGEM 4 E 5)
+   ========================================================================== */
 .tela-perfil-prontuario-container {
     display: flex;
     gap: 20px;
@@ -66,63 +218,29 @@ body {
     align-items: flex-start;
 }
 
-/* LADO ESQUERDO AUTO-AJUSTÁVEL */
 .formulario-lado-esquerdo {
     flex: 1;
-    min-width: 0; 
+    min-width: 0;
     background-color: #111827;
     border: 1px solid #1f2937;
     border-radius: 8px;
     padding: 25px;
 }
 
-/* COMPONENTES DE FORMULÁRIO */
-.form-group-full {
-    margin-bottom: 18px;
-    width: 100%;
-}
+.form-group-full { margin-bottom: 18px; width: 100%; }
+.form-row-dois-campos { display: flex; gap: 16px; margin-bottom: 18px; }
+.form-row-dois-campos .form-group { flex: 1; min-width: 0; }
+.form-row-tres-campos { display: flex; gap: 16px; margin-bottom: 18px; }
+.form-row-tres-campos .form-group { flex: 1; min-width: 0; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
 
-.form-row-dois-campos {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 18px;
-}
-
-.form-row-dois-campos .form-group {
-    flex: 1;
-    min-width: 0;
-}
-
-.form-row-tres-campos {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 18px;
-}
-
-.form-row-tres-campos .form-group {
-    flex: 1;
-    min-width: 0;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.form-group-full label,
-.form-group label {
+.form-group-full label, .form-group label {
     font-size: 0.85rem;
     color: #e2e8f0;
     font-weight: 500;
 }
 
-input[type="text"],
-input[type="date"],
-input[type="time"],
-input[type="number"],
-select,
-textarea {
+input[type="text"], input[type="date"], input[type="time"], input[type="number"], select, textarea {
     width: 100%;
     background-color: #1f2937;
     border: 1px solid #374151;
@@ -131,16 +249,10 @@ textarea {
     color: #ffffff;
     font-size: 0.9rem;
     outline: none;
-    transition: border-color 0.2s ease;
 }
 
-input:focus, select:focus, textarea:focus {
-    border-color: #3b82f6;
-}
-
-textarea {
-    resize: vertical;
-}
+input:focus, select:focus, textarea:focus { border-color: #3b82f6; }
+textarea { resize: vertical; }
 
 .section-title-formulario {
     font-size: 1.1rem;
@@ -151,12 +263,12 @@ textarea {
     padding-bottom: 8px;
 }
 
-/* REPOSICIONAMENTO DOS BOTÕES: ALINHADOS JUNTOS À ESQUERDA */
+/* BOTÕES DE AÇÃO: ALINHADOS SEM ESMAGAR */
 .container-botoes-acoes {
     display: flex;
     gap: 12px;
     align-items: center;
-    justify-content: flex-start; 
+    justify-content: flex-start;
     margin-top: 30px;
     padding-top: 15px;
     border-top: 1px solid #1f2937;
@@ -172,12 +284,9 @@ textarea {
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
 }
 
-.btn-principal:hover {
-    background-color: #059669;
-}
+.btn-principal:hover { background-color: #059669; }
 
 .btn-perigo-remover {
     background-color: #ef4444;
@@ -188,15 +297,11 @@ textarea {
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    display: inline-block; /* Sempre visível para este modelo */
-    transition: background-color 0.2s ease;
 }
 
-.btn-perigo-remover:hover {
-    background-color: #dc2626;
-}
+.btn-perigo-remover:hover { background-color: #dc2626; }
 
-/* BARRA LATERAL FIXA DA AGENDA */
+/* BARRA LATERAL */
 .sidebar-historico-agenda {
     width: 340px;
     flex-shrink: 0;
@@ -221,50 +326,25 @@ textarea {
 .lista-scroll-sessoes {
     max-height: 480px;
     overflow-y: auto;
-    padding-right: 4px;
 }
 
-/* Customização de Scrollbar para a Lista */
-.lista-scroll-sessoes::-webkit-scrollbar {
-    width: 6px;
-}
-.lista-scroll-sessoes::-webkit-scrollbar-track {
-    background: #1f2937;
-    border-radius: 4px;
-}
-.lista-scroll-sessoes::-webkit-scrollbar-thumb {
-    background: #4b5563;
-    border-radius: 4px;
-}
-
-/* CARDS DE LINHA DO HISTÓRICO COM PREVENÇÃO DE ESTOURO */
 .container-linha-bloco {
     position: relative;
     background-color: #1a202c;
     border-left: 4px solid #718096;
     border-radius: 4px;
-    padding: 10px 42px 10px 12px; /* Margem da direita estendida para isolar os 3 pontos */
+    padding: 10px 42px 10px 12px;
     margin-bottom: 8px;
-    box-sizing: border-box;
 }
 
-/* Estilizações de Status Baseados na Configuração do app.js */
 .status-agendado-card { border-left-color: #3182ce; }
 .status-realizado-card { border-left-color: #38a169; }
 .status-faltou-card { border-left-color: #e53e3e; }
 .status-cancelado-card { border-left-color: #dd6b20; }
 
-.container-linha-bloco strong {
-    color: #ffffff;
-    display: block;
-    margin-bottom: 3px;
-}
+.container-linha-bloco strong { color: #ffffff; display: block; margin-bottom: 3px; }
+.container-linha-bloco span { color: #a0aec0; }
 
-.container-linha-bloco span {
-    color: #a0aec0;
-}
-
-/* BOTÃO DE TRÊS PONTOS ABSOLUTO E TOTALMENTE VISÍVEL */
 .btn-tres-pontos-agenda {
     position: absolute;
     right: 12px;
@@ -278,25 +358,17 @@ textarea {
     font-size: 1.2rem;
     padding: 6px;
     z-index: 5;
-    line-height: 1;
-    transition: color 0.2s ease;
 }
 
-.btn-tres-pontos-agenda:hover {
-    color: #ffffff;
-}
+.btn-tres-pontos-agenda:hover { color: #ffffff; }
 
-/* MODAL DE EDIÇÃO */
+/* MODAL DE EDIÇÃO PONTUAL */
 .modal-sobreposto-agenda {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+    top: 0; left: 0; width: 100vw; height: 100vh;
     background-color: rgba(0,0,0,0.6);
     display: none;
-    align-items: center;
-    justify-content: center;
+    align-items: center; justify-content: center;
     z-index: 100;
 }
 
@@ -311,47 +383,9 @@ textarea {
     gap: 12px;
 }
 
-.modal-conteudo-agenda h3 {
-    font-size: 1rem;
-    margin-bottom: 5px;
-    color: #ffffff;
-}
-
-.form-group-modal {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.form-group-modal label {
-    font-size: 0.8rem;
-    color: #cbd5e1;
-}
-
-.modal-botoes-linha {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.btn-modal-salvar {
-    flex: 1;
-    background-color: #3b82f6;
-    color: white;
-    border: none;
-    padding: 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.btn-modal-fechar {
-    flex: 1;
-    background-color: #4b5563;
-    color: white;
-    border: none;
-    padding: 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 600;
-}
+.modal-conteudo-agenda h3 { font-size: 1rem; color: #ffffff; }
+.form-group-modal { display: flex; flex-direction: column; gap: 4px; }
+.form-group-modal label { font-size: 0.8rem; color: #cbd5e1; }
+.modal-botoes-linha { display: flex; gap: 10px; margin-top: 10px; }
+.btn-modal-salvar { flex: 1; background-color: #3b82f6; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: 600; }
+.btn-modal-fechar { flex: 1; background-color: #4b5563; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: 600; }
