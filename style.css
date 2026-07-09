@@ -1,253 +1,100 @@
 :root {
-    --cor-menu: #2c3e50;
-    --cor-principal: #1abc9c;
-    --cor-fundo: #f5f7fa;
-    --cor-card: #ffffff;
-    --cor-texto: #333333;
-    --cor-borda: #e2e8f0;
+    --bg-primary: #f8fafc;
+    --sidebar-bg: #1e293b;
+    --primary-color: #2563eb;
+    --text-main: #334155;
+    --border-color: #cbd5e1;
+    --card-bg: #ffffff;
+    --text-dark: #0f172a;
+    --semana-bg: #f1f5f9;
+    --semana-text: #0f172a;
+    --border-grade: #e2e8f0;
+    --bg-dia-util: #e6f4ea;
+    --text-dia-util: #137333;
+    --bg-dia-sab: #fef7e0;
+    --text-dia-sab: #b06000;
+    --bg-dia-dom: #fce8e6;
+    --text-dia-dom: #c5221f;
+    --bg-status-agendado: #f1f5f9;
+    --text-status-agendado: #475569;
+    --border-status-agendado: #cbd5e1;
+    --bg-status-realizado: #e6f4ea;
+    --text-status-realizado: #137333;
+    --border-status-realizado: #a3cfbb;
+    --bg-status-falta: #fce8e6;
+    --text-status-falta: #c5221f;
+    --border-status-falta: #f5c2c7;
+    --bg-status-cancelado: #fafafa;
+    --text-status-cancelado: #9e9e9e;
+    --border-status-cancelado: #e0e0e0;
 }
 
-body.dark-mode {
-    --cor-menu: #1a202c;
-    --cor-principal: #319795;
-    --cor-fundo: #171923;
-    --cor-card: #2d3748;
-    --cor-texto: #f7fafc;
-    --cor-borda: #4a5568;
+body.dark-theme {
+    --bg-primary: #0f172a;
+    --sidebar-bg: #020617;
+    --text-main: #cbd5e1;
+    --border-color: #334155;
+    --card-bg: #1e293b;
+    --text-dark: #f8fafc;
+    --semana-bg: #1e293b;
+    --semana-text: #f8fafc;
+    --border-grade: #334155;
+    --bg-dia-util: #064e3b;
+    --text-dia-util: #34d399;
+    --bg-dia-sab: #7c2d12;
+    --text-dia-sab: #fb923c;
+    --bg-dia-dom: #450a0a;
+    --text-dia-dom: #fca5a5;
+    --bg-status-agendado: #1e293b;
+    --text-status-agendado: #cbd5e1;
+    --border-status-agendado: #334155;
+    --bg-status-realizado: #064e3b;
+    --text-status-realizado: #6fe7b7;
+    --border-status-realizado: #047857;
+    --bg-status-falta: #450a0a;
+    --text-status-falta: #fca5a5;
+    --border-status-falta: #7f1d1d;
+    --bg-status-cancelado: #111827;
+    --text-status-cancelado: #6b7280;
+    --border-status-cancelado: #1f2937;
 }
 
 * {
-    margin: 0;
-    padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
-    background-color: var(--cor-fundo);
-    color: var(--cor-texto);
-    transition: background 0.3s, color 0.3s;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-primary);
+    color: var(--text-main);
+    display: flex;
+    transition: background-color 0.3s;
 }
 
-.container-app { display: flex; min-height: 100vh; }
-
-.sidebar {
+.sidebar-menu {
     width: 260px;
-    background-color: var(--cor-menu);
+    height: 100vh;
+    background-color: var(--sidebar-bg);
     color: white;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 20px 0;
 }
 
 .sidebar-brand {
-    text-align: center;
-    padding-bottom: 20px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 10px 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
     margin-bottom: 20px;
-}
-
-.sidebar-brand h1 { font-size: 20px; letter-spacing: 1px; }
-.sidebar-menu { display: flex; flex-direction: column; gap: 10px; }
-
-.sidebar-menu button {
-    background: none;
-    border: none;
-    color: rgba(255,255,255,0.8);
-    padding: 12px 15px;
-    text-align: left;
-    font-size: 15px;
-    cursor: pointer;
-    border-radius: 6px;
-    transition: all 0.2s;
-}
-
-.sidebar-menu button:hover {
-    background-color: var(--cor-principal);
-    color: white;
-    padding-left: 20px;
-}
-
-.conteudo-principal { flex: 1; padding: 25px; display: flex; flex-direction: column; }
-
-.topo-sistema {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid var(--cor-borda);
-}
-
-.btn-menu-mobile { display: none; font-size: 20px; background: none; border: none; cursor: pointer; color: var(--cor-texto); }
-.tela { animation: fadeIn 0.25s ease-in-out; }
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
-.card { background: var(--cor-card); padding: 25px; border-radius: 10px; border-bottom: 4px solid var(--cor-borda); }
-.card h3 { font-size: 14px; color: #718096; margin-bottom: 10px; }
-.card p { font-size: 28px; font-weight: bold; }
-
-.bg-primario { border-bottom-color: var(--cor-principal); }
-.bg-sucesso { border-bottom-color: #38a169; }
-.bg-alerta { border-bottom-color: #e53e3e; }
-.bg-info { border-bottom-color: #3182ce; }
-
-.semana-bloco { margin-bottom: 35px; background: rgba(0,0,0,0.01); padding: 15px; border-radius: 10px; border: 1px dashed var(--cor-borda); }
-.semana-titulo { font-size: 14px; font-weight: bold; margin-bottom: 12px; color: var(--cor-principal); display: inline-block; background: var(--cor-card); padding: 5px 14px; border-radius: 20px; }
-
-/* GRADE CORRIGIDA PARA 7 COLUNAS (INCLUSÃO DO DOMINGO) */
-.grade-agenda {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 10px;
-    align-items: start;
-}
-
-.coluna-dia { background: var(--cor-card); border-radius: 8px; min-height: 180px; border-top: 4px solid var(--cor-borda); }
-.coluna-dia h3 { text-align: center; padding: 10px; font-size: 12px; background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--cor-borda); }
-.slots-agendamentos { padding: 6px; }
-
-/* MODIFICAÇÃO CIRÚRGICA: Adicionado position:relative e padding para comportar os 3 pontos */
-.card-compromisso {
-    background: #e6fffa;
-    border-left: 4px solid #319795;
-    color: #234e52;
-    padding: 8px;
-    padding-right: 22px; /* Abre espaço para o botão não sobrepor o nome do paciente */
-    margin-bottom: 6px;
-    border-radius: 6px;
-    font-size: 12px;
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    position: relative !important; /* Torna o card a referência para o posicionamento do botão */
-}
-
-.card-paciente-nome { font-weight: bold; color: var(--cor-texto); word-break: break-all; }
-.card-paciente-hora { font-size: 11px; color: #4a5568; }
-.card-paciente-modalidade { font-size: 10px; font-weight: 600; text-transform: uppercase; color: #319795; }
-
-body.dark-mode .card-compromisso { background: #234e52; border-left-color: #1abc9c; }
-body.dark-mode .card-paciente-nome { color: #ffffff; }
-
-/* ESTRUTURA DO NOVO SIDEBAR DE PERFIL SPLIT COMPACTO */
-.perfil-paciente-layout {
-    display: flex;
-    gap: 20px;
-    align-items: flex-start;
-    flex-wrap: wrap;
-}
-
-.sidebar-perfil-direita {
-    width: 350px;
-    background: var(--cor-card);
-    border: 1px solid var(--cor-borda);
-    border-radius: 8px;
-    padding: 20px;
-    display: none;
-}
-
-.sidebar-perfil-direita h3 { font-size: 16px; margin-bottom: 12px; border-bottom: 2px solid var(--cor-principal); padding-bottom: 5px; }
-.sidebar-perfil-direita h4 { font-size: 14px; margin-top: 15px; margin-bottom: 8px; color: #718096; }
-
-.resumo-plano-box {
-    background: rgba(0,0,0,0.02);
-    padding: 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    line-height: 1.5;
-    border-left: 4px solid var(--cor-principal);
-}
-
-.lista-recorrencia-scroll {
-    max-height: 420px;
-    overflow-y: auto;
-    padding-right: 5px;
-}
-
-/* MODIFICAÇÃO CIRÚRGICA: Suporte para o botão relativo no calendário lateral */
-.linha-previsao {
-    padding: 10px;
-    border-bottom: 1px solid var(--cor-borda);
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    font-size: 13px;
-    position: relative !important;
+    text-align: center;
+    gap: 6px;
 }
 
-.linha-previsao-info span { display: block; font-size: 11px; color: #718096; }
-
-/* MODIFICAÇÃO CIRÚRGICA: Fixa os 3 pontos discretamente no canto superior direito de qualquer card */
-.btn-tres-pontos,
-.btn-tres-pontos-agenda {
-    position: absolute !important;
-    top: 4px !important;
-    right: 4px !important;
-    background: none !important;
-    border: none !important;
-    font-weight: bold !important;
-    font-size: 14px !important;
-    cursor: pointer !important;
-    color: #a0aec0 !important; /* Cinza bem discreto por padrão */
-    padding: 2px 5px !important;
-    line-height: 1 !important;
-    border-radius: 4px !important;
-    transition: all 0.2s;
-}
-
-/* Realce sutil ao passar o mouse */
-.btn-tres-pontos:hover,
-.btn-tres-pontos-agenda:hover {
-    background-color: rgba(0, 0, 0, 0.05) !important;
-    color: var(--cor-texto) !important;
-}
-
-/* Ajuste de realce do botão para o modo escuro */
-body.dark-mode .btn-tres-pontos:hover,
-body.dark-mode .btn-tres-pontos-agenda:hover {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    color: #ffffff !important;
-}
-
-.box-editor-linha {
-    background: rgba(0,0,0,0.04);
-    padding: 12px;
-    border-radius: 6px;
-    margin-top: 5px;
-    margin-bottom: 10px;
-    display: none;
-    border: 1px solid var(--cor-borda);
-}
-
-.lista-header input { padding: 10px 15px; border: 1px solid var(--cor-borda); border-radius: 6px; width: 300px; background: var(--cor-card); color: var(--cor-texto); }
-.grid-pacientes { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-.cardPaciente { background: var(--cor-card); border: 1px solid var(--cor-borda); padding: 20px; border-radius: 8px; }
-.acoes-card { margin-top: 15px; display: flex; gap: 10px; }
-.acoes-card button { flex: 1; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
-.btn-editar { background-color: #ecc94b; color: #5a4312; }
-.btn-excluir { background-color: #fed7d7; color: #9b2c2c; }
-
-fieldset { border: 1px solid var(--cor-borda); padding: 20px; border-radius: 8px; margin-bottom: 25px; background: var(--cor-card); }
-legend { padding: 0 10px; font-weight: bold; color: var(--cor-principal); }
-.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; width: 100%; }
-.form-group-row { display: flex; gap: 15px; }
-label { font-size: 13px; font-weight: 600; }
-input, select, textarea { padding: 10px; border: 1px solid var(--cor-borda); border-radius: 6px; background-color: var(--cor-fundo); color: var(--cor-texto); font-size: 14px; }
-input:focus, select:focus, textarea:focus { border-color: var(--cor-principal); outline: none; }
-
-.form-acoes { display: flex; justify-content: flex-end; gap: 15px; }
-.btn-salvar { background-color: var(--cor-principal); color: white; border: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-.btn-cancelar { background-color: #e2e8f0; color: #4a5568; border: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-
-.modal-popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(3px); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-.modal-popup-content { background: var(--cor-card); color: var(--cor-texto); padding: 30px; border-radius: 12px; width: 100%; max-width: 480px; border-top: 5px solid var(--cor-principal); }
-
-@media (max-width: 1250px) { .grade-agenda { grid-template-columns: repeat(4, 1fr); } }
-@media (max-width: 900px) { .grade-agenda { grid-template-columns: repeat(2, 1fr); } .sidebar-perfil-direita { width: 100%; } }
-@media (max-width: 600px) { .container-app { flex-direction: column; } .sidebar { width: 100%; } .grade-agenda { grid-template-columns: 1fr; } .form-group-row { flex-direction: column; } }
+.sidebar-brand img {
+    max-width: 90%;
+    max-height: 70px;
