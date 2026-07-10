@@ -18,6 +18,22 @@ const MAPA_CLASSES_STATUS = {
     'Cancelado': 'status-cancelado'
 };
 
+function chavePagamentoOcorrencia(pacienteId, dataISO) {
+    return `pagamento_ocorrencia_${pacienteId}_${dataISO}`;
+}
+
+function carregarStatusPagamentoOcorrencia(pacienteId, dataISO) {
+    const campoPago = document.getElementById('valorOcorrenciaPago');
+    if (!campoPago) return;
+    campoPago.checked = pacienteId && dataISO ? localStorage.getItem(chavePagamentoOcorrencia(pacienteId, dataISO)) === 'true' : false;
+}
+
+function salvarStatusPagamentoOcorrencia(pacienteId, dataISO) {
+    const campoPago = document.getElementById('valorOcorrenciaPago');
+    if (!campoPago || !pacienteId || !dataISO) return;
+    localStorage.setItem(chavePagamentoOcorrencia(pacienteId, dataISO), campoPago.checked ? 'true' : 'false');
+}
+
 function formatarDataISO(data) {
     return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')}`;
 }
@@ -318,6 +334,7 @@ window.abrirEditorDiretoAgenda = function(pacienteId, dataISO, hora, modalidade,
     document.getElementById('modalidadeAgendamento').value = modalidade;
     document.getElementById('valorAgendamento').value = valor;
     document.getElementById('statusAgendamento').value = status;
+    carregarStatusPagamentoOcorrencia(pacienteId, dataISO);
 
     document.getElementById('btnPersistirAgendamento').onclick = async function() {
         const escopo = document.getElementById('escopoModificacaoAgenda').value;
@@ -328,6 +345,10 @@ window.abrirEditorDiretoAgenda = function(pacienteId, dataISO, hora, modalidade,
         const novoStat = document.getElementById('statusAgendamento').value;
 
         await executarSalvamentoPorEscopo(pacienteId, dataISO, novaData, novaHora, novaMod, novoVal, novoStat, escopo, null);
+        salvarStatusPagamentoOcorrencia(pacienteId, novaData);
+        if (novaData !== dataISO) {
+            localStorage.removeItem(chavePagamentoOcorrencia(pacienteId, dataISO));
+        }
         fecharModalAgendamento();
         carregarAgendaSemanal();
         renderizarSidebarCalendarioPaciente(idPacienteEditando, true);
@@ -472,11 +493,12 @@ async function renderizarSidebarCalendarioPaciente(pacienteId, manterPeriodoAtua
                 const exibMod = excecao && excecao.modalidade ? excecao.modalidade : modalidade;
                 const exibStatus = excecao ? excecao.status : 'Agendado';
                 const classeStatusSide = MAPA_CLASSES_STATUS[exibStatus] || 'status-agendado';
+                const pago = localStorage.getItem(chavePagamentoOcorrencia(pacienteId, dataISO)) === 'true';
 
                 htmlProxe += `
                     <div class="container-linha-bloco ${classeStatusSide}">
                         <div class="linha-data">${exibData} as ${exibHora} - ${exibMod}</div>
-                        <div class="linha-status">Status: <b>${exibStatus}</b> | R$ ${Number(exibValor).toFixed(2)}</div>
+                        <div class="linha-status">Status: <b>${exibStatus}</b> | R$ ${Number(exibValor).toFixed(2)}${pago ? ' | Pago' : ''}</div>
                         <button class="btn-tres-pontos-sidebar" title="Editar esta data" onclick="abrirEditorDiretoAgenda('${pacienteId}', '${dataISO}', '${exibHora}', '${exibMod}', '${Number(exibValor)}', '${exibStatus}')">...</button>
                     </div>
                 `;
