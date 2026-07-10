@@ -1,164 +1,287 @@
-        lista.innerHTML = html;
-    } catch (err) {
-        console.error(err);
-    }
-}
-window.prepararEdicaoPaciente = async function(id) {
-    idPacienteEditando = id;
-    try {
-        const { data } = await bancoDados.from('pacientes').select('*').eq('id', id);
-        const p = data[0];
-        mostrarTela('novoPaciente');
-        if (document.getElementById('nome')) document.getElementById('nome').value = p.nome || '';
-        if (document.getElementById('cpf')) document.getElementById('cpf').value = p.cpf || '';
-        if (document.getElementById('telefone')) document.getElementById('telefone').value = p.telefone || '';
-        if (document.getElementById('email')) document.getElementById('email').value = p.email || '';
-        if (document.getElementById('dataNascimento')) document.getElementById('dataNascimento').value = p.data_nascimento || '';
-        if (document.getElementById('endereco')) document.getElementById('endereco').value = p.endereco || '';
-        if (document.getElementById('responsavel')) document.getElementById('responsavel').value = p.responsavel || '';
-        if (document.getElementById('observacoes')) document.getElementById('observacoes').value = p.observacoes || '';
-        if (document.getElementById('statusVinculo')) document.getElementById('statusVinculo').value = p.status || 'Ativo';
-        const planoRes = await bancoDados.from('planos_atendimento').select('*').eq('paciente_id', id);
-        if (planoRes.data && planoRes.data.length > 0) {
-            const pl = planoRes.data[0];
-            if (document.getElementById('dataInicial')) document.getElementById('dataInicial').value = pl.data_inicio || '';
-            if (document.getElementById('diaSemana')) document.getElementById('diaSemana').value = pl.dia_semana || 'Segunda';
-            if (document.getElementById('frequencia')) document.getElementById('frequencia').value = pl.frequencia || 'Semanal';
-            if (document.getElementById('horario')) document.getElementById('horario').value = pl.hora_padrao || '';
-            if (document.getElementById('modalidade')) document.getElementById('modalidade').value = pl.modalidade || 'Presencial';
-            if (document.getElementById('valor')) document.getElementById('valor').value = pl.valor || '';
-            if (document.getElementById('formaCobranca')) document.getElementById('formaCobranca').value = pl.forma_cobranca || 'Mensal';
-        }
-        configurarPeriodoPadraoSidebar();
-        renderizarSidebarCalendarioPaciente(id);
-    } catch (err) {
-        console.error(err);
-        alert('Erro ao carregar prontuario.');
-    }
-};
-async function salvarPaciente() {
-    if (!bancoDados) return;
-    const nome = document.getElementById('nome')?.value;
-    if (!nome) {
-        alert('O nome e obrigatorio.');
-        return;
-    }
-    const payloadPaciente = {
-        nome: nome,
-        cpf: document.getElementById('cpf')?.value || '',
-        telefone: document.getElementById('telefone')?.value || '',
-        email: document.getElementById('email')?.value || '',
-        data_nascimento: document.getElementById('dataNascimento')?.value || null,
-        endereco: document.getElementById('endereco')?.value || '',
-        responsavel: document.getElementById('responsavel')?.value || '',
-        observacoes: document.getElementById('observacoes')?.value || '',
-        status: document.getElementById('statusVinculo')?.value || 'Ativo'
-    };
-    try {
-        let pacienteId = idPacienteEditando;
-        if (idPacienteEditando) {
-            await bancoDados.from('pacientes').update(payloadPaciente).eq('id', idPacienteEditando);
-        } else {
-            const { data } = await bancoDados.from('pacientes').insert([payloadPaciente]).select();
-            pacienteId = data[0].id;
-            idPacienteEditando = pacienteId;
-        }
-        const payloadPlano = {
-            paciente_id: pacienteId,
-            data_inicio: document.getElementById('dataInicial')?.value || null,
-            dia_semana: document.getElementById('diaSemana')?.value || 'Segunda',
-            frequencia: document.getElementById('frequencia')?.value || 'Semanal',
-            hora_padrao: document.getElementById('horario')?.value || '',
-            modalidade: document.getElementById('modalidade')?.value || 'Presencial',
-            valor: Number(document.getElementById('valor')?.value || 0),
-            forma_cobranca: document.getElementById('formaCobranca')?.value || 'Mensal',
-            ativo: true
-        };
-        const { data: planoExistente } = await bancoDados.from('planos_atendimento').select('id').eq('paciente_id', pacienteId);
-        if (planoExistente && planoExistente.length > 0) {
-            await bancoDados.from('planos_atendimento').update(payloadPlano).eq('paciente_id', pacienteId);
-        } else {
-            await bancoDados.from('planos_atendimento').insert([payloadPlano]);
-        }
-        alert('Prontuario salvo com sucesso!');
-        mostrarTela('pacientes');
-    } catch (err) {
-        console.error(err);
-        alert('Erro ao salvar.');
-    }
-}
-window.excluirPacienteAtual = async function() {
-    if (!idPacienteEditando || !confirm("Remover permanentemente este registro?")) return;
-    try {
-        await bancoDados.from('planos_atendimento').delete().eq('paciente_id', idPacienteEditando);
-        await bancoDados.from('agendamentos').delete().eq('paciente_id', idPacienteEditando);
-        await bancoDados.from('pacientes').delete().eq('id', idPacienteEditando);
-        idPacienteEditando = null;
-        mostrarTela('pacientes');
-    } catch (err) {
-        console.error(err);
-    }
-};
-function carregarConfiguracoesCampos() {
-    if (document.getElementById('cfgTituloClinica')) document.getElementById('cfgTituloClinica').value = localStorage.getItem('cfg_titulo_clinica') || 'Clinica Integrada';
-    if (document.getElementById('cfgSubtituloClinica')) document.getElementById('cfgSubtituloClinica').value = localStorage.getItem('cfg_subtitulo_clinica') || 'Gestao de Saude';
-    if (document.getElementById('cfgTemaSistema')) document.getElementById('cfgTemaSistema').value = localStorage.getItem('cfg_tema_sistema') || 'claro';
-    if (document.getElementById('cfgCorSidebar')) document.getElementById('cfgCorSidebar').value = localStorage.getItem('cfg_cor_sidebar') || '#1e293b';
-    if (document.getElementById('cfgCorPrincipal')) document.getElementById('cfgCorPrincipal').value = localStorage.getItem('cfg_cor_principal') || '#2563eb';
-    const urlLogoSalva = localStorage.getItem('cfg_logo_url') || '';
-    if (document.getElementById('cfgLogoUrl')) {
-        document.getElementById('cfgLogoUrl').value = urlLogoSalva.startsWith('data:image') ? '(Arquivo local anexado)' : urlLogoSalva;
-    }
-}
-function aplicarConfiguracoesVisuais() {
-    const titulo = localStorage.getItem('cfg_titulo_clinica') || 'Clinica Integrada';
-    const subtitulo = localStorage.getItem('cfg_subtitulo_clinica') || 'Gestao de Saude';
-    const logoUrl = localStorage.getItem('cfg_logo_url') || '';
-    const tema = localStorage.getItem('cfg_tema_sistema') || 'claro';
-    const corSidebar = localStorage.getItem('cfg_cor_sidebar') || '#1e293b';
-    const corPrincipal = localStorage.getItem('cfg_cor_principal') || '#2563eb';
-    if (document.getElementById('nomeClinicaTexto')) document.getElementById('nomeClinicaTexto').innerText = titulo;
-    if (document.getElementById('subtituloClinicaTexto')) document.getElementById('subtituloClinicaTexto').innerText = subtitulo;
-    const imgLogo = document.getElementById('logoClinicaDisplay');
-    if (imgLogo) {
-        if (logoUrl) {
-            imgLogo.src = logoUrl;
-            imgLogo.style.display = 'block';
-        } else {
-            imgLogo.style.display = 'none';
-        }
-    }
-    if (tema === 'escuro') {
-        document.body.classList.add('dark-theme');
-    } else {
-        document.body.classList.remove('dark-theme');
-    }
-    document.documentElement.style.setProperty('--sidebar-bg', corSidebar);
-    document.documentElement.style.setProperty('--primary-color', corPrincipal);
-}
-function salvarConfiguracoes() {
-    const titulo = document.getElementById('cfgTituloClinica')?.value || 'Clinica Integrada';
-    const subtitulo = document.getElementById('cfgSubtituloClinica')?.value || 'Gestao de Saude';
-    const tema = document.getElementById('cfgTemaSistema')?.value || 'claro';
-    const corSidebar = document.getElementById('cfgCorSidebar')?.value || '#1e293b';
-    const corPrincipal = document.getElementById('cfgCorPrincipal')?.value || '#2563eb';
-    localStorage.setItem('cfg_titulo_clinica', titulo);
-    localStorage.setItem('cfg_subtitulo_clinica', subtitulo);
-    localStorage.setItem('cfg_tema_sistema', tema);
-    localStorage.setItem('cfg_cor_sidebar', corSidebar);
-    localStorage.setItem('cfg_cor_principal', corPrincipal);
-    if (uploadLogoBase64) {
-        localStorage.setItem('cfg_logo_url', uploadLogoBase64);
-        uploadLogoBase64 = "";
-    } else {
-        const urlInput = document.getElementById('cfgLogoUrl')?.value || '';
-        if (urlInput && urlInput !== '(Arquivo local anexado)') {
-            localStorage.setItem('cfg_logo_url', urlInput);
-        }
-    }
-    aplicarConfiguracoesVisuais();
-    alert('Configuracoes salvas com sucesso!');
-}
-</script>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Agenda Integrada</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="sidebar-menu">
+        <div class="sidebar-brand">
+            <img id="logoClinicaDisplay" src="" alt="Logo da Clinica">
+            <div id="nomeClinicaTexto" class="sidebar-brand-title">Clinica Integrada</div>
+            <div id="subtituloClinicaTexto" class="sidebar-brand-subtitle">Gestao de Saude</div>
+        </div>
+        <button onclick="mostrarTela('dashboard')">Agenda</button>
+        <button onclick="mostrarTela('pacientes')">Pacientes</button>
+        <button onclick="mostrarTela('configuracoes')">Configuracoes</button>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="header-secao">
+            <h1 id="tituloSecao">Agenda</h1>
+        </div>
+
+        <div id="dashboard" class="tela" style="display: block;">
+            <div class="cards-indicadores">
+                <div class="card-ind">
+                    <h3>Pacientes Ativos</h3>
+                    <p id="totalAtivos">0</p>
+                </div>
+                <div class="card-ind">
+                    <h3>Pacientes Inativos</h3>
+                    <p id="totalInativos">0</p>
+                </div>
+            </div>
+            <div id="grade-agenda-container"></div>
+        </div>
+
+        <div id="pacientes" class="tela">
+            <div class="barra-acoes">
+                <button onclick="acionarMenuNovoPaciente()" class="btn-principal">Novo Paciente</button>
+            </div>
+            <div id="listaPacientes" class="grid-pacientes"></div>
+        </div>
+
+        <div id="novoPaciente" class="tela">
+            <div class="form-container">
+                <form id="formPaciente">
+                    <h3>Informacoes do Prontuario</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nome Completo</label>
+                            <input type="text" id="nome" required>
+                        </div>
+                        <div class="form-group">
+                            <label>CPF</label>
+                            <input type="text" id="cpf">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>WhatsApp / Telefone</label>
+                            <input type="text" id="telefone">
+                        </div>
+                        <div class="form-group">
+                            <label>E-mail</label>
+                            <input type="email" id="email">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Data de Nascimento</label>
+                            <input type="date" id="dataNascimento">
+                        </div>
+                        <div class="form-group">
+                            <label>Responsavel Legal (Se menor)</label>
+                            <input type="text" id="responsavel">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Endereco Residencial</label>
+                        <input type="text" id="endereco">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Vinculo / Status</label>
+                            <select id="statusVinculo">
+                                <option value="Ativo">Ativo</option>
+                                <option value="Inativo">Inativo (Arquivado)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Observacoes Gerais</label>
+                            <textarea id="observacoes" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <h3 class="titulo-bloco-form">Plano Clinico Recorrente</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Data Inicial do Plano</label>
+                            <input type="date" id="dataInicial">
+                        </div>
+                        <div class="form-group">
+                            <label>Dia da Semana</label>
+                            <input type="text" id="diaSemana" disabled>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Frequencia</label>
+                            <select id="frequencia">
+                                <option value="Semanal">Semanal</option>
+                                <option value="Quinzenal">Quinzenal</option>
+                                <option value="Mensal">Mensal</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Horario Fixo</label>
+                            <input type="time" id="horario">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Modalidade</label>
+                            <select id="modalidade">
+                                <option value="Presencial">Presencial</option>
+                                <option value="Online">Online</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Valor da Sessao (R$)</label>
+                            <input type="number" id="valor" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Ciclo de Cobranca</label>
+                            <select id="formaCobranca">
+                                <option value="Mensal">Mensal</option>
+                                <option value="Por Sessao">Por Sessao</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-acoes-paciente">
+                        <button type="button" id="btnSalvarPaciente" class="btn-principal">Salvar Prontuario</button>
+                        <button type="button" id="btnExcluirPacienteForm" class="btn-perigo" onclick="excluirPacienteAtual()">Remover Registro</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="configuracoes" class="tela">
+            <div class="form-container">
+                <h3>Configuracoes de Identidade Visual da Clinica</h3>
+                <p>Personalize as informacoes, logotipo e comportamento visual da plataforma.</p>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Titulo Principal da Clinica</label>
+                        <input type="text" id="cfgTituloClinica" placeholder="Ex: Clinica Integrada">
+                    </div>
+                    <div class="form-group">
+                        <label>Subtitulo / Especialidade</label>
+                        <input type="text" id="cfgSubtituloClinica" placeholder="Ex: Gestao de Saude / Psicologia">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>URL do Logotipo (Link da Imagem)</label>
+                        <input type="text" id="cfgLogoUrl" placeholder="https://exemplo.com/seu-logo.png">
+                    </div>
+                    <div class="form-group">
+                        <label>Ou Anexar Logotipo Local (Upload)</label>
+                        <input type="file" id="cfgLogoFile" accept="image/*">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tema de Cores Geral</label>
+                        <select id="cfgTemaSistema">
+                            <option value="claro">Tema Claro</option>
+                            <option value="escuro">Tema Escuro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Cor de Fundo da Lateral (Sidebar)</label>
+                        <input type="color" id="cfgCorSidebar" value="#1e293b">
+                    </div>
+                    <div class="form-group">
+                        <label>Cor de Destaque (Botoes)</label>
+                        <input type="color" id="cfgCorPrincipal" value="#2563eb">
+                    </div>
+                </div>
+
+                <div class="form-acoes-config">
+                    <button type="button" id="btnSalvarConfiguracoes" class="btn-principal">Salvar Configuracoes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sidebar-agenda-paciente">
+        <h3>Historico e Projecoes</h3>
+        <div id="info-plano-resumo"></div>
+
+        <div class="filtro-periodo-sidebar">
+            <div class="form-group">
+                <label>Data inicial</label>
+                <input type="date" id="periodoConsultaInicio">
+            </div>
+            <div class="form-group">
+                <label>Data final</label>
+                <input type="date" id="periodoConsultaFim">
+            </div>
+            <button type="button" id="btnAplicarPeriodoPaciente" class="btn-principal btn-periodo">Consultar</button>
+        </div>
+
+        <div id="aviso-periodo-paciente" class="aviso-periodo"></div>
+        <div id="lista-proximas-sessoes" class="lista-scroll-previsoes"></div>
+    </div>
+
+    <div id="modalAgendamento" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="modalAgendamentoTitulo">Editar Ocorrencia</h3>
+
+            <div id="containerSelectPacienteAgendamento" class="form-group">
+                <label>Paciente</label>
+                <select id="selectPacienteAgendamento"></select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Data</label>
+                    <input type="date" id="dataAgendamento">
+                </div>
+                <div class="form-group">
+                    <label>Hora</label>
+                    <input type="time" id="horaAgendamento">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Modalidade</label>
+                    <select id="modalidadeAgendamento">
+                        <option value="Presencial">Presencial</option>
+                        <option value="Online">Online</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Valor Ocorrencia</label>
+                    <input type="number" id="valorAgendamento" step="0.01">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Status do Atendimento</label>
+                <select id="statusAgendamento">
+                    <option value="Agendado">Agendado</option>
+                    <option value="Realizado">Realizado (Presenca)</option>
+                    <option value="Falta">Falta</option>
+                    <option value="Cancelado">Cancelado</option>
+                </select>
+            </div>
+
+            <div id="boxEscopoAgenda" class="form-group box-escopo">
+                <label>Onde voce deseja aplicar essa alteracao?</label>
+                <select id="escopoModificacaoAgenda">
+                    <option value="somente">Apenas nesta data especifica</option>
+                    <option value="demais">Nesta data e em todas as sessoes seguintes</option>
+                </select>
+            </div>
+
+            <div class="modal-acoes">
+                <button type="button" class="btn-secundario" onclick="fecharModalAgendamento()">Cancelar</button>
+                <button type="button" id="btnPersistirAgendamento" class="btn-principal">Confirmar Ajustes</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
 </body>
 </html>
