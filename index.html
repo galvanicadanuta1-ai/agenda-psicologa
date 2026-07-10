@@ -1,100 +1,265 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Agenda Integrada</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body>
-    <div class="sidebar-menu">
-        <div class="sidebar-brand">
-            <img id="logoClinicaDisplay" src="" alt="Logo da Clinica">
-            <div id="nomeClinicaTexto" class="sidebar-brand-title">Clinica Integrada</div>
-            <div id="subtituloClinicaTexto" class="sidebar-brand-subtitle">Gestao de Saude</div>
-        </div>
-        <button onclick="mostrarTela('dashboard')">Agenda</button>
-        <button onclick="mostrarTela('pacientes')">Pacientes</button>
-        <button onclick="mostrarTela('configuracoes')">Configuracoes</button>
-    </div>
 
-    <div class="main-wrapper">
-        <div class="header-secao">
-            <h1 id="tituloSecao">Agenda</h1>
-        </div>
+carregui os escript e ao abrir apágina aparece isso: :root { --bg-primary: #f8fafc; --sidebar-bg: #1e293b; --primary-color: #2563eb; --text-main: #334155; --border-color: #cbd5e1; --card-bg: #ffffff; --text-dark: #0f172a; --semana-bg: #f1f5f9; --semana-text: #0f172a; --border-grade: #e2e8f0; --bg-dia-util: #e6f4ea; --text-dia-util: #137333; --bg-dia-sab: #fef7e0; --text-dia-sab: #b06000; --bg-dia-dom: #fce8e6; --text-dia-dom: #c5221f; --bg-status-agendado: #f1f5f9; --text-status-agendado: #475569; --border-status-agendado: #cbd5e1; --bg-status-realizado: #e6f4ea; --text-status-realizado: #137333; --border-status-realizado: #a3cfbb; --bg-status-falta: #fce8e6; --text-status-falta: #c5221f; --border-status-falta: #f5c2c7; --bg-status-cancelado: #fafafa; --text-status-cancelado: #9e9e9e; --border-status-cancelado: #e0e0e0; } body.dark-theme { --bg-primary: #0f172a; --sidebar-bg: #020617; --text-main: #cbd5e1; --border-color: #334155; --card-bg: #1e293b; --text-dark: #f8fafc; --semana-bg: #1e293b; --semana-text: #f8fafc; --border-grade: #334155; --bg-dia-util: #064e3b; --text-dia-util: #34d399; --bg-dia-sab: #7c2d12; --text-dia-sab: #fb923c; --bg-dia-dom: #450a0a; --text-dia-dom: #fca5a5; --bg-status-agendado: #1e293b; --text-status-agendado: #cbd5e1; --border-status-agendado: #334155; --bg-status-realizado: #064e3b; --text-status-realizado: #6fe7b7; --border-status-realizado: #047857; --bg-status-falta: #450a0a; --text-status-falta: #fca5a5; --border-status-falta: #7f1d1d; --bg-status-cancelado: #111827; --text-status-cancelado: #6b7280; --border-status-cancelado: #1f2937; } * { box-sizing: border-box; } body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; background-color: var(--bg-primary); color: var(--text-main); display: flex; transition: background-color 0.3s; } .sidebar-menu { width: 260px; height: 100vh; background-color: var(--sidebar-bg); color: white; position: fixed; top: 0; left: 0; padding: 20px 0; } .sidebar-brand { padding: 10px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.15); margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; } .sidebar-brand img { max-width: 90%; max-height: 70px;
 
-        <div id="dashboard" class="tela" style="display: block;">
-            <div class="cards-indicadores">
-                <div class="card-ind">
-                    <h3>Pacientes Ativos</h3>
-                    <p id="totalAtivos">0</p>
-                </div>
-                <div class="card-ind">
-                    <h3>Pacientes Inativos</h3>
-                    <p id="totalInativos">0</p>
-                </div>
-            </div>
-            <div id="grade-agenda-container"></div>
-        </div>
+Mostrar mais
+14:40
 
-        <div id="pacientes" class="tela">
-            <div class="barra-acoes">
-                <button onclick="acionarMenuNovoPaciente()" class="btn-principal">Novo Paciente</button>
-            </div>
-            <div id="listaPacientes" class="grid-pacientes"></div>
-        </div>
+Trabalhou por 50s
+Conferi aqui: o arquivo index.html está correto e não tem :root dentro dele. O :root { ... } está somente no style.css, como deve ser.
 
-        <div id="novoPaciente" class="tela">
-            <div class="form-container">
-                <form id="formPaciente">
-                    <h3>Informacoes do Prontuario</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Nome Completo</label>
-                            <input type="text" id="nome" required>
-                        </div>
-                        <div class="form-group">
-                            <label>CPF</label>
-                            <input type="text" id="cpf">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>WhatsApp / Telefone</label>
-                            <input type="text" id="telefone">
-                        </div>
-                        <div class="form-group">
-                            <label>E-mail</label>
-                            <input type="email" id="email">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Data de Nascimento</label>
-                            <input type="date" id="dataNascimento">
-                        </div>
-                        <div class="form-group">
-                            <label>Responsavel Legal (Se menor)</label>
-                            <input type="text" id="responsavel">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Endereco Residencial</label>
-                        <input type="text" id="endereco">
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Vinculo / Status</label>
-                            <select id="statusVinculo">
-                                <option value="Ativo">Ativo</option>
-                                <option value="Inativo">Inativo (Arquivado)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Observacoes Gerais</label>
-                            <textarea id="observacoes" rows="2"></textarea>
-                        </div>
-                    </div>
+Isso indica que aconteceu uma destas duas coisas:
 
-                    <h3 class="titulo-bloco-form">Plano Clinico Recorrente</h3>
+Você abriu ou colou o conteúdo do style.css no lugar do index.html.
+O navegador ficou com uma versão antiga/cacheada da página.
+Os arquivos não estão todos na mesma pasta.
+A estrutura correta precisa ficar assim, na mesma pasta:
+
+outputs/
+  index.html
+  style.css
+  app.js
+E você deve abrir este arquivo:
+
+index.html
+
+No seu index.html, a linha correta que chama o CSS é esta:
+
+<link rel="stylesheet" href="style.css">
+Então o CSS não deve aparecer escrito na tela. Se aparecer, é quase certo que o conteúdo do style.css foi colocado no arquivo errado. Reabra o index.html acima ou atualize a página com Ctrl + F5.
+
+14:41
+Anexo do usuário
+poruqe ficou assim e sem funcionalidade se ao acessar o link q vc disponibilizou acima esta perfeito
+15:38
+
+Trabalhou por 22s
+Isso ficou assim porque essa versão da imagem não está carregando os arquivos completos corretamente.
+
+Pelo print dá para ver:
+
+Parte do CSS carregou, porque a lateral ficou azul escura.
+Outra parte do CSS não carregou, porque os botões ficaram “crus” do navegador.
+O JavaScript provavelmente não carregou, por isso fica sem funcionalidade.
+Ou seja: o link que eu te passei abre perfeito porque está usando a estrutura certa:
+
+index.html
+style.css
+app.js
+Mas quando você “carregou os scripts”, provavelmente um destes aconteceu:
+
+algum arquivo foi salvo com nome diferente;
+index.html, style.css e app.js não ficaram na mesma pasta;
+parte do CSS/JS foi colada no lugar errado;
+o navegador abriu uma versão antiga/cacheada.
+Para evitar esse tipo de erro, gerei uma versão única com tudo dentro de um só arquivo:
+
+sistema-agenda-completo.html
+
+Abra esse arquivo. Ele já tem HTML + CSS + JS juntos, então não depende de style.css nem de app.js separados. Isso deve abrir igual ao link perfeito e com funcionalidade.
+
+15:38
+mas eu substituo o html dai?
+15:40
+Sim. Se você quer evitar erro com arquivos separados, substitua o seu HTML atual pelo conteúdo do:
+
+sistema-agenda-completo.html
+
+Nesse caso você passa a usar um arquivo só. Não precisa mais depender de style.css nem de app.js separados.
+
+Resumo:
+
+Quer usar 1 arquivo só: use sistema-agenda-completo.html como seu HTML principal.
+Quer manter 3 arquivos: use index.html, style.css e app.js juntos na mesma pasta, sem mudar os nomes.
+Eu recomendo agora usar o sistema-agenda-completo.html, porque reduz a chance de colar arquivo no lugar errado.
+
+15:40
+eu clico no link abre a página eu quero o script
+15:41
+
+Trabalhou por 9s
+Sim, agora faz sentido. O .html abre a página; para ver o script bruto, use este arquivo .txt:
+
+sistema-agenda-completo-script.txt
+
+Ele contém o HTML completo com CSS e JavaScript embutidos. É esse conteúdo que você deve usar para substituir seu HTML atual.
+
+15:42
+
+
+
+
+Saídas
+/C:/Users/Usuario/Documents/Codex/2026-07-09/te/outputs/index.html
+
+Navegador
+Sistema de Agenda Integrada
+
+Fontes
+Ainda não há fontes
+te
+outputs
+sistema-agenda-completo-script.txt
+        lista.innerHTML = html;
+    } catch (err) {
+        console.error(err);
+    }
+}
+window.prepararEdicaoPaciente = async function(id) {
+    idPacienteEditando = id;
+    try {
+        const { data } = await bancoDados.from('pacientes').select('*').eq('id', id);
+        const p = data[0];
+        mostrarTela('novoPaciente');
+        if (document.getElementById('nome')) document.getElementById('nome').value = p.nome || '';
+        if (document.getElementById('cpf')) document.getElementById('cpf').value = p.cpf || '';
+        if (document.getElementById('telefone')) document.getElementById('telefone').value = p.telefone || '';
+        if (document.getElementById('email')) document.getElementById('email').value = p.email || '';
+        if (document.getElementById('dataNascimento')) document.getElementById('dataNascimento').value = p.data_nascimento || '';
+        if (document.getElementById('endereco')) document.getElementById('endereco').value = p.endereco || '';
+        if (document.getElementById('responsavel')) document.getElementById('responsavel').value = p.responsavel || '';
+        if (document.getElementById('observacoes')) document.getElementById('observacoes').value = p.observacoes || '';
+        if (document.getElementById('statusVinculo')) document.getElementById('statusVinculo').value = p.status || 'Ativo';
+        const planoRes = await bancoDados.from('planos_atendimento').select('*').eq('paciente_id', id);
+        if (planoRes.data && planoRes.data.length > 0) {
+            const pl = planoRes.data[0];
+            if (document.getElementById('dataInicial')) document.getElementById('dataInicial').value = pl.data_inicio || '';
+            if (document.getElementById('diaSemana')) document.getElementById('diaSemana').value = pl.dia_semana || 'Segunda';
+            if (document.getElementById('frequencia')) document.getElementById('frequencia').value = pl.frequencia || 'Semanal';
+            if (document.getElementById('horario')) document.getElementById('horario').value = pl.hora_padrao || '';
+            if (document.getElementById('modalidade')) document.getElementById('modalidade').value = pl.modalidade || 'Presencial';
+            if (document.getElementById('valor')) document.getElementById('valor').value = pl.valor || '';
+            if (document.getElementById('formaCobranca')) document.getElementById('formaCobranca').value = pl.forma_cobranca || 'Mensal';
+        }
+        configurarPeriodoPadraoSidebar();
+        renderizarSidebarCalendarioPaciente(id);
+    } catch (err) {
+        console.error(err);
+        alert('Erro ao carregar prontuario.');
+    }
+};
+async function salvarPaciente() {
+    if (!bancoDados) return;
+    const nome = document.getElementById('nome')?.value;
+    if (!nome) {
+        alert('O nome e obrigatorio.');
+        return;
+    }
+    const payloadPaciente = {
+        nome: nome,
+        cpf: document.getElementById('cpf')?.value || '',
+        telefone: document.getElementById('telefone')?.value || '',
+        email: document.getElementById('email')?.value || '',
+        data_nascimento: document.getElementById('dataNascimento')?.value || null,
+        endereco: document.getElementById('endereco')?.value || '',
+        responsavel: document.getElementById('responsavel')?.value || '',
+        observacoes: document.getElementById('observacoes')?.value || '',
+        status: document.getElementById('statusVinculo')?.value || 'Ativo'
+    };
+    try {
+        let pacienteId = idPacienteEditando;
+        if (idPacienteEditando) {
+            await bancoDados.from('pacientes').update(payloadPaciente).eq('id', idPacienteEditando);
+        } else {
+            const { data } = await bancoDados.from('pacientes').insert([payloadPaciente]).select();
+            pacienteId = data[0].id;
+            idPacienteEditando = pacienteId;
+        }
+        const payloadPlano = {
+            paciente_id: pacienteId,
+            data_inicio: document.getElementById('dataInicial')?.value || null,
+            dia_semana: document.getElementById('diaSemana')?.value || 'Segunda',
+            frequencia: document.getElementById('frequencia')?.value || 'Semanal',
+            hora_padrao: document.getElementById('horario')?.value || '',
+            modalidade: document.getElementById('modalidade')?.value || 'Presencial',
+            valor: Number(document.getElementById('valor')?.value || 0),
+            forma_cobranca: document.getElementById('formaCobranca')?.value || 'Mensal',
+            ativo: true
+        };
+        const { data: planoExistente } = await bancoDados.from('planos_atendimento').select('id').eq('paciente_id', pacienteId);
+        if (planoExistente && planoExistente.length > 0) {
+            await bancoDados.from('planos_atendimento').update(payloadPlano).eq('paciente_id', pacienteId);
+        } else {
+            await bancoDados.from('planos_atendimento').insert([payloadPlano]);
+        }
+        alert('Prontuario salvo com sucesso!');
+        mostrarTela('pacientes');
+    } catch (err) {
+        console.error(err);
+        alert('Erro ao salvar.');
+    }
+}
+window.excluirPacienteAtual = async function() {
+    if (!idPacienteEditando || !confirm("Remover permanentemente este registro?")) return;
+    try {
+        await bancoDados.from('planos_atendimento').delete().eq('paciente_id', idPacienteEditando);
+        await bancoDados.from('agendamentos').delete().eq('paciente_id', idPacienteEditando);
+        await bancoDados.from('pacientes').delete().eq('id', idPacienteEditando);
+        idPacienteEditando = null;
+        mostrarTela('pacientes');
+    } catch (err) {
+        console.error(err);
+    }
+};
+function carregarConfiguracoesCampos() {
+    if (document.getElementById('cfgTituloClinica')) document.getElementById('cfgTituloClinica').value = localStorage.getItem('cfg_titulo_clinica') || 'Clinica Integrada';
+    if (document.getElementById('cfgSubtituloClinica')) document.getElementById('cfgSubtituloClinica').value = localStorage.getItem('cfg_subtitulo_clinica') || 'Gestao de Saude';
+    if (document.getElementById('cfgTemaSistema')) document.getElementById('cfgTemaSistema').value = localStorage.getItem('cfg_tema_sistema') || 'claro';
+    if (document.getElementById('cfgCorSidebar')) document.getElementById('cfgCorSidebar').value = localStorage.getItem('cfg_cor_sidebar') || '#1e293b';
+    if (document.getElementById('cfgCorPrincipal')) document.getElementById('cfgCorPrincipal').value = localStorage.getItem('cfg_cor_principal') || '#2563eb';
+    const urlLogoSalva = localStorage.getItem('cfg_logo_url') || '';
+    if (document.getElementById('cfgLogoUrl')) {
+        document.getElementById('cfgLogoUrl').value = urlLogoSalva.startsWith('data:image') ? '(Arquivo local anexado)' : urlLogoSalva;
+    }
+}
+function aplicarConfiguracoesVisuais() {
+    const titulo = localStorage.getItem('cfg_titulo_clinica') || 'Clinica Integrada';
+    const subtitulo = localStorage.getItem('cfg_subtitulo_clinica') || 'Gestao de Saude';
+    const logoUrl = localStorage.getItem('cfg_logo_url') || '';
+    const tema = localStorage.getItem('cfg_tema_sistema') || 'claro';
+    const corSidebar = localStorage.getItem('cfg_cor_sidebar') || '#1e293b';
+    const corPrincipal = localStorage.getItem('cfg_cor_principal') || '#2563eb';
+    if (document.getElementById('nomeClinicaTexto')) document.getElementById('nomeClinicaTexto').innerText = titulo;
+    if (document.getElementById('subtituloClinicaTexto')) document.getElementById('subtituloClinicaTexto').innerText = subtitulo;
+    const imgLogo = document.getElementById('logoClinicaDisplay');
+    if (imgLogo) {
+        if (logoUrl) {
+            imgLogo.src = logoUrl;
+            imgLogo.style.display = 'block';
+        } else {
+            imgLogo.style.display = 'none';
+        }
+    }
+    if (tema === 'escuro') {
+        document.body.classList.add('dark-theme');
+    } else {
+        document.body.classList.remove('dark-theme');
+    }
+    document.documentElement.style.setProperty('--sidebar-bg', corSidebar);
+    document.documentElement.style.setProperty('--primary-color', corPrincipal);
+}
+function salvarConfiguracoes() {
+    const titulo = document.getElementById('cfgTituloClinica')?.value || 'Clinica Integrada';
+    const subtitulo = document.getElementById('cfgSubtituloClinica')?.value || 'Gestao de Saude';
+    const tema = document.getElementById('cfgTemaSistema')?.value || 'claro';
+    const corSidebar = document.getElementById('cfgCorSidebar')?.value || '#1e293b';
+    const corPrincipal = document.getElementById('cfgCorPrincipal')?.value || '#2563eb';
+    localStorage.setItem('cfg_titulo_clinica', titulo);
+    localStorage.setItem('cfg_subtitulo_clinica', subtitulo);
+    localStorage.setItem('cfg_tema_sistema', tema);
+    localStorage.setItem('cfg_cor_sidebar', corSidebar);
+    localStorage.setItem('cfg_cor_principal', corPrincipal);
+    if (uploadLogoBase64) {
+        localStorage.setItem('cfg_logo_url', uploadLogoBase64);
+        uploadLogoBase64 = "";
+    } else {
+        const urlInput = document.getElementById('cfgLogoUrl')?.value || '';
+        if (urlInput && urlInput !== '(Arquivo local anexado)') {
+            localStorage.setItem('cfg_logo_url', urlInput);
+        }
+    }
+    aplicarConfiguracoesVisuais();
+    alert('Configuracoes salvas com sucesso!');
+}
+</script>
+</body>
+</html>
