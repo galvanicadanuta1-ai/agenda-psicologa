@@ -1,782 +1,689 @@
-const SUPABASE_URL = 'https://sasbkclofsnropssrafn.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhc2JrY2xvZnNucm9wc3NyYWZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExODg3NjcsImV4cCI6MjA5Njc2NDc2N30._8_tmYoRlyEhARjXZ3swW8ynCPY5aysGMFCTzgcnK5Y';
-
-let bancoDados;
-if (window.supabase) {
-    bancoDados = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-} else {
-    console.error("Erro critico: Biblioteca Supabase inacessivel.");
+:root {
+    --bg-primary: #f8fafc;
+    --sidebar-bg: #1e293b;
+    --primary-color: #2563eb;
+    --text-main: #334155;
+    --border-color: #cbd5e1;
+    --card-bg: #ffffff;
+    --text-dark: #0f172a;
+    --semana-bg: #f1f5f9;
+    --semana-text: #0f172a;
+    --border-grade: #e2e8f0;
+    --bg-dia-util: #e6f4ea;
+    --text-dia-util: #137333;
+    --bg-dia-sab: #fef7e0;
+    --text-dia-sab: #b06000;
+    --bg-dia-dom: #fce8e6;
+    --text-dia-dom: #c5221f;
+    --bg-status-agendado: #f1f5f9;
+    --text-status-agendado: #475569;
+    --border-status-agendado: #cbd5e1;
+    --bg-status-realizado: #e6f4ea;
+    --text-status-realizado: #137333;
+    --border-status-realizado: #a3cfbb;
+    --bg-status-falta: #fce8e6;
+    --text-status-falta: #c5221f;
+    --border-status-falta: #f5c2c7;
+    --bg-status-cancelado: #fafafa;
+    --text-status-cancelado: #9e9e9e;
+    --border-status-cancelado: #e0e0e0;
 }
 
-let idPacienteEditando = null;
-let uploadLogoBase64 = "";
-
-const MAPA_CLASSES_STATUS = {
-    'Realizado': 'status-realizado',
-    'Falta': 'status-falta',
-    'Agendado': 'status-agendado',
-    'Cancelado': 'status-cancelado'
-};
-
-function chavePagamentoOcorrencia(pacienteId, dataISO) {
-    return `pagamento_ocorrencia_${pacienteId}_${dataISO}`;
+body.dark-theme {
+    --bg-primary: #0f172a;
+    --sidebar-bg: #020617;
+    --text-main: #cbd5e1;
+    --border-color: #334155;
+    --card-bg: #1e293b;
+    --text-dark: #f8fafc;
+    --semana-bg: #1e293b;
+    --semana-text: #f8fafc;
+    --border-grade: #334155;
+    --bg-dia-util: #064e3b;
+    --text-dia-util: #34d399;
+    --bg-dia-sab: #7c2d12;
+    --text-dia-sab: #fb923c;
+    --bg-dia-dom: #450a0a;
+    --text-dia-dom: #fca5a5;
+    --bg-status-agendado: #1e293b;
+    --text-status-agendado: #cbd5e1;
+    --border-status-agendado: #334155;
+    --bg-status-realizado: #064e3b;
+    --text-status-realizado: #6fe7b7;
+    --border-status-realizado: #047857;
+    --bg-status-falta: #450a0a;
+    --text-status-falta: #fca5a5;
+    --border-status-falta: #7f1d1d;
+    --bg-status-cancelado: #111827;
+    --text-status-cancelado: #6b7280;
+    --border-status-cancelado: #1f2937;
 }
 
-function carregarStatusPagamentoOcorrencia(pacienteId, dataISO) {
-    const campoPago = document.getElementById('valorOcorrenciaPago');
-    if (!campoPago) return;
-    campoPago.checked = pacienteId && dataISO ? localStorage.getItem(chavePagamentoOcorrencia(pacienteId, dataISO)) === 'true' : false;
+* {
+    box-sizing: border-box;
 }
 
-function salvarStatusPagamentoOcorrencia(pacienteId, dataISO) {
-    const campoPago = document.getElementById('valorOcorrenciaPago');
-    if (!campoPago || !pacienteId || !dataISO) return;
-    localStorage.setItem(chavePagamentoOcorrencia(pacienteId, dataISO), campoPago.checked ? 'true' : 'false');
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-primary);
+    color: var(--text-main);
+    display: flex;
+    transition: background-color 0.3s;
 }
 
-function formatarDataISO(data) {
-    return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')}`;
+.sidebar-menu {
+    width: 260px;
+    height: 100vh;
+    background-color: var(--sidebar-bg);
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 20px 0;
 }
 
-function criarDataLocal(dataISO) {
-    if (!dataISO) return null;
-    const partes = dataISO.split('-');
-    if (partes.length !== 3) return null;
-    const data = new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
-    return isNaN(data.getTime()) ? null : data;
+.sidebar-brand {
+    padding: 10px 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
 }
 
-function adicionarDias(data, dias) {
-    const novaData = new Date(data.getFullYear(), data.getMonth(), data.getDate());
-    novaData.setDate(novaData.getDate() + dias);
-    return novaData;
+.sidebar-brand img {
+    max-width: 90%;
+    max-height: 70px;
+    object-fit: contain;
+    display: none;
+    margin: 0 auto 5px;
 }
 
-function normalizarData(data) {
-    const novaData = new Date(data.getFullYear(), data.getMonth(), data.getDate());
-    novaData.setHours(0, 0, 0, 0);
-    return novaData;
+.sidebar-brand-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: white;
 }
 
-function formatarDataBR(data) {
-    return `${String(data.getDate()).padStart(2, '0')}/${String(data.getMonth() + 1).padStart(2, '0')}/${data.getFullYear()}`;
+.sidebar-brand-subtitle {
+    font-size: 0.8rem;
+    color: #cbd5e1;
 }
 
-function formatarMoeda(valor) {
-    return Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+.sidebar-menu button {
+    width: 90%;
+    margin: 5px 5%;
+    padding: 12px 15px;
+    background: transparent;
+    color: #cbd5e1;
+    border: none;
+    border-radius: 6px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.95rem;
 }
 
-function escaparHTML(texto) {
-    return String(texto ?? '').replace(/[&<>"']/g, caractere => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    })[caractere]);
+.sidebar-menu button:hover {
+    background: rgba(255,255,255,0.12);
+    color: white;
 }
 
-function obterPeriodoMesAtual() {
-    const hoje = new Date();
-    const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-    const fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
-    return { inicio, fim };
+.main-wrapper {
+    margin-left: 260px;
+    flex: 1;
+    padding: 30px;
+    min-height: 100vh;
 }
 
-function alternarSubmenuPacientes() {
-    const sub = document.getElementById('submenuPacientes');
-    if (sub) sub.style.display = (sub.style.display === 'flex') ? 'none' : 'flex';
-}
-window.alternarSubmenuPacientes = alternarSubmenuPacientes;
-
-function acionarMenuNovoPaciente() {
-    idPacienteEditando = null;
-    mostrarTela('novoPaciente');
-}
-window.acionarMenuNovoPaciente = acionarMenuNovoPaciente;
-
-function mostrarTela(nomeTela) {
-    document.querySelectorAll('.tela').forEach(tela => tela.style.display = 'none');
-    const telaAlvo = document.getElementById(nomeTela);
-    if (telaAlvo) telaAlvo.style.display = 'block';
-
-    const sidePerfil = document.getElementById('sidebar-agenda-paciente');
-    if (sidePerfil) sidePerfil.style.display = 'none';
-
-    const btnExcluirForm = document.getElementById('btnExcluirPacienteForm');
-    if (btnExcluirForm) {
-        btnExcluirForm.style.display = (nomeTela === 'novoPaciente' && idPacienteEditando) ? 'inline-block' : 'none';
-    }
-
-    const titulosModulos = {
-        'dashboard': 'Agenda',
-        'pacientes': 'Pacientes',
-        'relatorios': 'Relatorios',
-        'novoPaciente': idPacienteEditando ? 'Perfil e Historico Clinico' : 'Cadastro de Novo Paciente',
-        'configuracoes': 'Configuracoes do Sistema'
-    };
-
-    const elTituloSecao = document.getElementById('tituloSecao');
-    if (elTituloSecao) elTituloSecao.innerText = titulosModulos[nomeTela] || 'Painel';
-
-    switch (nomeTela) {
-        case 'dashboard':
-            atualizarDashboard();
-            carregarAgendaSemanal();
-            break;
-        case 'pacientes':
-            carregarPacientes();
-            break;
-        case 'relatorios':
-            carregarTelaRelatorios();
-            break;
-        case 'novoPaciente':
-            if (!idPacienteEditando) {
-                document.getElementById('formPaciente')?.reset();
-                if (document.getElementById('statusVinculo')) document.getElementById('statusVinculo').value = 'Ativo';
-                const elDia = document.getElementById('diaSemana');
-                if (elDia) elDia.value = 'Segunda';
-                configurarPeriodoPadraoSidebar();
-                renderizarSidebarCalendarioPaciente(null);
-            }
-            break;
-        case 'configuracoes':
-            carregarConfiguracoesCampos();
-            break;
-    }
-}
-window.mostrarTela = mostrarTela;
-
-window.addEventListener('load', () => {
-    aplicarConfiguracoesVisuais();
-    mostrarTela('dashboard');
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('btnSalvarPaciente')?.addEventListener('click', salvarPaciente);
-    document.getElementById('btnSalvarConfiguracoes')?.addEventListener('click', salvarConfiguracoes);
-    document.getElementById('btnAplicarPeriodoPaciente')?.addEventListener('click', () => renderizarSidebarCalendarioPaciente(idPacienteEditando, true));
-    document.getElementById('btnGerarRelatorio')?.addEventListener('click', gerarRelatorioFinanceiro);
-
-    document.getElementById('dataInicial')?.addEventListener('change', () => {
-        atualizarDiaSemanaAutomatico();
-        configurarPeriodoPadraoSidebar();
-        renderizarSidebarCalendarioPaciente(idPacienteEditando);
-    });
-
-    ['frequencia', 'horario', 'modalidade', 'valor'].forEach(campoId => {
-        document.getElementById(campoId)?.addEventListener('change', () => {
-            renderizarSidebarCalendarioPaciente(idPacienteEditando);
-        });
-    });
-
-    document.getElementById('cfgLogoFile')?.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                uploadLogoBase64 = evt.target.result;
-                const urlInput = document.getElementById('cfgLogoUrl');
-                if (urlInput) urlInput.value = "(Arquivo local anexado)";
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-});
-
-function atualizarDiaSemanaAutomatico() {
-    const inputData = document.getElementById('dataInicial');
-    if (!inputData || !inputData.value) return;
-    const dataObjeto = criarDataLocal(inputData.value);
-    if (!dataObjeto) return;
-    const diasDaSemana = ['Domingo', 'Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta', 'Sabado'];
-    const selectDia = document.getElementById('diaSemana');
-    if (selectDia) {
-        selectDia.removeAttribute('disabled');
-        selectDia.value = diasDaSemana[dataObjeto.getDay()];
-        selectDia.setAttribute('disabled', 'true');
-    }
+.header-secao {
+    margin-bottom: 25px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 15px;
 }
 
-function checarDataCorrespondeAoPlano(dataAlvoObj, dataInicioStr, diaSemanaPlan, frequenciaPlan) {
-    if (!dataInicioStr) return false;
-    const dataInicioObj = criarDataLocal(dataInicioStr);
-    if (!dataInicioObj) return false;
-
-    const dataAlvo = normalizarData(dataAlvoObj);
-    const dataInicio = normalizarData(dataInicioObj);
-    if (dataAlvo < dataInicio) return false;
-
-    const diferencaTime = dataAlvo.getTime() - dataInicio.getTime();
-    const diferencaDias = Math.round(diferencaTime / (1000 * 60 * 60 * 24));
-    if (diferencaDias % 7 !== 0) return false;
-    const diferencaSemanas = diferencaDias / 7;
-    if (frequenciaPlan === 'Semanal') return true;
-    if (frequenciaPlan === 'Quinzenal') return diferencaSemanas % 2 === 0;
-    if (frequenciaPlan === 'Mensal') return diferencaSemanas % 4 === 0;
-    return false;
+.header-secao h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    color: var(--text-dark);
 }
 
-async function carregarAgendaSemanal() {
-    const containerGeral = document.getElementById('grade-agenda-container');
-    if (!containerGeral) return;
-    containerGeral.innerHTML = '<div style="padding: 10px;">Carregando compromissos organizados...</div>';
-
-    if (!bancoDados) return;
-
-    try {
-        const { data: pacientes } = await bancoDados.from('pacientes').select('id, nome');
-        const { data: planos } = await bancoDados.from('planos_atendimento').select('*').eq('ativo', true);
-        const { data: agendamentos } = await bancoDados.from('agendamentos').select('*');
-
-        const mapaPacientes = {};
-        if (pacientes) pacientes.forEach(p => mapaPacientes[p.id] = p.nome);
-
-        const hoje = new Date();
-        const diaSemanaAtual = hoje.getDay();
-        const diffSegunda = diaSemanaAtual === 0 ? -6 : 1 - diaSemanaAtual;
-
-        const segundaCorrente = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-        segundaCorrente.setDate(segundaCorrente.getDate() + diffSegunda);
-
-        let htmlSemanas = '';
-        const nomesDiasSemana = ['Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta', 'Sabado', 'Domingo'];
-        const classesDias = ['dia-seg', 'dia-ter', 'dia-qua', 'dia-qui', 'dia-sex', 'dia-sab', 'dia-dom'];
-
-        for (let s = 0; s < 5; s++) {
-            const dataInicioBloco = adicionarDias(segundaCorrente, s * 7);
-            const dataFimBloco = adicionarDias(dataInicioBloco, 6);
-
-            let dadosSemanaCorrente = [];
-            let maxPacientesNaSemana = 1;
-
-            for (let d = 0; d < 7; d++) {
-                const dataDiaCell = adicionarDias(dataInicioBloco, d);
-                const dataISOChave = formatarDataISO(dataDiaCell);
-
-                let itensDoDia = [];
-                const especificosHoje = agendamentos ? agendamentos.filter(a => a.data === dataISOChave) : [];
-
-                especificosHoje.forEach(esp => {
-                    if (mapaPacientes[esp.paciente_id] && esp.status !== 'Cancelado') {
-                        const planoOrigem = planos ? planos.find(pl => pl.paciente_id === esp.paciente_id) : null;
-                        itensDoDia.push({
-                            id: esp.id,
-                            pacienteId: esp.paciente_id,
-                            nome: mapaPacientes[esp.paciente_id],
-                            hora: esp.hora ? esp.hora.substring(0, 5) : '--:--',
-                            modalidade: esp.modalidade || (planoOrigem ? planoOrigem.modalidade : 'Presencial'),
-                            valor: esp.valor || (planoOrigem ? planoOrigem.valor : 0),
-                            status: esp.status || 'Agendado'
-                        });
-                    }
-                });
-
-                if (planos) {
-                    planos.forEach(plano => {
-                        const possuiExcecaoHoje = especificosHoje.some(e => e.paciente_id === plano.paciente_id);
-                        if (!possuiExcecaoHoje && mapaPacientes[plano.paciente_id]) {
-                            const corresponde = checarDataCorrespondeAoPlano(new Date(dataDiaCell), plano.data_inicio, plano.dia_semana, plano.frequencia);
-                            if (corresponde) {
-                                itensDoDia.push({
-                                    id: null,
-                                    pacienteId: plano.paciente_id,
-                                    nome: mapaPacientes[plano.paciente_id],
-                                    hora: plano.hora_padrao ? plano.hora_padrao.substring(0, 5) : '--:--',
-                                    modalidade: plano.modalidade || 'Presencial',
-                                    valor: plano.valor || 0,
-                                    status: 'Agendado'
-                                });
-                            }
-                        }
-                    });
-                }
-
-                dadosSemanaCorrente.push({
-                    dataISO: dataISOChave,
-                    itens: itensDoDia,
-                    tituloTexto: `${nomesDiasSemana[d].toLowerCase().substring(0, 3)}. ${formatarDataBR(dataDiaCell)}`,
-                    classeCor: classesDias[d]
-                });
-
-                if (itensDoDia.length > maxPacientesNaSemana) {
-                    maxPacientesNaSemana = itensDoDia.length;
-                }
-            }
-
-            htmlSemanas += `
-                <div class="semana-bloco">
-                    <div class="semana-titulo">Agenda da Semana: ${formatarDataBR(dataInicioBloco)} a ${formatarDataBR(dataFimBloco)}</div>
-                    <div class="grade-agenda">
-            `;
-
-            dadosSemanaCorrente.forEach(dia => {
-                htmlSemanas += `<div class="coluna-dia-titulo ${dia.classeCor}">${dia.tituloTexto}</div>`;
-            });
-
-            dadosSemanaCorrente.forEach(dia => {
-                htmlSemanas += `<div class="coluna-dia-conteudo">`;
-
-                for (let r = 0; r < maxPacientesNaSemana; r++) {
-                    const compromisso = dia.itens[r];
-                    if (compromisso) {
-                        const classeStatus = MAPA_CLASSES_STATUS[compromisso.status] || 'status-agendado';
-
-                        htmlSemanas += `
-                            <div class="card-compromisso ${classeStatus}">
-                                <div class="card-paciente-nome">${compromisso.nome}</div>
-                                <div class="card-paciente-hora">${compromisso.hora} - ${compromisso.modalidade}</div>
-                                ${compromisso.status !== 'Agendado' ? `<div class="card-paciente-status-badge"><span>${compromisso.status}</span></div>` : ''}
-                                <button class="btn-tres-pontos-agenda" title="Editar esta data" onclick="abrirEditorDiretoAgenda('${compromisso.pacienteId}', '${dia.dataISO}', '${compromisso.hora}', '${compromisso.modalidade}', '${compromisso.valor}', '${compromisso.status}')">...</button>
-                            </div>
-                        `;
-                    } else {
-                        htmlSemanas += `<div class="card-compromisso cell-vazia">&nbsp;</div>`;
-                    }
-                }
-
-                htmlSemanas += `</div>`;
-            });
-
-            htmlSemanas += `</div></div>`;
-        }
-        containerGeral.innerHTML = htmlSemanas;
-    } catch (err) {
-        console.error(err);
-    }
+.tela {
+    display: none;
 }
 
-window.abrirEditorDiretoAgenda = function(pacienteId, dataISO, hora, modalidade, valor, status) {
-    const modal = document.getElementById('modalAgendamento');
-    if (!modal) return;
-
-    document.getElementById('modalAgendamentoTitulo').innerText = "Editar Ocorrencia";
-    document.getElementById('containerSelectPacienteAgendamento').style.display = 'none';
-    document.getElementById('boxEscopoAgenda').style.display = 'block';
-
-    document.getElementById('selectPacienteAgendamento').value = pacienteId;
-    document.getElementById('dataAgendamento').value = dataISO;
-    document.getElementById('horaAgendamento').value = hora;
-    document.getElementById('modalidadeAgendamento').value = modalidade;
-    document.getElementById('valorAgendamento').value = valor;
-    document.getElementById('statusAgendamento').value = status;
-    carregarStatusPagamentoOcorrencia(pacienteId, dataISO);
-
-    document.getElementById('btnPersistirAgendamento').onclick = async function() {
-        const escopo = document.getElementById('escopoModificacaoAgenda').value;
-        const novaData = document.getElementById('dataAgendamento').value;
-        const novaHora = document.getElementById('horaAgendamento').value;
-        const novaMod = document.getElementById('modalidadeAgendamento').value;
-        const novoVal = Number(document.getElementById('valorAgendamento').value || 0);
-        const novoStat = document.getElementById('statusAgendamento').value;
-
-        await executarSalvamentoPorEscopo(pacienteId, dataISO, novaData, novaHora, novaMod, novoVal, novoStat, escopo, null);
-        salvarStatusPagamentoOcorrencia(pacienteId, novaData);
-        if (novaData !== dataISO) {
-            localStorage.removeItem(chavePagamentoOcorrencia(pacienteId, dataISO));
-        }
-        fecharModalAgendamento();
-        carregarAgendaSemanal();
-        renderizarSidebarCalendarioPaciente(idPacienteEditando, true);
-    };
-
-    modal.style.display = 'flex';
-};
-
-window.fecharModalAgendamento = function() {
-    const modal = document.getElementById('modalAgendamento');
-    if (modal) modal.style.display = 'none';
-};
-
-function configurarPeriodoPadraoSidebar() {
-    const inicioInput = document.getElementById('periodoConsultaInicio');
-    const fimInput = document.getElementById('periodoConsultaFim');
-    if (!inicioInput || !fimInput) return;
-
-    const dataInicialPlano = document.getElementById('dataInicial')?.value;
-    const hoje = normalizarData(new Date());
-    const limiteFuturo = adicionarDias(hoje, 90);
-
-    inicioInput.value = dataInicialPlano || formatarDataISO(hoje);
-    fimInput.value = formatarDataISO(limiteFuturo);
-    fimInput.max = formatarDataISO(limiteFuturo);
+.cards-indicadores {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
 }
 
-function obterPeriodoConsultaPaciente() {
-    const inicioInput = document.getElementById('periodoConsultaInicio');
-    const fimInput = document.getElementById('periodoConsultaFim');
-    const aviso = document.getElementById('aviso-periodo-paciente');
-    const hoje = normalizarData(new Date());
-    const limiteFuturo = adicionarDias(hoje, 90);
-
-    if (!inicioInput || !fimInput) return null;
-
-    if (!inicioInput.value || !fimInput.value) {
-        configurarPeriodoPadraoSidebar();
-    }
-
-    let dataInicio = criarDataLocal(inicioInput.value);
-    let dataFim = criarDataLocal(fimInput.value);
-    let mensagem = '';
-
-    if (!dataInicio || !dataFim) {
-        dataInicio = hoje;
-        dataFim = limiteFuturo;
-        inicioInput.value = formatarDataISO(dataInicio);
-        fimInput.value = formatarDataISO(dataFim);
-        mensagem = 'Periodo invalido. Ajustei para hoje ate 90 dias a frente.';
-    }
-
-    dataInicio = normalizarData(dataInicio);
-    dataFim = normalizarData(dataFim);
-
-    if (dataFim > limiteFuturo) {
-        dataFim = limiteFuturo;
-        fimInput.value = formatarDataISO(limiteFuturo);
-        mensagem = 'Para datas futuras, a consulta foi limitada a 90 dias a partir de hoje.';
-    }
-
-    if (dataInicio > dataFim) {
-        const ajuste = dataInicio;
-        dataInicio = dataFim;
-        dataFim = ajuste;
-        inicioInput.value = formatarDataISO(dataInicio);
-        fimInput.value = formatarDataISO(dataFim);
-        mensagem = 'A data inicial estava maior que a final. Invertemos o periodo automaticamente.';
-    }
-
-    fimInput.max = formatarDataISO(limiteFuturo);
-    if (aviso) aviso.innerText = mensagem;
-
-    return { dataInicio, dataFim };
+.card-ind,
+.form-container,
+.cardPaciente {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
 }
 
-async function renderizarSidebarCalendarioPaciente(pacienteId, manterPeriodoAtual = false) {
-    const sidebar = document.getElementById('sidebar-agenda-paciente');
-    const resumoBox = document.getElementById('info-plano-resumo');
-    const listaScroll = document.getElementById('lista-proximas-sessoes');
-    if (!sidebar || !resumoBox || !listaScroll) return;
-
-    const dataInicioStr = document.getElementById('dataInicial')?.value;
-    const frequencia = document.getElementById('frequencia')?.value || 'Semanal';
-    const horaPadrao = document.getElementById('horario')?.value || '';
-    const modalidade = document.getElementById('modalidade')?.value || 'Presencial';
-    const valor = Number(document.getElementById('valor')?.value || 0);
-    const diaSemana = document.getElementById('diaSemana')?.value || 'Segunda';
-
-    if (!dataInicioStr) {
-        sidebar.style.display = 'none';
-        return;
-    }
-
-    sidebar.style.display = 'block';
-    if (!manterPeriodoAtual) configurarPeriodoPadraoSidebar();
-    const periodo = obterPeriodoConsultaPaciente();
-    if (!periodo) return;
-
-    const horaExibResumo = horaPadrao ? horaPadrao.substring(0, 5) : '--:--';
-    resumoBox.innerHTML = `
-        <strong>Frequencia Atual:</strong> ${frequencia}<br>
-        <strong>Horario Fixo:</strong> ${horaExibResumo}<br>
-        <strong>Modalidade Base:</strong> ${modalidade}<br>
-        <strong>Valor Base:</strong> R$ ${valor.toFixed(2)}
-    `;
-
-    listaScroll.innerHTML = '<div style="font-size:12px; padding:10px;">Processando periodo...</div>';
-
-    try {
-        let agendamentos = [];
-        if (pacienteId && pacienteId !== 'null' && bancoDados) {
-            const res = await bancoDados
-                .from('agendamentos')
-                .select('*')
-                .eq('paciente_id', pacienteId)
-                .gte('data', formatarDataISO(periodo.dataInicio))
-                .lte('data', formatarDataISO(periodo.dataFim));
-            if (res.data) agendamentos = res.data;
-        }
-
-        let htmlProxe = '';
-        const dataBaseLoop = criarDataLocal(dataInicioStr);
-
-        if (!dataBaseLoop) {
-            listaScroll.innerHTML = '<div style="font-size:12px; color:#e53e3e; padding:10px;">Data de inicio invalida.</div>';
-            return;
-        }
-
-        const totalDias = Math.round((periodo.dataFim.getTime() - periodo.dataInicio.getTime()) / (1000 * 60 * 60 * 24));
-
-        for (let i = 0; i <= totalDias; i++) {
-            const dataFoco = adicionarDias(periodo.dataInicio, i);
-            const dataISO = formatarDataISO(dataFoco);
-            const atendeRecorrencia = checarDataCorrespondeAoPlano(new Date(dataFoco), dataInicioStr, diaSemana, frequencia);
-            const excecao = agendamentos.find(a => a.data === dataISO);
-
-            if (atendeRecorrencia || excecao) {
-                const exibData = formatarDataBR(dataFoco);
-                const exibHora = excecao ? (excecao.hora ? excecao.hora.substring(0, 5) : '--:--') : (horaPadrao ? horaPadrao.substring(0, 5) : '--:--');
-                const exibValor = excecao && excecao.valor !== undefined ? excecao.valor : valor;
-                const exibMod = excecao && excecao.modalidade ? excecao.modalidade : modalidade;
-                const exibStatus = excecao ? excecao.status : 'Agendado';
-                const classeStatusSide = MAPA_CLASSES_STATUS[exibStatus] || 'status-agendado';
-                const pago = localStorage.getItem(chavePagamentoOcorrencia(pacienteId, dataISO)) === 'true';
-
-                htmlProxe += `
-                    <div class="container-linha-bloco ${classeStatusSide}">
-                        <div class="linha-data">${exibData} as ${exibHora} - ${exibMod}</div>
-                        <div class="linha-status">Status: <b>${exibStatus}</b> | R$ ${Number(exibValor).toFixed(2)}${pago ? ' | Pago' : ''}</div>
-                        <button class="btn-tres-pontos-sidebar" title="Editar esta data" onclick="abrirEditorDiretoAgenda('${pacienteId}', '${dataISO}', '${exibHora}', '${exibMod}', '${Number(exibValor)}', '${exibStatus}')">...</button>
-                    </div>
-                `;
-            }
-        }
-
-        listaScroll.innerHTML = htmlProxe || '<div style="font-size:12px; color:#718096; padding:10px;">Nenhuma sessao encontrada neste periodo.</div>';
-    } catch (err) {
-        console.error(err);
-        listaScroll.innerHTML = '<div style="font-size:12px; color:#e53e3e; padding:10px;">Erro ao processar consulta do calendario.</div>';
-    }
+.card-ind {
+    padding: 20px;
+    flex: 1;
+    min-width: 175px;
 }
 
-async function executarSalvamentoPorEscopo(pacienteId, dataOriginalISO, novaDataISO, novaHora, novaMod, novoVal, statusSessao, escopo, novaFreq) {
-    if (!bancoDados) return;
-    try {
-        if (escopo === 'somente') {
-            const payload = { paciente_id: pacienteId, data: novaDataISO, hora: novaHora, modalidade: novaMod, valor: novoVal, status: statusSessao };
-            if (novaDataISO !== dataOriginalISO) {
-                await bancoDados.from('agendamentos').insert([{ paciente_id: pacienteId, data: dataOriginalISO, hora: novaHora, status: 'Cancelado', modalidade: novaMod, valor: novoVal }]);
-            }
-            const { data: extNova } = await bancoDados.from('agendamentos').select('id').eq('paciente_id', pacienteId).eq('data', novaDataISO);
-            if (extNova && extNova.length > 0) {
-                await bancoDados.from('agendamentos').update(payload).eq('id', extNova[0].id);
-            } else {
-                await bancoDados.from('agendamentos').insert([payload]);
-            }
-        } else {
-            const objData = criarDataLocal(novaDataISO);
-            const diasTexto = ['Domingo', 'Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta', 'Sabado'];
-            const payloadPlano = { data_inicio: novaDataISO, dia_semana: diasTexto[objData.getDay()], hora_padrao: novaHora, valor: novoVal, modalidade: novaMod };
-            if (novaFreq) payloadPlano.frequencia = novaFreq;
-            await bancoDados.from('planos_atendimento').update(payloadPlano).eq('paciente_id', pacienteId);
-            await bancoDados.from('agendamentos').delete().eq('paciente_id', pacienteId).gte('data', dataOriginalISO);
-        }
-        alert('Modificacoes salvas com sucesso!');
-    } catch (e) {
-        console.error(e);
-        alert('Erro ao salvar modificacoes.');
-    }
+.card-ind h3 {
+    margin: 0 0 10px;
+    font-size: 0.9rem;
+    color: #64748b;
+    text-transform: uppercase;
 }
 
-async function atualizarDashboard() {
-    if (!bancoDados) return;
-    try {
-        const { data } = await bancoDados.from('pacientes').select('status');
-        let ativos = 0;
-        let inativos = 0;
-        if (data) data.forEach(p => p.status === 'Inativo' ? inativos++ : ativos++);
-        if (document.getElementById('totalAtivos')) document.getElementById('totalAtivos').innerText = ativos;
-        if (document.getElementById('totalInativos')) document.getElementById('totalInativos').innerText = inativos;
-    } catch (err) {
-        console.error(err);
-    }
+.card-ind p {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-dark);
 }
 
-async function carregarPacientes() {
-    if (!bancoDados) return;
-    const lista = document.getElementById('listaPacientes');
-    if (!lista) return;
-    lista.innerHTML = '<div>Buscando listagem...</div>';
-    try {
-        const { data } = await bancoDados.from('pacientes').select('*').order('nome');
-        if (!data || data.length === 0) {
-            lista.innerHTML = '<div>Nenhum paciente localizado.</div>';
-            return;
-        }
-        let html = '';
-        data.forEach(paciente => {
-            html += `
-                <div class="cardPaciente" style="${paciente.status === 'Inativo' ? 'opacity:0.65;' : ''}">
-                    <strong>${paciente.nome || ''}</strong><br>
-                    <small>WhatsApp: ${paciente.telefone || 'Nao informado'}</small><br>
-                    <button class="btn-editar" style="margin-top:10px;" onclick="prepararEdicaoPaciente('${paciente.id}')">Ver Perfil / Calendario</button>
-                </div>
-            `;
-        });
-        lista.innerHTML = html;
-    } catch (err) {
-        console.error(err);
-    }
+.semana-bloco {
+    margin-bottom: 35px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-grade);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
+    padding: 6px;
 }
 
-window.prepararEdicaoPaciente = async function(id) {
-    idPacienteEditando = id;
-    try {
-        const { data } = await bancoDados.from('pacientes').select('*').eq('id', id);
-        const p = data[0];
-        mostrarTela('novoPaciente');
-        if (document.getElementById('nome')) document.getElementById('nome').value = p.nome || '';
-        if (document.getElementById('cpf')) document.getElementById('cpf').value = p.cpf || '';
-        if (document.getElementById('telefone')) document.getElementById('telefone').value = p.telefone || '';
-        if (document.getElementById('email')) document.getElementById('email').value = p.email || '';
-        if (document.getElementById('dataNascimento')) document.getElementById('dataNascimento').value = p.data_nascimento || '';
-        if (document.getElementById('endereco')) document.getElementById('endereco').value = p.endereco || '';
-        if (document.getElementById('responsavel')) document.getElementById('responsavel').value = p.responsavel || '';
-        if (document.getElementById('observacoes')) document.getElementById('observacoes').value = p.observacoes || '';
-        if (document.getElementById('statusVinculo')) document.getElementById('statusVinculo').value = p.status || 'Ativo';
+.semana-titulo {
+    background: var(--semana-bg);
+    color: var(--semana-text);
+    text-align: center;
+    padding: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    border-bottom: 1px solid var(--border-grade);
+}
 
-        const planoRes = await bancoDados.from('planos_atendimento').select('*').eq('paciente_id', id);
-        if (planoRes.data && planoRes.data.length > 0) {
-            const pl = planoRes.data[0];
-            if (document.getElementById('dataInicial')) document.getElementById('dataInicial').value = pl.data_inicio || '';
-            if (document.getElementById('diaSemana')) document.getElementById('diaSemana').value = pl.dia_semana || 'Segunda';
-            if (document.getElementById('frequencia')) document.getElementById('frequencia').value = pl.frequencia || 'Semanal';
-            if (document.getElementById('horario')) document.getElementById('horario').value = pl.hora_padrao || '';
-            if (document.getElementById('modalidade')) document.getElementById('modalidade').value = pl.modalidade || 'Presencial';
-            if (document.getElementById('valor')) document.getElementById('valor').value = pl.valor || '';
-            if (document.getElementById('formaCobranca')) document.getElementById('formaCobranca').value = pl.forma_cobranca || 'Mensal';
-        }
-        configurarPeriodoPadraoSidebar();
-        renderizarSidebarCalendarioPaciente(id);
-    } catch (err) {
-        console.error(err);
-        alert('Erro ao carregar prontuario.');
-    }
-};
+.grade-agenda {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
 
-async function salvarPaciente() {
-    if (!bancoDados) return;
-    const nome = document.getElementById('nome')?.value;
-    if (!nome) {
-        alert('O nome e obrigatorio.');
-        return;
-    }
-    const payloadPaciente = {
-        nome: nome,
-        cpf: document.getElementById('cpf')?.value || '',
-        telefone: document.getElementById('telefone')?.value || '',
-        email: document.getElementById('email')?.value || '',
-        data_nascimento: document.getElementById('dataNascimento')?.value || null,
-        endereco: document.getElementById('endereco')?.value || '',
-        responsavel: document.getElementById('responsavel')?.value || '',
-        observacoes: document.getElementById('observacoes')?.value || '',
-        status: document.getElementById('statusVinculo')?.value || 'Ativo'
-    };
+.coluna-dia-titulo {
+    padding: 12px 4px;
+    font-size: 0.85rem;
+    text-align: center;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-grade);
+    border-radius: 6px;
+    text-transform: lowercase;
+}
 
-    try {
-        let pacienteId = idPacienteEditando;
-        if (idPacienteEditando) {
-            await bancoDados.from('pacientes').update(payloadPaciente).eq('id', idPacienteEditando);
-        } else {
-            const { data } = await bancoDados.from('pacientes').insert([payloadPaciente]).select();
-            pacienteId = data[0].id;
-            idPacienteEditando = pacienteId;
-        }
+.dia-seg,
+.dia-ter,
+.dia-qua,
+.dia-qui,
+.dia-sex {
+    background-color: var(--bg-dia-util);
+    color: var(--text-dia-util);
+}
 
-        const payloadPlano = {
-            paciente_id: pacienteId,
-            data_inicio: document.getElementById('dataInicial')?.value || null,
-            dia_semana: document.getElementById('diaSemana')?.value || 'Segunda',
-            frequencia: document.getElementById('frequencia')?.value || 'Semanal',
-            hora_padrao: document.getElementById('horario')?.value || '',
-            modalidade: document.getElementById('modalidade')?.value || 'Presencial',
-            valor: Number(document.getElementById('valor')?.value || 0),
-            forma_cobranca: document.getElementById('formaCobranca')?.value || 'Mensal',
-            ativo: true
-        };
+.dia-sab {
+    background-color: var(--bg-dia-sab);
+    color: var(--text-dia-sab);
+}
 
-        const { data: planoExistente } = await bancoDados.from('planos_atendimento').select('id').eq('paciente_id', pacienteId);
-        if (planoExistente && planoExistente.length > 0) {
-            await bancoDados.from('planos_atendimento').update(payloadPlano).eq('paciente_id', pacienteId);
-        } else {
-            await bancoDados.from('planos_atendimento').insert([payloadPlano]);
-        }
-        alert('Prontuario salvo com sucesso!');
-        mostrarTela('pacientes');
-    } catch (err) {
-        console.error(err);
-        alert('Erro ao salvar.');
+.dia-dom {
+    background-color: var(--bg-dia-dom);
+    color: var(--text-dia-dom);
+}
+
+.card-compromisso,
+.container-linha-bloco {
+    background: var(--card-bg);
+    position: relative;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+.card-compromisso {
+    padding: 10px 28px 10px 6px;
+    text-align: center;
+    font-size: 0.82rem;
+    min-height: 70px;
+    margin: 2px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.card-compromisso.status-realizado,
+.container-linha-bloco.status-realizado {
+    background-color: var(--bg-status-realizado);
+    color: var(--text-status-realizado);
+    border-color: var(--border-status-realizado);
+}
+
+.card-compromisso.status-agendado,
+.container-linha-bloco.status-agendado {
+    background-color: var(--bg-status-agendado);
+    color: var(--text-status-agendado);
+    border-color: var(--border-status-agendado);
+}
+
+.card-compromisso.status-falta,
+.container-linha-bloco.status-falta {
+    background-color: var(--bg-status-falta);
+    color: var(--text-status-falta);
+    border-color: var(--border-status-falta);
+}
+
+.card-compromisso.status-cancelado,
+.container-linha-bloco.status-cancelado {
+    background-color: var(--bg-status-cancelado);
+    color: var(--text-status-cancelado);
+    border-color: var(--border-status-cancelado);
+}
+
+.card-paciente-nome {
+    font-weight: 700;
+    color: inherit;
+    margin-bottom: 2px;
+    word-break: break-word;
+}
+
+.card-paciente-hora {
+    color: inherit;
+    font-size: 0.78rem;
+    opacity: 0.85;
+}
+
+.cell-vazia {
+    background: var(--card-bg);
+    border: 1px dashed var(--border-color);
+    opacity: 0.45;
+}
+
+.btn-tres-pontos-agenda,
+.btn-tres-pontos-sidebar {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    width: 24px;
+    height: 22px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.btn-tres-pontos-agenda:hover,
+.btn-tres-pontos-sidebar:hover {
+    background: rgba(15, 23, 42, 0.12);
+    color: var(--text-dark);
+}
+
+.form-container {
+    padding: 25px;
+    max-width: 820px;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 12px;
+}
+
+.form-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 8px 12px;
+    background: var(--bg-primary);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.checkbox-pagamento {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    cursor: pointer;
+}
+
+.checkbox-pagamento input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+}
+
+.btn-principal,
+.btn-secundario,
+.btn-perigo {
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-principal {
+    background: var(--primary-color);
+    color: white;
+    padding: 10px 20px;
+}
+
+.btn-secundario {
+    background: #cbd5e1;
+    color: #334155;
+    padding: 8px 15px;
+}
+
+.btn-perigo {
+    background: #ef4444;
+    color: white;
+    padding: 10px 15px;
+    display: none;
+}
+
+.barra-acoes {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}
+
+.titulo-bloco-form {
+    margin-top: 30px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 15px;
+}
+
+.form-acoes-paciente {
+    margin-top: 25px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.form-acoes-config {
+    margin-top: 25px;
+}
+
+.relatorio-container {
+    max-width: 1180px;
+}
+
+.relatorio-botao-grupo {
+    justify-content: flex-end;
+}
+
+.cards-relatorio {
+    margin-top: 15px;
+    margin-bottom: 20px;
+}
+
+.resultado-relatorio {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-primary);
+    padding: 14px;
+    min-height: 120px;
+    overflow-x: auto;
+}
+
+.tabela-relatorio {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+
+.tabela-relatorio th,
+.tabela-relatorio td {
+    border-bottom: 1px solid var(--border-color);
+    padding: 10px 8px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.tabela-relatorio th {
+    color: var(--text-dark);
+    background: var(--card-bg);
+    font-weight: 700;
+}
+
+.badge-pago,
+.badge-aberto {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.badge-pago {
+    background: var(--bg-status-realizado);
+    color: var(--text-status-realizado);
+}
+
+.badge-aberto {
+    background: var(--bg-status-falta);
+    color: var(--text-status-falta);
+}
+
+#sidebar-agenda-paciente {
+    width: 360px;
+    background: var(--card-bg);
+    border-left: 1px solid var(--border-color);
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    display: none;
+    padding: 20px;
+    z-index: 90;
+}
+
+#sidebar-agenda-paciente h3 {
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    color: var(--text-dark);
+}
+
+#info-plano-resumo {
+    font-size: 0.85rem;
+    background: var(--bg-primary);
+    padding: 10px;
+    border-radius: 6px;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+}
+
+.filtro-periodo-sidebar {
+    margin-top: 12px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-primary);
+}
+
+.filtro-periodo-sidebar .form-group {
+    margin-bottom: 8px;
+}
+
+.btn-periodo {
+    width: 100%;
+    padding: 8px 12px;
+}
+
+.aviso-periodo {
+    min-height: 18px;
+    margin-top: 8px;
+    font-size: 0.78rem;
+    color: #b45309;
+}
+
+.lista-scroll-previsoes {
+    height: calc(100vh - 325px);
+    overflow-y: auto;
+    margin-top: 10px;
+    padding-right: 6px;
+}
+
+.container-linha-bloco {
+    margin-bottom: 10px;
+    padding: 10px 34px 10px 10px;
+    font-size: 0.82rem;
+}
+
+.linha-data {
+    font-weight: 700;
+    color: inherit;
+}
+
+.linha-status {
+    margin-top: 3px;
+    color: inherit;
+    opacity: 0.95;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.6);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.modal-box {
+    background: var(--card-bg);
+    color: var(--text-main);
+    padding: 25px;
+    border-radius: 8px;
+    width: 450px;
+    max-width: 90%;
+}
+
+.modal-box h3 {
+    margin-top: 0;
+    color: var(--text-dark);
+}
+
+.box-escopo {
+    margin-top: 15px;
+    background: #fff1f2;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #fecdd3;
+}
+
+.box-escopo label {
+    color: #991b1b;
+    font-weight: 700;
+}
+
+.modal-acoes {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.grid-pacientes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.cardPaciente {
+    padding: 20px;
+}
+
+.btn-editar {
+    background: #e2e8f0;
+    color: #334155;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+}
+
+@media (max-width: 1150px) {
+    .grade-agenda {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
-window.excluirPacienteAtual = async function() {
-    if (!idPacienteEditando || !confirm("Remover permanentemente este registro?")) return;
-    try {
-        await bancoDados.from('planos_atendimento').delete().eq('paciente_id', idPacienteEditando);
-        await bancoDados.from('agendamentos').delete().eq('paciente_id', idPacienteEditando);
-        await bancoDados.from('pacientes').delete().eq('id', idPacienteEditando);
-        idPacienteEditando = null;
-        mostrarTela('pacientes');
-    } catch (err) {
-        console.error(err);
-    }
-};
-
-function carregarConfiguracoesCampos() {
-    if (document.getElementById('cfgTituloClinica')) document.getElementById('cfgTituloClinica').value = localStorage.getItem('cfg_titulo_clinica') || 'Clinica Integrada';
-    if (document.getElementById('cfgSubtituloClinica')) document.getElementById('cfgSubtituloClinica').value = localStorage.getItem('cfg_subtitulo_clinica') || 'Gestao de Saude';
-    if (document.getElementById('cfgTemaSistema')) document.getElementById('cfgTemaSistema').value = localStorage.getItem('cfg_tema_sistema') || 'claro';
-    if (document.getElementById('cfgCorSidebar')) document.getElementById('cfgCorSidebar').value = localStorage.getItem('cfg_cor_sidebar') || '#1e293b';
-    if (document.getElementById('cfgCorPrincipal')) document.getElementById('cfgCorPrincipal').value = localStorage.getItem('cfg_cor_principal') || '#2563eb';
-
-    const urlLogoSalva = localStorage.getItem('cfg_logo_url') || '';
-    if (document.getElementById('cfgLogoUrl')) {
-        document.getElementById('cfgLogoUrl').value = urlLogoSalva.startsWith('data:image') ? '(Arquivo local anexado)' : urlLogoSalva;
-    }
-}
-
-function aplicarConfiguracoesVisuais() {
-    const titulo = localStorage.getItem('cfg_titulo_clinica') || 'Clinica Integrada';
-    const subtitulo = localStorage.getItem('cfg_subtitulo_clinica') || 'Gestao de Saude';
-    const logoUrl = localStorage.getItem('cfg_logo_url') || '';
-    const tema = localStorage.getItem('cfg_tema_sistema') || 'claro';
-    const corSidebar = localStorage.getItem('cfg_cor_sidebar') || '#1e293b';
-    const corPrincipal = localStorage.getItem('cfg_cor_principal') || '#2563eb';
-
-    if (document.getElementById('nomeClinicaTexto')) document.getElementById('nomeClinicaTexto').innerText = titulo;
-    if (document.getElementById('subtituloClinicaTexto')) document.getElementById('subtituloClinicaTexto').innerText = subtitulo;
-
-    const imgLogo = document.getElementById('logoClinicaDisplay');
-    if (imgLogo) {
-        if (logoUrl) {
-            imgLogo.src = logoUrl;
-            imgLogo.style.display = 'block';
-        } else {
-            imgLogo.style.display = 'none';
-        }
+@media (max-width: 760px) {
+    body {
+        display: block;
     }
 
-    if (tema === 'escuro') {
-        document.body.classList.add('dark-theme');
-    } else {
-        document.body.classList.remove('dark-theme');
+    .sidebar-menu {
+        position: static;
+        width: 100%;
+        height: auto;
     }
 
-    document.documentElement.style.setProperty('--sidebar-bg', corSidebar);
-    document.documentElement.style.setProperty('--primary-color', corPrincipal);
-}
-
-function salvarConfiguracoes() {
-    const titulo = document.getElementById('cfgTituloClinica')?.value || 'Clinica Integrada';
-    const subtitulo = document.getElementById('cfgSubtituloClinica')?.value || 'Gestao de Saude';
-    const tema = document.getElementById('cfgTemaSistema')?.value || 'claro';
-    const corSidebar = document.getElementById('cfgCorSidebar')?.value || '#1e293b';
-    const corPrincipal = document.getElementById('cfgCorPrincipal')?.value || '#2563eb';
-
-    localStorage.setItem('cfg_titulo_clinica', titulo);
-    localStorage.setItem('cfg_subtitulo_clinica', subtitulo);
-    localStorage.setItem('cfg_tema_sistema', tema);
-    localStorage.setItem('cfg_cor_sidebar', corSidebar);
-    localStorage.setItem('cfg_cor_principal', corPrincipal);
-
-    if (uploadLogoBase64) {
-        localStorage.setItem('cfg_logo_url', uploadLogoBase64);
-        uploadLogoBase64 = "";
-    } else {
-        const urlInput = document.getElementById('cfgLogoUrl')?.value || '';
-        if (urlInput && urlInput !== '(Arquivo local anexado)') {
-            localStorage.setItem('cfg_logo_url', urlInput);
-        }
+    .main-wrapper {
+        margin-left: 0;
+        padding: 18px;
     }
-    aplicarConfiguracoesVisuais();
-    alert('Configuracoes salvas com sucesso!');
+
+    .cards-indicadores,
+    .form-row {
+        flex-direction: column;
+    }
+
+    .grade-agenda {
+        grid-template-columns: 1fr;
+    }
+
+    #sidebar-agenda-paciente {
+        position: static;
+        width: 100%;
+        height: auto;
+    }
+
+    .lista-scroll-previsoes {
+        height: 420px;
+    }
 }
