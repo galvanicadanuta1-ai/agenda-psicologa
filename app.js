@@ -62,6 +62,27 @@ function formatarDataBR(data) {
     return `${String(data.getDate()).padStart(2, '0')}/${String(data.getMonth() + 1).padStart(2, '0')}/${data.getFullYear()}`;
 }
 
+function formatarMoeda(valor) {
+    return Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function escaparHTML(texto) {
+    return String(texto ?? '').replace(/[&<>"']/g, caractere => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    })[caractere]);
+}
+
+function obterPeriodoMesAtual() {
+    const hoje = new Date();
+    const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    const fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+    return { inicio, fim };
+}
+
 function alternarSubmenuPacientes() {
     const sub = document.getElementById('submenuPacientes');
     if (sub) sub.style.display = (sub.style.display === 'flex') ? 'none' : 'flex';
@@ -90,6 +111,7 @@ function mostrarTela(nomeTela) {
     const titulosModulos = {
         'dashboard': 'Agenda',
         'pacientes': 'Pacientes',
+        'relatorios': 'Relatorios',
         'novoPaciente': idPacienteEditando ? 'Perfil e Historico Clinico' : 'Cadastro de Novo Paciente',
         'configuracoes': 'Configuracoes do Sistema'
     };
@@ -104,6 +126,9 @@ function mostrarTela(nomeTela) {
             break;
         case 'pacientes':
             carregarPacientes();
+            break;
+        case 'relatorios':
+            carregarTelaRelatorios();
             break;
         case 'novoPaciente':
             if (!idPacienteEditando) {
@@ -131,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnSalvarPaciente')?.addEventListener('click', salvarPaciente);
     document.getElementById('btnSalvarConfiguracoes')?.addEventListener('click', salvarConfiguracoes);
     document.getElementById('btnAplicarPeriodoPaciente')?.addEventListener('click', () => renderizarSidebarCalendarioPaciente(idPacienteEditando, true));
+    document.getElementById('btnGerarRelatorio')?.addEventListener('click', gerarRelatorioFinanceiro);
 
     document.getElementById('dataInicial')?.addEventListener('change', () => {
         atualizarDiaSemanaAutomatico();
