@@ -132,6 +132,12 @@ body {
     color: white;
 }
 
+.mobile-topbar,
+.mobile-menu-overlay,
+.agenda-mobile {
+    display: none;
+}
+
 .main-wrapper {
     margin-left: 260px;
     flex: 1;
@@ -423,6 +429,11 @@ body {
     margin-bottom: 20px;
 }
 
+.titulo-lista-pacientes {
+    margin: 0 0 15px;
+    color: var(--text-dark);
+}
+
 .titulo-bloco-form {
     margin-top: 30px;
     border-top: 1px solid var(--border-color);
@@ -445,6 +456,22 @@ body {
 
 .relatorio-botao-grupo {
     justify-content: flex-end;
+}
+
+.btn-secundario {
+    width: 100%;
+    border: 1px solid var(--primary-color);
+    border-radius: 6px;
+    padding: 11px 16px;
+    background: transparent;
+    color: var(--primary-color);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-secundario:hover {
+    background: var(--primary-color);
+    color: #fff;
 }
 
 .cards-relatorio {
@@ -655,17 +682,81 @@ body {
 @media (max-width: 760px) {
     body {
         display: block;
+        background: #f4f7f5;
+    }
+
+    .mobile-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 68px;
+        padding: 0 20px;
+        background: #2f8736;
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
+        position: sticky;
+        top: 0;
+        z-index: 120;
+    }
+
+    .mobile-topbar-title {
+        font-size: 1.45rem;
+        font-weight: 700;
+    }
+
+    .mobile-menu-toggle {
+        width: 44px;
+        height: 44px;
+        padding: 10px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        cursor: pointer;
+    }
+
+    .mobile-menu-toggle span {
+        display: block;
+        height: 3px;
+        margin: 5px 0;
+        border-radius: 4px;
+        background: #fff;
     }
 
     .sidebar-menu {
-        position: static;
-        width: 100%;
-        height: auto;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: min(82vw, 320px);
+        height: 100vh;
+        padding-top: 18px;
+        transform: translateX(-105%);
+        transition: transform 0.25s ease;
+        z-index: 150;
+        box-shadow: 8px 0 24px rgba(15, 23, 42, 0.26);
+    }
+
+    .menu-mobile-aberto .sidebar-menu {
+        transform: translateX(0);
+    }
+
+    .mobile-menu-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.5);
+        z-index: 140;
+    }
+
+    .menu-mobile-aberto .mobile-menu-overlay {
+        display: block;
     }
 
     .main-wrapper {
         margin-left: 0;
-        padding: 18px;
+        padding: 16px;
+    }
+
+    .header-secao {
+        display: none;
     }
 
     .cards-indicadores,
@@ -673,8 +764,84 @@ body {
         flex-direction: column;
     }
 
-    .grade-agenda {
-        grid-template-columns: 1fr;
+    .cards-indicadores {
+        gap: 10px;
+        margin-bottom: 18px;
+    }
+
+    .card-ind {
+        min-width: 0;
+        padding: 14px;
+    }
+
+    .card-ind p {
+        font-size: 1.45rem;
+    }
+
+    .agenda-desktop {
+        display: none;
+    }
+
+    .agenda-mobile {
+        display: block;
+        background: #edf8ee;
+    }
+
+    .semana-bloco {
+        padding: 0;
+        margin-bottom: 22px;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .semana-titulo {
+        padding: 20px 18px;
+        font-size: 1.12rem;
+        line-height: 1.35;
+    }
+
+    .agenda-mobile-dia {
+        padding: 16px 14px;
+        border-bottom: 1px solid #d3e8d5;
+    }
+
+    .agenda-mobile-dia:last-child {
+        border-bottom: 0;
+    }
+
+    .agenda-mobile-dia h4 {
+        margin: 0 0 11px;
+        padding: 0;
+        background: transparent;
+        color: #172033;
+        font-size: 1.03rem;
+        text-transform: none;
+    }
+
+    .agenda-mobile .card-compromisso {
+        min-height: 0;
+        margin: 10px 0;
+        padding: 16px 38px 16px 18px;
+        text-align: left;
+        align-items: flex-start;
+        border-left: 6px solid #2f8736;
+        background: #fff;
+        color: #172033;
+    }
+
+    .agenda-mobile .card-paciente-nome {
+        font-size: 1.05rem;
+        margin-bottom: 7px;
+    }
+
+    .agenda-mobile .card-paciente-hora {
+        font-size: 0.94rem;
+    }
+
+    .agenda-mobile-vazio {
+        padding: 8px 0;
+        font-size: 0.9rem;
+        color: #64748b;
     }
 
     #sidebar-agenda-paciente {
@@ -687,3 +854,4 @@ body {
         height: 420px;
     }
 }
+
