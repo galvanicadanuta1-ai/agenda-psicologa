@@ -8,6 +8,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <header class="mobile-topbar">
+        <div class="mobile-topbar-title">Agenda Psicologa</div>
+        <button type="button" class="mobile-menu-toggle" aria-label="Abrir menu" onclick="alternarMenuMobile()"><span></span><span></span><span></span></button>
+    </header>
     <div class="sidebar-menu">
         <div class="sidebar-brand">
             <img id="logoClinicaDisplay" src="" alt="Logo da Clinica">
@@ -19,6 +23,7 @@
         <button onclick="mostrarTela('relatorios')">Relatorios</button>
         <button onclick="mostrarTela('configuracoes')">Configuracoes</button>
     </div>
+    <div class="mobile-menu-overlay" onclick="fecharMenuMobile()"></div>
 
     <div class="main-wrapper">
         <div class="header-secao">
@@ -30,10 +35,6 @@
                 <div class="card-ind">
                     <h3>Pacientes Ativos</h3>
                     <p id="totalAtivos">0</p>
-                </div>
-                <div class="card-ind">
-                    <h3>Pacientes Inativos</h3>
-                    <p id="totalInativos">0</p>
                 </div>
                 <div class="card-ind">
                     <h3>Previsao Mes Atual</h3>
@@ -55,6 +56,7 @@
             <div class="barra-acoes">
                 <button onclick="acionarMenuNovoPaciente()" class="btn-principal">Novo Paciente</button>
             </div>
+            <h3 class="titulo-lista-pacientes">Pacientes cadastrados</h3>
             <div id="listaPacientes" class="grid-pacientes"></div>
         </div>
 
@@ -173,16 +175,24 @@
                     <div class="form-group">
                         <label>Tipo de Relatorio</label>
                         <select id="tipoRelatorio">
+                            <option value="completo" selected>Resumo Completo</option>
                             <option value="contas_receber">Contas a Receber</option>
                             <option value="recebidos">Pagamentos Recebidos</option>
                             <option value="previsao">Previsao de Faturamento</option>
-                            <option value="completo">Resumo Completo</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Paciente</label>
                         <select id="filtroPacienteRelatorio">
                             <option value="">Todos os pacientes</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Pagamento</label>
+                        <select id="filtroPagamentoRelatorio">
+                            <option value="todos">Todos</option>
+                            <option value="pago">Pagos</option>
+                            <option value="aberto">Em aberto</option>
                         </select>
                     </div>
                 </div>
@@ -199,6 +209,10 @@
                     <div class="form-group relatorio-botao-grupo">
                         <label>&nbsp;</label>
                         <button type="button" id="btnGerarRelatorio" class="btn-principal">Gerar Relatorio</button>
+                    </div>
+                    <div class="form-group relatorio-botao-grupo">
+                        <label>&nbsp;</label>
+                        <button type="button" id="btnGerarPdfRelatorio" class="btn-secundario">Gerar PDF</button>
                     </div>
                 </div>
 
@@ -361,3 +375,5 @@
     <script src="app.js"></script>
 </body>
 </html>
+
+
