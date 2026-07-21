@@ -20,7 +20,12 @@
         </div>
         <button onclick="mostrarTela('dashboard')">Agenda</button>
         <button onclick="mostrarTela('pacientes')">Pacientes</button>
-        <button onclick="mostrarTela('relatorios')">Relatorios</button>
+        <button type="button" onclick="alternarSubmenuFinanceiro()">Financeiro</button>
+        <div id="submenuFinanceiro" class="submenu-financeiro">
+            <button onclick="mostrarTela('contasReceber')">Contas a Receber</button>
+            <button onclick="mostrarTela('contasPagar')">Contas a Pagar</button>
+            <button onclick="mostrarTela('relatorios')">Relatorios</button>
+        </div>
         <button onclick="mostrarTela('configuracoes')">Configuracoes</button>
     </div>
     <div class="mobile-menu-overlay" onclick="fecharMenuMobile()"></div>
@@ -47,6 +52,14 @@
                 <div class="card-ind">
                     <h3>R$ a Receber</h3>
                     <p id="aReceberMesAtual">R$ 0,00</p>
+                </div>
+                <div class="card-ind">
+                    <h3>Contas a Pagar</h3>
+                    <p id="contasPagarMesAtual">R$ 0,00</p>
+                </div>
+                <div class="card-ind card-saldo">
+                    <h3>R$ Saldo</h3>
+                    <p id="saldoMesAtual">R$ 0,00</p>
                 </div>
             </div>
             <div id="grade-agenda-container"></div>
@@ -179,6 +192,7 @@
                             <option value="contas_receber">Contas a Receber</option>
                             <option value="recebidos">Pagamentos Recebidos</option>
                             <option value="previsao">Previsao de Faturamento</option>
+                            <option value="contas_pagar">Contas a Pagar</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -235,6 +249,34 @@
                     Selecione os filtros e clique em Gerar Relatorio.
                 </div>
             </div>
+        </div>
+
+        <div id="contasReceber" class="tela">
+            <div class="financeiro-cabecalho"><h3>Contas a Receber</h3><button type="button" class="btn-principal" onclick="alternarFormularioConta('receber')">Incluir conta a receber</button></div>
+            <div class="cards-indicadores cards-financeiro">
+                <div class="card-ind"><h3>Previsao Mes Atual</h3><p id="receberPrevisto">R$ 0,00</p></div>
+                <div class="card-ind"><h3>Pagamentos Recebidos</h3><p id="receberRecebido">R$ 0,00</p></div>
+                <div class="card-ind"><h3>R$ a Receber</h3><p id="receberAberto">R$ 0,00</p></div>
+                <div class="card-ind"><h3>Contas a Pagar</h3><p id="receberPagar">R$ 0,00</p></div>
+                <div class="card-ind card-saldo"><h3>R$ Saldo</h3><p id="receberSaldo">R$ 0,00</p></div>
+            </div>
+            <div id="formContaReceber" class="form-container formulario-conta" style="display:none;">
+                <h3>Nova conta a receber</h3>
+                <div class="form-row"><div class="form-group"><label>Data</label><input type="date" id="contaReceberData"></div><div class="form-group"><label>Descricao</label><input type="text" id="contaReceberDescricao" placeholder="Ex.: Atendimento avulso"></div><div class="form-group"><label>Valor (R$)</label><input type="number" id="contaReceberValor" min="0" step="0.01"></div></div>
+                <button type="button" class="btn-principal" onclick="salvarContaManual('receber')">Salvar conta a receber</button>
+            </div>
+            <div id="listaContasReceber" class="resultado-relatorio"></div>
+        </div>
+
+        <div id="contasPagar" class="tela">
+            <div class="financeiro-cabecalho"><h3>Contas a Pagar</h3><button type="button" class="btn-principal" onclick="alternarFormularioConta('pagar')">Incluir conta a pagar</button></div>
+            <div class="cards-indicadores cards-financeiro"><div class="card-ind"><h3>Contas a Pagar Mes Atual</h3><p id="pagarTotal">R$ 0,00</p></div><div class="card-ind card-saldo"><h3>R$ Saldo</h3><p id="pagarSaldo">R$ 0,00</p></div></div>
+            <div id="formContaPagar" class="form-container formulario-conta" style="display:none;">
+                <h3>Nova conta a pagar</h3>
+                <div class="form-row"><div class="form-group"><label>Data</label><input type="date" id="contaPagarData"></div><div class="form-group"><label>Valor (R$)</label><input type="number" id="contaPagarValor" min="0" step="0.01"></div><div class="form-group"><label>Categoria</label><select id="contaPagarCategoria" onchange="alternarDescricaoContaPagar()"><option value="Sublocacao">Sublocacao</option><option value="Outro">Outro</option></select></div><div class="form-group" id="grupoDescricaoContaPagar" style="display:none;"><label>Descricao</label><input type="text" id="contaPagarDescricao" placeholder="Descreva a conta"></div></div>
+                <button type="button" class="btn-principal" onclick="salvarContaManual('pagar')">Salvar conta a pagar</button>
+            </div>
+            <div id="listaContasPagar" class="resultado-relatorio"></div>
         </div>
 
         <div id="configuracoes" class="tela">
@@ -344,6 +386,10 @@
                         <input type="checkbox" id="valorOcorrenciaPago">
                         <span>R$ Pago</span>
                     </label>
+                </div>
+                <div class="form-group">
+                    <label>Frequencia</label>
+                    <select id="frequenciaAgendamento" data-original="Semanal"><option value="Semanal">Semanal</option><option value="Quinzenal">Quinzenal</option><option value="Mensal">Mensal</option></select>
                 </div>
             </div>
 
