@@ -138,11 +138,19 @@ body {
 
 .financeiro-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 20px; }
 .financeiro-cabecalho h3 { margin: 0; font-size: 1.25rem; }
+.filtros-contas { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.filtros-contas input, .filtros-contas select { min-height: 38px; box-sizing: border-box; }
+.filtros-contas .btn-secundario { width: auto; min-height: 38px; padding: 7px 12px; }
 .cards-financeiro { margin-bottom: 20px; }
 .card-saldo { background: #e8f7ed; border-color: #42a55c; }
 .card-saldo h3, .card-saldo p { color: #147334; }
+.card-pagar { background: #fff0f0; border-color: #dc5050; }
+.card-pagar h3, .card-pagar p { color: #bf1e2e; }
+.card-receber { background: #e8f7ed; border-color: #42a55c; }
+.card-receber h3, .card-receber p { color: #147334; }
 .formulario-conta { margin-bottom: 18px; }
 .btn-conta-excluir { padding: 6px 9px; font-size: 0.75rem; }
+.checkbox-tabela { margin: 0; font-size: 0.78rem; }
 
 .mobile-topbar,
     .mobile-menu-overlay,
@@ -180,6 +188,35 @@ body {
     flex-wrap: wrap;
 }
 
+.dashboard-indicadores {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(150px, 1fr));
+    align-items: stretch;
+    gap: 14px;
+    margin: 0 auto 24px;
+    max-width: 1420px;
+}
+
+.dashboard-indicadores .card-ind {
+    min-width: 0;
+    padding: 16px 12px;
+}
+
+.dashboard-indicadores .card-ind h3 {
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    font-size: 0.78rem;
+    line-height: 1.2;
+}
+
+.dashboard-indicadores .card-ind p {
+    font-size: 1.42rem;
+    line-height: 1.15;
+}
+
 .card-ind,
 .form-container,
 .cardPaciente {
@@ -199,6 +236,7 @@ body {
     font-size: 0.9rem;
     color: #64748b;
     text-transform: uppercase;
+    text-align: center;
 }
 
 .card-ind p {
@@ -206,6 +244,7 @@ body {
     font-size: 1.8rem;
     font-weight: 700;
     color: var(--text-dark);
+    text-align: center;
 }
 
 .semana-bloco {
@@ -618,6 +657,14 @@ body {
     opacity: 0.95;
 }
 
+.linha-conta-pagar {
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(100, 116, 139, 0.2);
+    font-size: 0.78rem;
+    color: inherit;
+}
+
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -636,13 +683,25 @@ body {
     color: var(--text-main);
     padding: 25px;
     border-radius: 8px;
-    width: 450px;
-    max-width: 90%;
+    width: 680px;
+    max-width: 94%;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .modal-box h3 {
     margin-top: 0;
     color: var(--text-dark);
+}
+
+.modal-linha-financeira .form-group:last-child {
+    flex: 1.7;
+}
+
+.modal-linha-financeira input,
+.modal-linha-financeira select {
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .box-escopo {
@@ -663,6 +722,92 @@ body {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
+}
+
+.modal-prontuario-box {
+    width: 760px;
+}
+
+.prontuario-cabecalho {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.prontuario-cabecalho h3 {
+    margin-bottom: 4px;
+}
+
+.prontuario-cabecalho p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.btn-fechar-modal {
+    border: 0;
+    background: transparent;
+    color: #64748b;
+    font-size: 1.7rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+#textoProntuarioSessao {
+    width: 100%;
+    min-height: 230px;
+    box-sizing: border-box;
+    resize: vertical;
+    margin-top: 7px;
+}
+
+.acoes-prontuario {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.acoes-prontuario .btn-secundario,
+.btn-anexo-prontuario {
+    width: auto;
+    padding: 10px 14px;
+}
+
+.btn-anexo-prontuario {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--primary-color);
+    border-radius: 6px;
+    color: var(--primary-color);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.lista-arquivos-prontuario {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px dashed var(--border-color);
+    border-radius: 6px;
+    color: #475569;
+    font-size: 0.86rem;
+}
+
+.lista-arquivos-prontuario div + div {
+    margin-top: 5px;
+}
+
+.lista-arquivos-prontuario span,
+.aviso-prontuario {
+    color: #64748b;
+}
+
+.aviso-prontuario {
+    margin: 10px 0 0;
+    font-size: 0.78rem;
+    line-height: 1.4;
 }
 
 .grid-pacientes {
@@ -686,6 +831,7 @@ body {
 }
 
 @media (max-width: 1150px) {
+    .dashboard-indicadores { grid-template-columns: repeat(3, minmax(150px, 1fr)); }
     .grade-agenda {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -776,6 +922,11 @@ body {
         flex-direction: column;
     }
 
+    .dashboard-indicadores {
+        display: flex;
+        gap: 10px;
+    }
+
     .cards-indicadores {
         gap: 10px;
         margin-bottom: 18px;
@@ -788,6 +939,46 @@ body {
 
     .card-ind p {
         font-size: 1.45rem;
+    }
+
+    .financeiro-cabecalho {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .modal-box {
+        width: auto;
+        max-width: 92%;
+        padding: 20px;
+    }
+
+    .modal-prontuario-box {
+        width: auto;
+    }
+
+    .acoes-prontuario {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .acoes-prontuario .btn-secundario,
+    .btn-anexo-prontuario {
+        justify-content: center;
+        width: auto;
+    }
+
+    .financeiro-cabecalho .btn-principal {
+        width: 100%;
+    }
+
+    .filtros-contas {
+        justify-content: stretch;
+    }
+
+    .filtros-contas input,
+    .filtros-contas select,
+    .filtros-contas .btn-secundario {
+        flex: 1 1 130px;
     }
 
     .agenda-desktop {
