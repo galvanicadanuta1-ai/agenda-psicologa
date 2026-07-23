@@ -36,24 +36,20 @@
         </div>
 
         <div id="dashboard" class="tela" style="display: block;">
-            <div class="cards-indicadores">
+            <div class="cards-indicadores dashboard-indicadores">
                 <div class="card-ind">
-                    <h3>Pacientes Ativos</h3>
-                    <p id="totalAtivos">0</p>
-                </div>
-                <div class="card-ind">
-                    <h3>Previsao Mes Atual</h3>
+                    <h3>Previsão Mês Atual</h3>
                     <p id="previsaoMesAtual">R$ 0,00</p>
                 </div>
                 <div class="card-ind">
                     <h3>Pagamentos Recebidos</h3>
                     <p id="recebidosMesAtual">R$ 0,00</p>
                 </div>
-                <div class="card-ind">
+                <div class="card-ind card-receber">
                     <h3>R$ a Receber</h3>
                     <p id="aReceberMesAtual">R$ 0,00</p>
                 </div>
-                <div class="card-ind">
+                <div class="card-ind card-pagar">
                     <h3>Contas a Pagar</h3>
                     <p id="contasPagarMesAtual">R$ 0,00</p>
                 </div>
@@ -193,6 +189,7 @@
                             <option value="recebidos">Pagamentos Recebidos</option>
                             <option value="previsao">Previsao de Faturamento</option>
                             <option value="contas_pagar">Contas a Pagar</option>
+                            <option value="contas_manuais">Contas Manuais</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -252,7 +249,7 @@
         </div>
 
         <div id="contasReceber" class="tela">
-            <div class="financeiro-cabecalho"><h3>Contas a Receber</h3><button type="button" class="btn-principal" onclick="alternarFormularioConta('receber')">Incluir conta a receber</button></div>
+            <div class="financeiro-cabecalho"><h3>Contas a Receber</h3><div class="filtros-contas"><input type="date" id="filtroReceberInicio" aria-label="Periodo inicial"><input type="date" id="filtroReceberFim" aria-label="Periodo final"><select id="filtroReceberStatus"><option value="aberto" selected>Em aberto</option><option value="pago">Pago</option><option value="todos">Todos</option></select><button type="button" class="btn-secundario" onclick="carregarTelaContas('receber')">Filtrar</button></div><button type="button" class="btn-principal" onclick="alternarFormularioConta('receber')">Incluir conta a receber</button></div>
             <div class="cards-indicadores cards-financeiro">
                 <div class="card-ind"><h3>Previsao Mes Atual</h3><p id="receberPrevisto">R$ 0,00</p></div>
                 <div class="card-ind"><h3>Pagamentos Recebidos</h3><p id="receberRecebido">R$ 0,00</p></div>
@@ -262,18 +259,18 @@
             </div>
             <div id="formContaReceber" class="form-container formulario-conta" style="display:none;">
                 <h3>Nova conta a receber</h3>
-                <div class="form-row"><div class="form-group"><label>Data</label><input type="date" id="contaReceberData"></div><div class="form-group"><label>Descricao</label><input type="text" id="contaReceberDescricao" placeholder="Ex.: Atendimento avulso"></div><div class="form-group"><label>Valor (R$)</label><input type="number" id="contaReceberValor" min="0" step="0.01"></div></div>
+                <div class="form-row"><div class="form-group"><label>Data</label><input type="date" id="contaReceberData"></div><div class="form-group"><label>Descricao</label><input type="text" id="contaReceberDescricao" placeholder="Ex.: Atendimento avulso"></div><div class="form-group"><label>Valor (R$)</label><input type="number" id="contaReceberValor" min="0" step="0.01"></div><div class="form-group"><label class="checkbox-pagamento"><input type="checkbox" id="contaReceberPago"><span>Pago</span></label></div></div>
                 <button type="button" class="btn-principal" onclick="salvarContaManual('receber')">Salvar conta a receber</button>
             </div>
             <div id="listaContasReceber" class="resultado-relatorio"></div>
         </div>
 
         <div id="contasPagar" class="tela">
-            <div class="financeiro-cabecalho"><h3>Contas a Pagar</h3><button type="button" class="btn-principal" onclick="alternarFormularioConta('pagar')">Incluir conta a pagar</button></div>
+            <div class="financeiro-cabecalho"><h3>Contas a Pagar</h3><div class="filtros-contas"><input type="date" id="filtroPagarInicio" aria-label="Periodo inicial"><input type="date" id="filtroPagarFim" aria-label="Periodo final"><select id="filtroPagarStatus"><option value="aberto" selected>Em aberto</option><option value="pago">Pago</option><option value="todos">Todos</option></select><button type="button" class="btn-secundario" onclick="carregarTelaContas('pagar')">Filtrar</button></div><button type="button" class="btn-principal" onclick="alternarFormularioConta('pagar')">Incluir conta a pagar</button></div>
             <div class="cards-indicadores cards-financeiro"><div class="card-ind"><h3>Contas a Pagar Mes Atual</h3><p id="pagarTotal">R$ 0,00</p></div><div class="card-ind card-saldo"><h3>R$ Saldo</h3><p id="pagarSaldo">R$ 0,00</p></div></div>
             <div id="formContaPagar" class="form-container formulario-conta" style="display:none;">
                 <h3>Nova conta a pagar</h3>
-                <div class="form-row"><div class="form-group"><label>Data</label><input type="date" id="contaPagarData"></div><div class="form-group"><label>Valor (R$)</label><input type="number" id="contaPagarValor" min="0" step="0.01"></div><div class="form-group"><label>Categoria</label><select id="contaPagarCategoria" onchange="alternarDescricaoContaPagar()"><option value="Sublocacao">Sublocacao</option><option value="Outro">Outro</option></select></div><div class="form-group" id="grupoDescricaoContaPagar" style="display:none;"><label>Descricao</label><input type="text" id="contaPagarDescricao" placeholder="Descreva a conta"></div></div>
+                <div class="form-row"><div class="form-group"><label>Data</label><input type="date" id="contaPagarData"></div><div class="form-group"><label>Valor (R$)</label><input type="number" id="contaPagarValor" min="0" step="0.01"></div><div class="form-group"><label>Categoria</label><select id="contaPagarCategoria" onchange="alternarDescricaoContaPagar()"><option value="Sublocacao">Sublocacao</option><option value="Outro">Outro</option></select></div><div class="form-group" id="grupoDescricaoContaPagar" style="display:none;"><label>Descricao</label><input type="text" id="contaPagarDescricao" placeholder="Descreva a conta"></div><div class="form-group"><label class="checkbox-pagamento"><input type="checkbox" id="contaPagarPago"><span>Pago</span></label></div></div>
                 <button type="button" class="btn-principal" onclick="salvarContaManual('pagar')">Salvar conta a pagar</button>
             </div>
             <div id="listaContasPagar" class="resultado-relatorio"></div>
@@ -387,9 +384,19 @@
                         <span>R$ Pago</span>
                     </label>
                 </div>
+            </div>
+
+            <div class="form-row modal-linha-financeira">
                 <div class="form-group">
                     <label>Frequencia</label>
                     <select id="frequenciaAgendamento" data-original="Semanal"><option value="Semanal">Semanal</option><option value="Quinzenal">Quinzenal</option><option value="Mensal">Mensal</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Conta a Pagar</label>
+                    <select id="contaPagarOcorrenciaCategoria" onchange="alternarDescricaoContaPagarOcorrencia()"><option value="">Nenhuma</option><option value="Sublocacao">Sublocacao</option><option value="Outro">Outro</option></select>
+                    <input type="text" id="contaPagarOcorrenciaDescricao" placeholder="Descricao" style="display:none; margin-top:8px;">
+                    <input type="number" id="contaPagarOcorrenciaValor" min="0" step="0.01" placeholder="Valor (R$)" style="display:none; margin-top:8px;">
+                    <label class="checkbox-pagamento" id="contaPagarOcorrenciaPagoBox" style="display:none;"><input type="checkbox" id="contaPagarOcorrenciaPago"><span>Pago</span></label>
                 </div>
             </div>
 
@@ -412,8 +419,31 @@
             </div>
 
             <div class="modal-acoes">
+                <button type="button" id="btnAbrirProntuario" class="btn-secundario">Prontuario da Sessao</button>
                 <button type="button" class="btn-secundario" onclick="fecharModalAgendamento()">Cancelar</button>
                 <button type="button" id="btnPersistirAgendamento" class="btn-principal">Confirmar Ajustes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalProntuario" class="modal-overlay">
+        <div class="modal-box modal-prontuario-box">
+            <div class="prontuario-cabecalho">
+                <div><h3>Prontuario da Sessao</h3><p id="prontuarioIdentificacao"></p></div>
+                <button type="button" class="btn-fechar-modal" onclick="fecharProntuarioSessao()" aria-label="Fechar prontuario">×</button>
+            </div>
+            <label for="textoProntuarioSessao">Registro clinico</label>
+            <textarea id="textoProntuarioSessao" rows="12" placeholder="Digite as anotacoes desta sessao..."></textarea>
+            <div class="acoes-prontuario">
+                <button type="button" id="btnDitadoProntuario" class="btn-secundario">🎙️ Iniciar ditado</button>
+                <label class="btn-anexo-prontuario" for="arquivosProntuarioSessao">Anexar documentos</label>
+                <input type="file" id="arquivosProntuarioSessao" multiple accept=".pdf,.doc,.docx,image/*" hidden>
+            </div>
+            <div id="listaArquivosProntuario" class="lista-arquivos-prontuario">Nenhum arquivo selecionado.</div>
+            <p class="aviso-prontuario">Teste: o texto fica salvo neste navegador. Os documentos selecionados nao sao enviados nem guardados ate conectarmos o armazenamento privado em nuvem.</p>
+            <div class="modal-acoes">
+                <button type="button" class="btn-secundario" onclick="fecharProntuarioSessao()">Cancelar</button>
+                <button type="button" class="btn-principal" onclick="salvarProntuarioSessao()">Salvar prontuario</button>
             </div>
         </div>
     </div>
